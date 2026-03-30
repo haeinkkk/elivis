@@ -1,0 +1,7 @@
+export default function ProjectDetailLoading() {
+  return (
+    <div className="flex min-h-[240px] w-full items-center justify-center p-6">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+    </div>
+  );
+}

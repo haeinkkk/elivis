@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 개발 환경 (local dev)
+# 사용: pnpm db:up / pnpm db:down
+#  - DB만 컨테이너로 실행하고, 앱(web·server·desktop)은 pnpm dev 로 로컬 실행
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  elivis-redis:
+    image: redis:7-alpine
+    container_name: elivis-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - elivis-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - elivis-network
+
+  elivis-postgres:
+    image: postgres:16-alpine
+    container_name: elivis-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: elivis
+      POSTGRES_PASSWORD: elivis
+      POSTGRES_DB: elivis
+    volumes:
+      - elivis-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elivis -d elivis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - elivis-network
+
+networks:
+  elivis-network:
+    name: elivis-network
+
+volumes:
+  elivis-redis-data:
+  elivis-postgres-data:

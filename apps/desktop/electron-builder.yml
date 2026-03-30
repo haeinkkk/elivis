@@ -1,0 +1,43 @@
+# 빌드 전에 루트에서 실행: pnpm build:desktop
+# 웹 정적 산출물은 web#build:static 으로 apps/web/out 에 생성됩니다.
+appId: com.elivis.desktop
+productName: Elvis
+copyright: Copyright © Elvis
+
+# pnpm 모노레포에서 @electron/rebuild가 워크스페이스 잔여 링크를 잘못 스캔하는 경우가 있어 비활성화
+npmRebuild: false
+
+# 로컬/CI에서 코드 서명 없이 빌드 (Windows에서 winCodeSign 캐시 심볼릭 링크 오류 방지)
+forceCodeSigning: false
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - package.json
+
+extraResources:
+  - from: ../web/out
+    to: web-out
+    filter:
+      - "**/*"
+
+win:
+  sign: null
+  verifyUpdateCodeSignature: false
+  # portable: 단일 .exe, NSIS/winCodeSign(심볼릭 링크) 없이 Windows 로컬 빌드에 유리
+  target:
+    - portable
+  artifactName: "${productName}-${version}-portable.${ext}"
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.productivity
+
+linux:
+  target:
+    - AppImage
+  category: Office

@@ -1,0 +1,15 @@
+node_modules
+.turbo
+.git
+.next
+**/.next
+**/dist
+**/release
+**/out
+apps/web/out
+*.md
+.env
+.env.*
+!.env.example
+coverage
+**/*.log

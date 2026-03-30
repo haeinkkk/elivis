@@ -1,0 +1,37 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "API_PORT",
+    "API_HOST",
+    "CORS_ORIGIN",
+    "NEXT_PUBLIC_API_URL",
+    "ELECTRON_STATIC"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
+    },
+    "build:static": {
+      "dependsOn": ["^build"],
+      "outputs": ["out/**"]
+    },
+    "build:desktop": {
+      "dependsOn": ["web#build:static", "@repo/desktop#build"],
+      "outputs": ["release/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "type-check": {
+      "dependsOn": ["^type-check"]
+    }
+  }
+}

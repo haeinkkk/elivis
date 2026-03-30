@@ -1,0 +1,41 @@
+{
+  "name": "elivis",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "turbo run dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:server": "pnpm --filter @repo/server dev",
+    "dev:desktop": "pnpm --filter @repo/desktop dev",
+    "build": "turbo build",
+    "build:desktop": "turbo run build:desktop --filter=@repo/desktop",
+    "start": "concurrently -k \"pnpm --filter web start\" \"pnpm --filter @repo/server start\"",
+    "db:deploy": "pnpm --filter @repo/database db:deploy",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "docker:dev:up": "docker compose up -d",
+    "docker:dev:down": "docker compose down",
+    "docker:dev:logs": "docker compose logs -f",
+    "docker:prod:up": "docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:prod:logs": "docker compose -f docker-compose.prod.yml logs -f",
+    "docker:prod:build": "docker compose -f docker-compose.prod.yml --env-file .env.production build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.3.0",
+    "turbo": "^2.3.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md,mdx,yaml,yml}": "prettier --write"
+  },
+  "packageManager": "pnpm@9.14.2",
+  "engines": {
+    "node": ">=24.14.0"
+  }
+}

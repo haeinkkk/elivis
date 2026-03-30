@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 상용 환경 (production)
+# 사용: docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#  - DB + Fastify API 서버를 모두 컨테이너로 실행
+#  - elivis-server 이미지는 apps/server/Dockerfile(멀티스테이지)로 빌드
+#  - DATABASE_URL 호스트명은 서비스명 elivis-postgres (컨테이너 내부 DNS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  elivis-redis:
+    image: redis:7-alpine
+    container_name: elivis-redis-prod
+    restart: unless-stopped
+    volumes:
+      - elivis-redis-prod-data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-elivis}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-elivis}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - elivis-network
+
+  elivis-postgres:
+    image: postgres:16-alpine
+    container_name: elivis-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-elivis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-elivis}
+      POSTGRES_DB: ${POSTGRES_DB:-elivis}
+    volumes:
+      - elivis-postgres-prod-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-elivis} -d ${POSTGRES_DB:-elivis}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - elivis-network
+
+  elivis-server:
+    container_name: elivis-server-prod
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      elivis-postgres:
+        condition: service_healthy
+      elivis-redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      # 내부 DNS: 서비스명(elivis-postgres)을 호스트로 사용
+      DATABASE_URL: postgresql://${POSTGRES_USER:-elivis}:${POSTGRES_PASSWORD:-elivis}@elivis-postgres:5432/${POSTGRES_DB:-elivis}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-elivis}@elivis-redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "${SERVER_PORT:-4000}:4000"
+    networks:
+      - elivis-network
+
+networks:
+  elivis-network:
+    name: elivis-network-prod
+
+volumes:
+  elivis-redis-prod-data:
+  elivis-postgres-prod-data:
