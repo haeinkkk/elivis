@@ -1,16 +1,31 @@
 # Elivis
 
-> 간단하고 쓸만한 것들만 모아놓은 프로젝트 매니징 앱
+> 간단하고 쓸만한 것들만 모아놓은 프로젝트 매니징 앱  
+> A project management app with only the things that actually matter.
 
 복잡한 기능보다 **실제로 쓰는 기능**만 담았습니다.  
 팀 프로젝트를 만들고, 멤버를 초대하고, 업무를 나누는 것 — 그게 전부입니다.
 
+We focused on features you'll actually use, not features that look good on a spec sheet.  
+Create a project, invite your team, divide the work — that's it.
+
 웹 브라우저에서도, 데스크톱 앱으로도 동일한 화면으로 사용할 수 있으며,  
 직접 서버에 올려 운영하는 **셀프 호스팅**을 기본으로 설계했습니다.
 
+Works the same in a browser or as a desktop app,  
+and designed from the ground up for **self-hosting**.
+
 ---
 
-**Web** · **Desktop** · **API Server** 세 앱이 하나의 모노레포에서 코드를 공유합니다.
+**Web** · **Desktop** · **API Server** 세 앱이 하나의 모노레포에서 코드를 공유합니다.  
+Three apps — Web, Desktop, API Server — sharing one codebase in a monorepo.
+
+---
+
+## Made by
+
+[![Instagram](https://img.shields.io/badge/Instagram-%40hi.kimsunim-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/hi.kimsunim/)
+[![Threads](https://img.shields.io/badge/Threads-%40hi.kimsunim-000000?logo=threads&logoColor=white)](https://www.threads.com/@hi.kimsunim)
 
 ---
 
@@ -44,7 +59,7 @@
 ### 1. Clone
 
 ```bash
-git clone https://github.com/your-org/elivis.git
+git clone https://github.com/haeinkkk/elivis.git
 cd elivis
 ```
 
@@ -204,4 +219,24 @@ Contributions are welcome! Please open an issue first to discuss what you would 
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+MIT License
+
+Copyright (c) 2025 Elivis Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
