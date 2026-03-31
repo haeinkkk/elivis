@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { createHash } from "node:crypto";
 
+import { generatePublicId } from "../src/id";
+
 const prisma = new PrismaClient();
 
 /** SHA-256 기반 단순 해시 (실제 서비스에서는 bcrypt 사용 권장) */
@@ -21,6 +23,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
+      id: generatePublicId(),
       email,
       name: "Super Admin",
       password: hashPassword(password),

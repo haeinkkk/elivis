@@ -95,15 +95,17 @@ export function AppSidebar({
         <button
           type="button"
           onClick={() => onSizeChange("expanded")}
-          className="fixed left-2 top-16 z-60 hidden h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white/90 shadow-sm backdrop-blur md:flex hover:bg-white"
+          className="fixed left-4 top-1/2 z-[60] hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200/90 bg-white text-stone-600 shadow-lg ring-1 ring-stone-200/50 backdrop-blur-sm transition hover:border-stone-300 hover:bg-stone-50 hover:text-stone-800 hover:shadow-xl active:scale-[0.98] md:flex"
           aria-label={tSidebar("restore")}
+          title={tSidebar("restore")}
         >
           <svg
-            className="h-5 w-5 text-stone-600"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
+            aria-hidden
           >
             <path
               strokeLinecap="round"
@@ -266,12 +268,13 @@ export function AppSidebar({
           <div className={`shrink-0 border-t border-stone-100 ${showLabels ? "p-3" : "p-2"}`}>
             <Link
               href="/admin"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={onClose}
               className={`
                 flex items-center rounded-lg text-xs font-medium text-stone-400 transition-colors
                 hover:bg-stone-100 hover:text-stone-600
                 ${showLabels ? "gap-2 px-3 py-2" : "justify-center px-2 py-2"}
-                ${pathname.startsWith("/admin") ? "bg-stone-100 text-stone-600" : ""}
               `}
             >
               <svg

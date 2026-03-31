@@ -28,7 +28,7 @@ async function compressAvatar(buffer: Buffer): Promise<Buffer> {
 const USER_STATUSES = ["WORKING", "VACATION", "OFF_WORK", "DEEP_FOCUS"] as const;
 type UserStatusValue = (typeof USER_STATUSES)[number];
 
-interface UpdateMeBody {
+export interface UpdateMeBody {
     name?: string;
     bio?: string;
     status?: UserStatusValue;
@@ -154,5 +154,31 @@ export function createUserController(app: FastifyInstance) {
         return reply.send(ok(user, t(request.lang, MSG.USER_AVATAR_REMOVED)));
     }
 
-    return { getMe, updateMe, uploadAvatar, deleteAvatar };
+    // ── GET /api/users/search?q= ─────────────────────────────────────────────
+    async function searchUsers(
+        request: FastifyRequest<{ Querystring: { q?: string } }>,
+        reply: FastifyReply,
+    ) {
+        const q = request.query.q?.trim() ?? "";
+        if (q.length < 1) {
+            return reply.send(ok([], t(request.lang, MSG.USER_SEARCH_RESULTS)));
+        }
+
+        const users = await app.prisma.user.findMany({
+            where: {
+                id: { not: request.userId },
+                OR: [
+                    { email: { contains: q, mode: "insensitive" } },
+                    { name: { contains: q, mode: "insensitive" } },
+                ],
+            },
+            select: { id: true, email: true, name: true },
+            take: 30,
+            orderBy: { email: "asc" },
+        });
+
+        return reply.send(ok(users, t(request.lang, MSG.USER_SEARCH_RESULTS)));
+    }
+
+    return { getMe, updateMe, uploadAvatar, deleteAvatar, searchUsers };
 }

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { generatePublicId } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { t } from "@repo/i18n";
 
@@ -75,6 +76,7 @@ export function createAuthController(app: FastifyInstance) {
         const hashed = await bcrypt.hash(password, 12);
         const user = await app.prisma.user.create({
             data: {
+                id: generatePublicId(),
                 email,
                 password: hashed,
                 name,

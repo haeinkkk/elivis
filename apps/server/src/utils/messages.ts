@@ -35,10 +35,37 @@ export const MSG = {
     PROJECT_MEMBER_ADDED: "server.project.memberAdded",
     PROJECT_NAME_REQUIRED: "server.project.nameRequired",
     PROJECT_NOT_FOUND: "server.project.notFound",
+    PROJECT_TEAM_NOT_MEMBER: "server.project.teamNotMember",
+
+    // ── 팀 ────────────────────────────────────────────────────────────────────
+    TEAM_CREATED: "server.team.created",
+    TEAM_LIST_FETCHED: "server.team.listFetched",
+    TEAM_NAME_REQUIRED: "server.team.nameRequired",
+    TEAM_NAME_DUPLICATE: "server.team.nameDuplicate",
+    TEAM_MEMBER_INVALID: "server.team.memberInvalid",
+    TEAM_NOT_FOUND: "server.team.notFound",
+    TEAM_DETAIL_FETCHED: "server.team.detailFetched",
+    TEAM_MEMBER_ADDED: "server.team.memberAdded",
+    TEAM_MEMBER_ADD_FORBIDDEN: "server.team.memberAddForbidden",
+    TEAM_MEMBER_ALREADY: "server.team.memberAlready",
+    TEAM_EDIT_FORBIDDEN: "server.team.editForbidden",
+    TEAM_BANNER_UPDATED: "server.team.bannerUpdated",
+    TEAM_BANNER_REMOVED: "server.team.bannerRemoved",
+    TEAM_BANNER_REQUIRED: "server.team.bannerRequired",
+    TEAM_BANNER_INVALID: "server.team.bannerInvalid",
+    TEAM_UPDATED: "server.team.updated",
+    TEAM_UPDATE_FIELDS_REQUIRED: "server.team.updateFieldsRequired",
+    TEAM_INTRO_LAYOUT_INVALID: "server.team.introLayoutInvalid",
+    TEAM_DELETED: "server.team.deleted",
+    TEAM_DELETE_NAME_MISMATCH: "server.team.deleteNameMismatch",
 
     // ── 관리자 ────────────────────────────────────────────────────────────────
     ADMIN_USERS_FETCHED: "server.admin.usersFetched",
+    ADMIN_USER_FETCHED: "server.admin.userFetched",
     ADMIN_USER_ROLE_UPDATED: "server.admin.userRoleUpdated",
+    ADMIN_USER_CREATED: "server.admin.userCreated",
+    ADMIN_USER_UPDATED: "server.admin.userUpdated",
+    ADMIN_USER_NOT_FOUND: "server.admin.userNotFound",
 
     // ── 유저 ──────────────────────────────────────────────────────────────────
     USER_PROFILE_FETCHED: "server.user.profileFetched",
@@ -48,6 +75,7 @@ export const MSG = {
     USER_AVATAR_REQUIRED: "server.user.avatarRequired",
     USER_AVATAR_INVALID: "server.user.avatarInvalid",
     USER_NOT_FOUND: "server.user.notFound",
+    USER_SEARCH_RESULTS: "server.user.searchResults",
 
     // ── 유효성 검사 ────────────────────────────────────────────────────────────
     VALIDATION_INVALID_STATUS: "server.validation.invalidStatus",

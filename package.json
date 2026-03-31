@@ -11,6 +11,7 @@
     "build:desktop": "turbo run build:desktop --filter=@repo/desktop",
     "start": "concurrently -k \"pnpm --filter web start\" \"pnpm --filter @repo/server start\"",
     "db:deploy": "pnpm --filter @repo/database db:deploy",
+    "db:studio": "pnpm --filter @repo/database db:studio",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "docker:dev:up": "docker compose up -d",

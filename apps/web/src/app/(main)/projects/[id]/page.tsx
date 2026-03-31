@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { getProject, type Project, type ProjectUser } from "@/lib/projects";
 
 type ProjectTab = "overview" | "list" | "board" | "calendar" | "wiki" | "settings";
@@ -14,6 +16,21 @@ const TABS: { id: ProjectTab; label: string }[] = [
     { id: "wiki", label: "위키" },
     { id: "settings", label: "설정" },
 ];
+
+/** 위키 탭 데모 — 추후 DB 필드로 교체 */
+const DEMO_WIKI_MARKDOWN = `## 가이드라인 (데모)
+
+- 회의록
+- 마크다운 문서
+- 프로젝트 노트
+
+**굵게**, *기울임*, \`코드\`, [예시 링크](https://example.com)
+
+| 항목 | 담당 |
+| --- | --- |
+| API | 백엔드 |
+| UI | 프론트 |
+`;
 
 // 데모용 최근 업무 (추후 실제 업무 API 연동)
 type TaskStatus = "대기" | "진행중" | "검토" | "완료";
@@ -460,15 +477,13 @@ export default function ProjectDetailPage() {
                             📓 위키
                         </h2>
                         <p className="mt-1 text-sm text-stone-500">
-                            가이드라인, 회의록을 마크다운으로 작성합니다.
+                            가이드라인·회의록을 마크다운으로 작성합니다. (렌더 데모)
                         </p>
-                        <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50/30 p-6 font-mono text-sm text-stone-600">
-                            <pre>
-                                # 가이드라인 (데모)\n\n- 회의록\n- 마크다운 문서\n- 프로젝트 노트
-                            </pre>
+                        <div className="mt-6 rounded-lg border border-stone-100 bg-stone-50/50 p-5 sm:p-6">
+                            <MarkdownContent markdown={DEMO_WIKI_MARKDOWN} />
                         </div>
                         <p className="mt-4 text-xs text-stone-400">
-                            (데모) 추후 마크다운 에디터 연동
+                            (데모) 저장·에디터는 추후 API·필드 연동
                         </p>
                     </div>
                 )}

@@ -27,7 +27,7 @@ function getPageTitle(pathname: string | null): string {
   const exact = titles[pathname];
   if (exact) return exact;
   if (pathname.startsWith("/projects/") && pathname !== "/projects") return "프로젝트";
-  if (pathname.startsWith("/mywork/")   && pathname !== "/mywork")   return "내작업";
+  if (pathname.startsWith("/mywork/") && pathname !== "/mywork") return "내작업";
   return "홈";
 }
 
@@ -59,7 +59,7 @@ export function MainLayoutClient({ children, user }: MainLayoutClientProps) {
             title={title}
             user={user}
           />
-          <main className="min-h-0 flex-1 overflow-auto">{children}</main>
+          <main className="relative z-0 min-h-0 flex-1 overflow-auto">{children}</main>
         </div>
       </div>
     </UserStatusProvider>

@@ -12,7 +12,7 @@
   },
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "prisma generate && tsc",
+    "build": "node ./scripts/prisma-generate-retry.mjs && tsc",
     "dev": "tsc --watch",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",

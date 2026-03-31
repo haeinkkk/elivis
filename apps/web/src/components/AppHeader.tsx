@@ -43,7 +43,7 @@ export function AppHeader({ onMenuClick, title = "", user }: AppHeaderProps) {
     }, [userMenuOpen]);
 
     return (
-        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 bg-white/80 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
+        <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 bg-white/80 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
             {/* 좌측: 사이드바 토글(모바일 전용) */}
             <button
                 type="button"

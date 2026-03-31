@@ -1,66 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { addTeam } from "@/lib/teams";
-import type { TeamMember } from "@/lib/teams";
+import { useTranslations } from "next-intl";
 
-type User = {
-    id: string;
-    name: string;
-    userId: string;
-};
+import {
+    createTeamAction,
+    searchUsersForTeamAction,
+    type SearchableUser,
+} from "@/app/actions/teams";
 
-const DEMO_USERS: User[] = [
-    { id: "1", name: "김철수", userId: "chulsoo@elivis.com" },
-    { id: "2", name: "이영희", userId: "younghee@elivis.com" },
-    { id: "3", name: "박민수", userId: "minsu@elivis.com" },
-    { id: "4", name: "정수진", userId: "sujin@elivis.com" },
-    { id: "5", name: "최동욱", userId: "dongwook@elivis.com" },
-    { id: "6", name: "한지우", userId: "jiwoo@elivis.com" },
-    { id: "7", name: "강서연", userId: "seoyeon@elivis.com" },
-    { id: "8", name: "윤도현", userId: "dohyun@elivis.com" },
-    { id: "9", name: "임하늘", userId: "haneul@elivis.com" },
-    { id: "10", name: "송지훈", userId: "jihun@elivis.com" },
-];
+type SelectedMember = { id: string; name: string; email: string };
 
 export default function NewTeamPage() {
+    const t = useTranslations("teamsNew");
     const router = useRouter();
     const [name, setName] = useState("");
-    const [teamId, setTeamId] = useState("");
-    const [description, setDescription] = useState("");
-    const [members, setMembers] = useState<TeamMember[]>([]);
+    const [shortDescription, setShortDescription] = useState("");
+    const [introMessage, setIntroMessage] = useState("");
+    const [members, setMembers] = useState<SelectedMember[]>([]);
     const [memberModalOpen, setMemberModalOpen] = useState(false);
     const [userSearchQuery, setUserSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<SearchableUser[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [hiddenFromUsers, setHiddenFromUsers] = useState(false);
 
-    const q = userSearchQuery.trim().toLowerCase();
-    const filteredUsers = !q
-        ? DEMO_USERS
-        : DEMO_USERS.filter(
-              (u) => u.name.toLowerCase().includes(q) || u.userId.toLowerCase().includes(q),
-          );
+    useEffect(() => {
+        if (!memberModalOpen) return;
+        const q = userSearchQuery.trim();
+        if (q.length < 1) {
+            setSearchResults([]);
+            return;
+        }
+        setSearchLoading(true);
+        const t = window.setTimeout(async () => {
+            const r = await searchUsersForTeamAction(q);
+            setSearchLoading(false);
+            if (r.ok) setSearchResults(r.users);
+            else setSearchResults([]);
+        }, 350);
+        return () => window.clearTimeout(t);
+    }, [userSearchQuery, memberModalOpen]);
 
-    const addMember = (user: User) => {
+    const addMember = (user: SearchableUser) => {
         if (members.some((m) => m.id === user.id)) return;
-        setMembers((prev) => [...prev, { id: user.id, name: user.name, userId: user.userId }]);
+        const displayName =
+            user.name?.trim() || user.email.split("@")[0] || user.email;
+        setMembers((prev) => [
+            ...prev,
+            { id: user.id, name: displayName, email: user.email },
+        ]);
         setMemberModalOpen(false);
         setUserSearchQuery("");
+        setSearchResults([]);
     };
 
     const removeMember = (index: number) => {
         setMembers((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        addTeam({
-            name,
-            teamId: teamId.trim() || name.trim().replace(/\s+/g, "-").toLowerCase(),
-            description,
-            members,
+        setSubmitError("");
+        if (!name.trim()) {
+            setSubmitError(t("nameRequired"));
+            return;
+        }
+        setSubmitting(true);
+        const r = await createTeamAction({
+            name: name.trim(),
+            shortDescription: shortDescription.trim() || undefined,
+            introMessage: introMessage.trim() || undefined,
+            hiddenFromUsers,
+            memberUserIds: members.map((m) => m.id),
         });
-        router.push("/teams");
+        setSubmitting(false);
+        if (r.ok) {
+            router.push("/teams");
+        } else {
+            setSubmitError(r.message);
+        }
     };
 
     return (
@@ -79,73 +101,95 @@ export default function NewTeamPage() {
                     >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
-                    팀 목록
+                    {t("backToList")}
                 </Link>
                 <div className="mt-4">
-                    <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">팀 생성</h2>
-                    <p className="mt-2 text-stone-600">팀 정보를 입력한 뒤 생성하세요.</p>
+                    <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">{t("title")}</h2>
+                    <p className="mt-2 text-stone-600">{t("subtitle")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-6 max-w-2xl space-y-6 sm:mt-8">
+                    {submitError ? (
+                        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                            {submitError}
+                        </p>
+                    ) : null}
+
                     <div>
                         <label
                             htmlFor="team-name"
                             className="block text-sm font-medium text-stone-700"
                         >
-                            팀 이름
+                            {t("nameLabel")}
                         </label>
                         <input
                             id="team-name"
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="예: 프론트엔드팀"
+                            placeholder={t("namePlaceholder")}
+                            required
                             className="mt-1.5 w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
                     </div>
 
                     <div>
                         <label
-                            htmlFor="team-id"
+                            htmlFor="team-short-desc"
                             className="block text-sm font-medium text-stone-700"
                         >
-                            팀 ID
+                            {t("shortLabel")}
                         </label>
                         <input
-                            id="team-id"
+                            id="team-short-desc"
                             type="text"
-                            value={teamId}
-                            onChange={(e) => setTeamId(e.target.value)}
-                            placeholder="예: frontend (비워두면 팀 이름 기반 자동 생성)"
+                            value={shortDescription}
+                            onChange={(e) => setShortDescription(e.target.value)}
+                            placeholder={t("shortPlaceholder")}
                             className="mt-1.5 w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
-                        <p className="mt-1 text-xs text-stone-400">
-                            팀 식별자. 영문, 숫자, 하이픈 권장.
-                        </p>
                     </div>
 
                     <div>
                         <label
-                            htmlFor="team-desc"
+                            htmlFor="team-intro"
                             className="block text-sm font-medium text-stone-700"
                         >
-                            팀 설명
+                            {t("introLabel")}
                         </label>
                         <textarea
-                            id="team-desc"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="팀에 대한 간단한 설명을 입력하세요."
-                            rows={3}
-                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            id="team-intro"
+                            value={introMessage}
+                            onChange={(e) => setIntroMessage(e.target.value)}
+                            placeholder={t("introPlaceholder")}
+                            rows={5}
+                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 font-mono text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
+                        <p className="mt-1 text-xs text-stone-400">
+                            {t("introNote")}
+                        </p>
                     </div>
 
                     <div>
-                        <p className="text-sm font-medium text-stone-700">인원 추가</p>
-                        <p className="mt-0.5 text-xs text-stone-400">
-                            추가 버튼으로 팀원을 선택하세요.
-                        </p>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-stone-800 focus:ring-stone-400"
+                                checked={hiddenFromUsers}
+                                onChange={(e) => setHiddenFromUsers(e.target.checked)}
+                            />
+                            <span className="text-sm text-stone-800">
+                                <span className="font-medium">{t("hideTeamTitle")}</span>
+                                <span className="mt-0.5 block text-xs font-normal text-stone-500">
+                                    {t("hideTeamNote")}
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <p className="text-sm font-medium text-stone-700">{t("addMembersTitle")}</p>
+                        <p className="mt-0.5 text-xs text-stone-400">{t("addMembersNote")}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                             {members.map((p, i) => (
                                 <span
@@ -158,14 +202,14 @@ export default function NewTeamPage() {
                                             {p.name}
                                         </span>
                                         <span className="text-xs text-stone-500 leading-tight">
-                                            {p.userId}
+                                            {p.email}
                                         </span>
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => removeMember(i)}
                                         className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600"
-                                        aria-label="제거"
+                                        aria-label={t("memberRemoveAria")}
                                     >
                                         <svg
                                             className="h-3.5 w-3.5"
@@ -202,11 +246,10 @@ export default function NewTeamPage() {
                                     d="M12 4.5v15m7.5-7.5h-15"
                                 />
                             </svg>
-                            추가
+                            {t("openMemberModal")}
                         </button>
                     </div>
 
-                    {/* 인원 추가 모달 */}
                     {memberModalOpen && (
                         <>
                             <div
@@ -215,12 +258,13 @@ export default function NewTeamPage() {
                                 onClick={() => {
                                     setMemberModalOpen(false);
                                     setUserSearchQuery("");
+                                    setSearchResults([]);
                                 }}
                             />
                             <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
                                 <div className="border-b border-stone-100 px-4 py-3">
                                     <h3 className="text-base font-semibold text-stone-800">
-                                        인원 추가
+                                        {t("openMemberModal")}
                                     </h3>
                                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
                                         <svg
@@ -240,19 +284,27 @@ export default function NewTeamPage() {
                                             type="search"
                                             value={userSearchQuery}
                                             onChange={(e) => setUserSearchQuery(e.target.value)}
-                                            placeholder="이름 또는 아이디로 검색"
+                                            placeholder={t("userSearchPlaceholder")}
                                             className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
                                             autoFocus
                                         />
                                     </div>
                                 </div>
                                 <ul className="max-h-64 overflow-y-auto py-2">
-                                    {filteredUsers.length === 0 ? (
+                                    {userSearchQuery.trim().length < 1 ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
-                                            검색 결과가 없습니다.
+                                            {t("userSearchMin")}
+                                        </li>
+                                    ) : searchLoading ? (
+                                        <li className="flex justify-center py-8">
+                                            <div className="h-7 w-7 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+                                        </li>
+                                    ) : searchResults.length === 0 ? (
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                            {t("userSearchEmpty")}
                                         </li>
                                     ) : (
-                                        filteredUsers.map((user) => {
+                                        searchResults.map((user) => {
                                             const isAdded = members.some((m) => m.id === user.id);
                                             return (
                                                 <li key={user.id}>
@@ -269,15 +321,16 @@ export default function NewTeamPage() {
                                                         <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300" />
                                                         <div className="min-w-0 flex-1">
                                                             <p className="text-sm font-medium text-stone-800">
-                                                                {user.name}
+                                                                {user.name?.trim() ||
+                                                                    user.email.split("@")[0]}
                                                             </p>
                                                             <p className="text-xs text-stone-500">
-                                                                {user.userId}
+                                                                {user.email}
                                                             </p>
                                                         </div>
                                                         {isAdded && (
                                                             <span className="text-xs text-stone-400">
-                                                                추가됨
+                                                                {t("modalDone")}
                                                             </span>
                                                         )}
                                                     </button>
@@ -292,10 +345,11 @@ export default function NewTeamPage() {
                                         onClick={() => {
                                             setMemberModalOpen(false);
                                             setUserSearchQuery("");
+                                            setSearchResults([]);
                                         }}
                                         className="w-full rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
                                     >
-                                        닫기
+                                        {t("modalDone")}
                                     </button>
                                 </div>
                             </div>
@@ -305,15 +359,16 @@ export default function NewTeamPage() {
                     <div className="flex gap-3 pt-2">
                         <button
                             type="submit"
-                            className="rounded-lg bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2"
+                            disabled={submitting}
+                            className="rounded-lg bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 disabled:opacity-60"
                         >
-                            팀 생성
+                            {submitting ? t("submitting") : t("submit")}
                         </button>
                         <Link
                             href="/teams"
                             className="rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2"
                         >
-                            취소
+                            {t("cancel")}
                         </Link>
                     </div>
                 </form>

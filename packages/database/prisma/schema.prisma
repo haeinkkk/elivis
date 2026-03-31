@@ -32,12 +32,19 @@ enum ProjectRole {
   MEMBER         /// 일반 멤버 — 할당된 업무 조회·수정
 }
 
+/// 팀 내 역할
+enum TeamRole {
+  LEADER /// 팀 생성자·관리자
+  MEMBER /// 일반 팀원
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id         String     @id @default(cuid())
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id         String     @id
   email      String     @unique
   name       String?
   avatarUrl  String?    /// 프로필 이미지 경로 (e.g. /uploads/avatars/xxx.jpg)
@@ -50,22 +57,32 @@ model User {
 
   memberships ProjectMember[]
   tasks       Task[]
+
+  teamsCreated    Team[]       @relation("TeamCreator")
+  teamMemberships TeamMember[]
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id          String   @id
   name        String
   description String?
+  /// 소속 팀 (선택). 팀 상세에서 이 팀의 프로젝트로 집계됩니다.
+  teamId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  team    Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   members ProjectMember[]
   tasks   Task[]
+
+  @@index([teamId])
 }
 
 /// User ↔ Project 중개 테이블 (다대다 + 직책 포함)
 model ProjectMember {
-  id        String      @id @default(cuid())
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id        String      @id
   userId    String
   projectId String
   role      ProjectRole @default(MEMBER)
@@ -78,8 +95,58 @@ model ProjectMember {
   @@unique([userId, projectId])
 }
 
+/// 팀 (워크스페이스 단위 그룹)
+model Team {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id               String   @id
+  name             String
+  /// 목록·헤더에 쓰는 한 줄 짧은 설명 (플레인 텍스트)
+  shortDescription String?
+  /// 소개 탭 본문 (마크다운)
+  introMessage     String?
+  /// 팀 소개 상단 배너 이미지 경로 (e.g. /uploads/team-banners/xxx.webp)
+  bannerUrl        String?
+  /// 팀 목록용 배너 썸네일 이미지 경로 (e.g. /uploads/team-banners/xxx.thumb.webp)
+  bannerThumbUrl   String?
+  /// 소개 탭 블록 순서·너비 등 레이아웃 JSON (`IntroLayoutConfig`)
+  introLayoutJson  String?
+  /// true면 일반 목록에서 숨김(SUPER_ADMIN은 전체 목록에서 조회 가능). 팀원은 항상 자기 팀에 접근 가능.
+  hiddenFromUsers  Boolean  @default(false)
+  createdById      String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  createdBy User         @relation("TeamCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  members   TeamMember[]
+  projects  Project[]
+
+  @@unique([name])
+  @@index([createdAt(sort: Desc)])
+  @@index([createdById])
+}
+
+model TeamMember {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id       String   @id
+  teamId   String
+  userId   String
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  /// 내 팀 목록 고정 순서 (작을수록 상단). null이면 고정 안 함.
+  pinnedOrder Int?
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([userId, pinnedOrder])
+}
+
 model Task {
-  id         String   @id @default(cuid())
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id         String   @id
   title      String
   status     String   @default("todo")
   projectId  String

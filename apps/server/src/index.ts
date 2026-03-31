@@ -14,6 +14,7 @@ import { adminRoutes } from "./routes/admin.routes";
 import { authRoutes } from "./routes/auth.routes";
 import { healthRoutes } from "./routes/health.routes";
 import { projectRoutes } from "./routes/project.routes";
+import { teamRoutes } from "./routes/team.routes";
 import { userRoutes } from "./routes/user.routes";
 import { createStorageService } from "./services/storage.service";
 import { initSetupToken } from "./services/setup.service";
@@ -35,6 +36,7 @@ export const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 // 로컬 스토리지일 때만 디렉토리 생성
 if ((process.env.UPLOAD_STORAGE ?? "local") === "local") {
   mkdirSync(path.join(UPLOADS_DIR, "avatars"), { recursive: true });
+  mkdirSync(path.join(UPLOADS_DIR, "team-banners"), { recursive: true });
 }
 
 /** 파일 스토리지 서비스 싱글톤 (local / s3) */
@@ -77,6 +79,7 @@ async function main() {
   await app.register(authRoutes,    { prefix: "/api" });
   await app.register(userRoutes,    { prefix: "/api" });
   await app.register(projectRoutes, { prefix: "/api" });
+  await app.register(teamRoutes,    { prefix: "/api" });
   await app.register(adminRoutes,   { prefix: "/api" });
 
   // ── 최초 설치 토큰 출력 (DB에 유저가 0명일 때만) ──────────────────────────

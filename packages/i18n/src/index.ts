@@ -1,6 +1,9 @@
 import { en } from "./locales/en";
 import { ja } from "./locales/ja";
 import { ko } from "./locales/ko";
+import type { LocaleMessages } from "./locale-messages";
+
+export type { LocaleMessages };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 타입
@@ -22,7 +25,7 @@ export const DEFAULT_LOCALE: Locale = "ko";
  */
 export const AUTO_DETECT_FALLBACK: Locale = "en";
 
-const locales: Record<Locale, typeof ko> = { ko, en, ja };
+const locales: Record<Locale, LocaleMessages> = { ko, en, ja };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 서버용 t() — 중첩 객체를 점(.) 표기법으로 순회
@@ -45,7 +48,7 @@ export function t(locale: string, path: string): string {
 // 웹용 — next-intl 에 전달하는 web 메시지 객체
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type WebMessages = typeof ko.web;
+export type WebMessages = LocaleMessages["web"];
 
 export function getWebMessages(locale: string): WebMessages {
   return (locales[locale as Locale] ?? locales[DEFAULT_LOCALE]).web;

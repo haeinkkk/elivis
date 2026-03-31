@@ -1,3 +1,4 @@
+import { generatePublicId } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { t } from "@repo/i18n";
 
@@ -7,6 +8,8 @@ import { badRequest, created, forbidden, notFound, ok } from "../utils/response"
 export interface CreateProjectBody {
     name: string;
     description?: string;
+    /** 팀에 묶인 프로젝트로 만들 때 — 요청자가 해당 팀 멤버여야 함 */
+    teamId?: string;
 }
 
 export interface ProjectParams {
@@ -23,19 +26,39 @@ export function createProjectController(app: FastifyInstance) {
         request: FastifyRequest<{ Body: CreateProjectBody }>,
         reply: FastifyReply,
     ) {
-        const { name, description } = request.body;
+        const { name, description, teamId: rawTeamId } = request.body;
         const lang = request.lang;
 
         if (!name?.trim()) {
             return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_NAME_REQUIRED)));
         }
 
+        const teamId = rawTeamId?.trim() || undefined;
+        if (teamId) {
+            const canLink = await app.prisma.team.findFirst({
+                where: {
+                    id: teamId,
+                    members: { some: { userId: request.userId } },
+                },
+                select: { id: true },
+            });
+            if (!canLink) {
+                return reply.code(403).send(forbidden(t(lang, MSG.PROJECT_TEAM_NOT_MEMBER)));
+            }
+        }
+
         const project = await app.prisma.project.create({
             data: {
+                id: generatePublicId(),
                 name: name.trim(),
                 description,
+                teamId,
                 members: {
-                    create: { userId: request.userId, role: "LEADER" },
+                    create: {
+                        id: generatePublicId(),
+                        userId: request.userId,
+                        role: "LEADER",
+                    },
                 },
             },
             include: {
@@ -90,7 +113,7 @@ export function createProjectController(app: FastifyInstance) {
         const member = await app.prisma.projectMember.upsert({
             where: { userId_projectId: { userId, projectId } },
             update: { role },
-            create: { userId, projectId, role },
+            create: { id: generatePublicId(), userId, projectId, role },
         });
 
         return reply.code(201).send(created(member, t(lang, MSG.PROJECT_MEMBER_ADDED)));
