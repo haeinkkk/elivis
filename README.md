@@ -141,7 +141,7 @@ curl -X POST http://localhost:4000/api/auth/signup \
 | `pnpm setup` | Full environment setup (install → docker → migrate) |
 | `pnpm dev` | Start all apps in parallel |
 | `pnpm dev:web` | Start web only |
-| `pnpm dev:server` | Start API server only |
+| `pnpm dev:server` | Start API server (`apps/server/apiServer`) only |
 | `pnpm dev:desktop` | Start Electron only |
 
 ### Build & Quality
@@ -179,21 +179,24 @@ curl -X POST http://localhost:4000/api/auth/signup \
 ```
 .
 ├── apps/
-│   ├── web/          # Next.js web app
-│   ├── desktop/      # Electron desktop client
-│   └── server/       # Fastify REST API
+│   ├── web/                    # Next.js web app
+│   ├── desktop/                # Electron desktop client
+│   └── server/                 # Server apps (multiple servers)
+│       └── apiServer/          # Fastify REST API
+│           # (향후) notificationServer/
+│           # (향후) MCPServer/
 ├── packages/
-│   ├── database/     # Prisma schema + client singleton
-│   ├── types/        # Shared TypeScript types
-│   ├── ui/           # Shared UI components
+│   ├── database/               # Prisma schema + client singleton
+│   ├── types/                  # Shared TypeScript types
+│   ├── ui/                     # Shared UI components
 │   ├── eslint-config/
 │   └── tsconfig/
 ├── docs/
-│   ├── web/          # Web app documentation
-│   ├── server/       # API server documentation
-│   └── desktop/      # Desktop app documentation
+│   ├── web/                    # Web app documentation
+│   ├── server/                 # Server documentation
+│   └── desktop/                # Desktop app documentation
 ├── scripts/
-│   └── setup.mjs     # One-command setup script
+│   └── setup.mjs               # One-command setup script
 ├── docker-compose.yml
 ├── docker-compose.prod.yml
 └── env.example

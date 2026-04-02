@@ -1,7 +1,7 @@
 # Web — `apps/web`
 
 Next.js 16 기반 웹 애플리케이션입니다.  
-`packages/ui`의 공유 컴포넌트를 렌더링하며, API 서버(`apps/server`)와 통신합니다.
+`packages/ui`의 공유 컴포넌트를 렌더링하며, API 서버(`apps/server/apiServer`)와 통신합니다.
 
 ## 목차
 

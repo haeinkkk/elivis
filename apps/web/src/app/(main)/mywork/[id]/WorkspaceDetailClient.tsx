@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import CalendarTab from "./CalendarTab";
 import TaskDetailPanel from "./TaskDetailPanel";
 import { useRouter } from "next/navigation";
@@ -48,30 +49,24 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type WorkspaceTab = "mywork" | "summary" | "requests" | "calendar";
-const TABS: { id: WorkspaceTab; label: string }[] = [
-    { id: "mywork",   label: "내 작업공간" },
-    { id: "summary",  label: "업무 요약" },
-    { id: "requests", label: "요청업무" },
-    { id: "calendar", label: "캘린더" },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 색상 팔레트
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const TAG_COLORS: Record<string, { badge: string; dot: string; label: string }> = {
-    gray:   { badge: "bg-stone-100 text-stone-600",   dot: "bg-stone-400",   label: "회색" },
-    red:    { badge: "bg-red-100 text-red-700",        dot: "bg-red-500",     label: "빨강" },
-    orange: { badge: "bg-orange-100 text-orange-700",  dot: "bg-orange-500",  label: "주황" },
-    yellow: { badge: "bg-yellow-100 text-yellow-700",  dot: "bg-yellow-500",  label: "노랑" },
-    green:  { badge: "bg-green-100 text-green-700",    dot: "bg-green-500",   label: "초록" },
-    blue:   { badge: "bg-blue-100 text-blue-700",      dot: "bg-blue-500",    label: "파랑" },
-    purple: { badge: "bg-purple-100 text-purple-700",  dot: "bg-purple-500",  label: "보라" },
-    pink:   { badge: "bg-pink-100 text-pink-700",      dot: "bg-pink-500",    label: "분홍" },
+export const TAG_COLORS: Record<string, { badge: string; dot: string }> = {
+    gray:   { badge: "bg-stone-100 text-stone-600",   dot: "bg-stone-400" },
+    red:    { badge: "bg-red-100 text-red-700",        dot: "bg-red-500" },
+    orange: { badge: "bg-orange-100 text-orange-700",  dot: "bg-orange-500" },
+    yellow: { badge: "bg-yellow-100 text-yellow-700",  dot: "bg-yellow-500" },
+    green:  { badge: "bg-green-100 text-green-700",    dot: "bg-green-500" },
+    blue:   { badge: "bg-blue-100 text-blue-700",      dot: "bg-blue-500" },
+    purple: { badge: "bg-purple-100 text-purple-700",  dot: "bg-purple-500" },
+    pink:   { badge: "bg-pink-100 text-pink-700",      dot: "bg-pink-500" },
 };
 const COLOR_KEYS = Object.keys(TAG_COLORS);
 
-type TagColorResult = { badge: string; dot: string; label: string; badgeStyle?: React.CSSProperties; dotStyle?: React.CSSProperties };
+type TagColorResult = { badge: string; dot: string; badgeStyle?: React.CSSProperties; dotStyle?: React.CSSProperties };
 
 function tagColorOf(color: string): TagColorResult {
     if (color in TAG_COLORS) return TAG_COLORS[color];
@@ -79,7 +74,6 @@ function tagColorOf(color: string): TagColorResult {
         return {
             badge: "",
             dot: "",
-            label: "커스텀",
             badgeStyle: { backgroundColor: color + "1a", color },
             dotStyle: { backgroundColor: color },
         };
@@ -99,7 +93,7 @@ function TagDropdown({
     nullable,
     workspaceId,
     disabled,
-    placeholder = "없음",
+    placeholder,
     onCreate,
     onUpdate,
     onDelete,
@@ -118,6 +112,7 @@ function TagDropdown({
     onChange: (newId: string | null) => void;
     onItemsChange: (items: TagItem[]) => void;
 }) {
+    const t = useTranslations("workspace");
     const [open, setOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState("");
@@ -125,6 +120,7 @@ function TagDropdown({
     const [adding, setAdding] = useState(false);
     const [newName, setNewName] = useState("");
     const [newColor, setNewColor] = useState("gray");
+    const placeholderText = placeholder ?? t("common.none");
     const [isPending, startTransition] = useTransition();
     const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -203,7 +199,7 @@ function TagDropdown({
                             onClick={() => { onChange(null); setOpen(false); }}
                             className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-stone-400 hover:bg-stone-50"
                         >
-                            <span className="h-2.5 w-2.5 rounded-full bg-stone-300" /> 없음
+                            <span className="h-2.5 w-2.5 rounded-full bg-stone-300" /> {t("common.none")}
                         </button>
                     )}
                     {items.map((s) => {
@@ -218,17 +214,17 @@ function TagDropdown({
                                         />
                                         <div className="flex flex-wrap items-center gap-1 px-0.5">
                                             {COLOR_KEYS.map((ck) => (
-                                                <button key={ck} type="button" title={TAG_COLORS[ck].label} onClick={() => setEditColor(ck)}
+                                                <button key={ck} type="button" title={t(`colors.${ck}`)} onClick={() => setEditColor(ck)}
                                                     className={`h-4 w-4 rounded-full ${TAG_COLORS[ck].dot} ring-offset-1 transition-transform hover:scale-110 ${editColor === ck ? "ring-2 ring-stone-500" : ""}`} />
                                             ))}
-                                            <label title="커스텀 색상" className={`relative h-4 w-4 cursor-pointer overflow-hidden rounded-full ring-offset-1 transition-transform hover:scale-110 ${!COLOR_KEYS.includes(editColor) ? "ring-2 ring-stone-500" : ""}`}>
+                                            <label title={t("common.customColor")} className={`relative h-4 w-4 cursor-pointer overflow-hidden rounded-full ring-offset-1 transition-transform hover:scale-110 ${!COLOR_KEYS.includes(editColor) ? "ring-2 ring-stone-500" : ""}`}>
                                                 <div className="h-full w-full rounded-full" style={{ background: !COLOR_KEYS.includes(editColor) ? editColor : "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }} />
                                                 <input type="color" value={COLOR_KEYS.includes(editColor) ? "#6366f1" : editColor} onChange={(e) => setEditColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
                                             </label>
                                         </div>
                                         <div className="flex justify-end gap-1">
-                                            <button type="button" onClick={() => setEditingId(null)} className="rounded px-1.5 py-0.5 text-[10px] text-stone-400 hover:bg-stone-100">취소</button>
-                                            <button type="button" onClick={() => submitEdit(s)} disabled={isPending} className="rounded bg-stone-800 px-1.5 py-0.5 text-[10px] text-white hover:bg-stone-700">저장</button>
+                                            <button type="button" onClick={() => setEditingId(null)} className="rounded px-1.5 py-0.5 text-[10px] text-stone-400 hover:bg-stone-100">{t("common.cancel")}</button>
+                                            <button type="button" onClick={() => submitEdit(s)} disabled={isPending} className="rounded bg-stone-800 px-1.5 py-0.5 text-[10px] text-white hover:bg-stone-700">{t("common.save")}</button>
                                         </div>
                                     </div>
                                 ) : (
@@ -241,14 +237,14 @@ function TagDropdown({
                                             </span>
                                         </button>
                                         <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                            <button type="button" title="편집" onClick={() => startEdit(s)}
+                                            <button type="button" title={t("common.edit")} onClick={() => startEdit(s)}
                                                 className="rounded p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
                                                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-3.414 1a1 1 0 01-1.243-1.243l1-3.414A4 4 0 019 13z" />
                                                 </svg>
                                             </button>
                                             {(nullable || items.length > 1) && (
-                                                <button type="button" title="삭제" onClick={() => handleDelete(s)} disabled={isPending}
+                                                <button type="button" title={t("common.delete")} onClick={() => handleDelete(s)} disabled={isPending}
                                                     className="rounded p-0.5 text-stone-400 hover:bg-red-50 hover:text-red-500">
                                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -266,22 +262,22 @@ function TagDropdown({
                         <div className="flex flex-col gap-1.5 px-3 py-1.5">
                             <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === "Enter") submitNew(); if (e.key === "Escape") { setAdding(false); setNewName(""); } }}
-                                placeholder="이름 입력"
+                                placeholder={t("common.nameInput")}
                                 className="w-full rounded border border-stone-300 px-2 py-0.5 text-xs outline-none focus:border-stone-500"
                             />
                             <div className="flex flex-wrap items-center gap-1">
-                                {COLOR_KEYS.map((ck) => (
-                                    <button key={ck} type="button" title={TAG_COLORS[ck].label} onClick={() => setNewColor(ck)}
+                                            {COLOR_KEYS.map((ck) => (
+                                    <button key={ck} type="button" title={t(`colors.${ck}`)} onClick={() => setNewColor(ck)}
                                         className={`h-4 w-4 rounded-full ${TAG_COLORS[ck].dot} ring-offset-1 transition-transform hover:scale-110 ${newColor === ck ? "ring-2 ring-stone-500" : ""}`} />
                                 ))}
-                                <label title="커스텀 색상" className={`relative h-4 w-4 cursor-pointer overflow-hidden rounded-full ring-offset-1 transition-transform hover:scale-110 ${!COLOR_KEYS.includes(newColor) ? "ring-2 ring-stone-500" : ""}`}>
+                                <label title={t("common.customColor")} className={`relative h-4 w-4 cursor-pointer overflow-hidden rounded-full ring-offset-1 transition-transform hover:scale-110 ${!COLOR_KEYS.includes(newColor) ? "ring-2 ring-stone-500" : ""}`}>
                                     <div className="h-full w-full rounded-full" style={{ background: !COLOR_KEYS.includes(newColor) ? newColor : "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }} />
                                     <input type="color" value={COLOR_KEYS.includes(newColor) ? "#6366f1" : newColor} onChange={(e) => setNewColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
                                 </label>
                             </div>
                             <div className="flex justify-end gap-1">
-                                <button type="button" onClick={() => { setAdding(false); setNewName(""); }} className="rounded px-2 py-0.5 text-[10px] text-stone-400 hover:bg-stone-100">취소</button>
-                                <button type="button" onClick={submitNew} disabled={isPending || !newName.trim()} className="rounded bg-stone-800 px-2 py-0.5 text-[10px] text-white hover:bg-stone-700 disabled:opacity-40">추가</button>
+                                <button type="button" onClick={() => { setAdding(false); setNewName(""); }} className="rounded px-2 py-0.5 text-[10px] text-stone-400 hover:bg-stone-100">{t("common.cancel")}</button>
+                                <button type="button" onClick={submitNew} disabled={isPending || !newName.trim()} className="rounded bg-stone-800 px-2 py-0.5 text-[10px] text-white hover:bg-stone-700 disabled:opacity-40">{t("common.add")}</button>
                             </div>
                         </div>
                     ) : (
@@ -290,7 +286,7 @@ function TagDropdown({
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            추가
+                            {t("common.add")}
                         </button>
                     )}
                 </div>
@@ -312,7 +308,7 @@ function TagDropdown({
             >
                 {current ? (
                     <><span className={`h-2 w-2 rounded-full ${cm.dot}`} style={cm.dotStyle} />{current.name}</>
-                ) : placeholder}
+                ) : placeholderText}
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -337,6 +333,7 @@ function PriorityModal({
     onSave: (item: TagItem) => void;
     onClose: () => void;
 }) {
+    const t = useTranslations("workspace");
     const [name, setName] = useState(editing?.name ?? "");
     const [color, setColor] = useState(editing?.color ?? "gray");
     const [value, setValue] = useState(String(editing?.value ?? 50));
@@ -365,18 +362,18 @@ function PriorityModal({
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
             <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <h3 className="mb-5 text-base font-semibold text-stone-800">
-                    {editing ? "우선순위 편집" : "우선순위 추가"}
+                    {editing ? t("priority.editTitle") : t("priority.addTitle")}
                 </h3>
 
                 {/* 이름 */}
                 <div className="mb-4">
-                    <label className="mb-1.5 block text-xs font-medium text-stone-600">이름</label>
+                    <label className="mb-1.5 block text-xs font-medium text-stone-600">{t("priority.nameLabel")}</label>
                     <input
                         autoFocus
                         value={name}
                         onChange={(e) => { setName(e.target.value); setError(""); }}
                         onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
-                        placeholder="우선순위 이름"
+                        placeholder={t("priority.namePlaceholder")}
                         className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm outline-none transition-colors focus:border-stone-400"
                     />
                 </div>
@@ -384,7 +381,7 @@ function PriorityModal({
                 {/* 가중치 */}
                 <div className="mb-4">
                     <label className="mb-1.5 block text-xs font-medium text-stone-600">
-                        가중치 <span className="text-stone-400 font-normal">(0~100 · 높을수록 먼저 처리)</span>
+                        {t("priority.weightLabel")} <span className="text-stone-400 font-normal">{t("priority.weightNote")}</span>
                     </label>
                     <div className="flex items-center gap-3">
                         <input
@@ -408,19 +405,19 @@ function PriorityModal({
 
                 {/* 색상 */}
                 <div className="mb-5">
-                    <label className="mb-2 block text-xs font-medium text-stone-600">색상</label>
+                    <label className="mb-2 block text-xs font-medium text-stone-600">{t("priority.colorLabel")}</label>
                     <div className="flex flex-wrap items-center gap-2">
                         {COLOR_KEYS.map((ck) => (
                             <button
                                 key={ck}
                                 type="button"
-                                title={TAG_COLORS[ck].label}
+                                title={t(`colors.${ck}`)}
                                 onClick={() => setColor(ck)}
                                 className={`h-7 w-7 rounded-full ${TAG_COLORS[ck].dot} ring-offset-2 transition-transform hover:scale-110 ${color === ck ? "ring-2 ring-stone-600" : ""}`}
                             />
                         ))}
                         <label
-                            title="커스텀 색상"
+                            title={t("common.customColor")}
                             className={`relative h-7 w-7 cursor-pointer overflow-hidden rounded-full ring-offset-2 transition-transform hover:scale-110 ${!COLOR_KEYS.includes(color) ? "ring-2 ring-stone-600" : ""}`}
                         >
                             <div
@@ -446,10 +443,10 @@ function PriorityModal({
                     const pc = tagColorOf(color);
                     return (
                         <div className="mb-5 flex items-center gap-2">
-                            <span className="text-xs text-stone-400">미리보기</span>
+                            <span className="text-xs text-stone-400">{t("priority.preview")}</span>
                             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${pc.badge}`} style={pc.badgeStyle}>
                                 <span className={`h-2 w-2 rounded-full ${pc.dot}`} style={pc.dotStyle} />
-                                {name || "이름 없음"}
+                                {name || t("priority.noName")}
                                 {parseInt(value) > 0 && <span className="ml-0.5 opacity-60">·{value}</span>}
                             </span>
                         </div>
@@ -459,10 +456,10 @@ function PriorityModal({
                 {error && <p className="mb-3 text-xs text-red-500">{error}</p>}
 
                 <div className="flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-stone-500 hover:bg-stone-50">취소</button>
+                    <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-stone-500 hover:bg-stone-50">{t("common.cancel")}</button>
                     <button type="button" onClick={submit} disabled={isPending || !name.trim()}
                         className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-40">
-                        {editing ? "저장" : "추가"}
+                        {editing ? t("common.save") : t("common.add")}
                     </button>
                 </div>
             </div>
@@ -490,6 +487,7 @@ function PriorityDropdown({
     onChange: (id: string | null) => void;
     onItemsChange: (items: TagItem[]) => void;
 }) {
+    const t = useTranslations("workspace");
     const [open, setOpen] = useState(false);
     const [modal, setModal] = useState<{ editing: TagItem | null } | null>(null);
     const [mounted, setMounted] = useState(false);
@@ -558,13 +556,13 @@ function PriorityDropdown({
                                 )}
                             </button>
                             <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100">
-                                <button type="button" title="편집" onClick={() => { setModal({ editing: item }); setOpen(false); }}
+                                <button type="button" title={t("common.edit")} onClick={() => { setModal({ editing: item }); setOpen(false); }}
                                     className="rounded p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-3.414 1a1 1 0 01-1.243-1.243l1-3.414A4 4 0 019 13z" />
                                     </svg>
                                 </button>
-                                <button type="button" title="삭제" disabled={isPending} onClick={() => handleDelete(item)}
+                                <button type="button" title={t("common.delete")} disabled={isPending} onClick={() => handleDelete(item)}
                                     className="rounded p-0.5 text-stone-400 hover:bg-red-50 hover:text-red-500">
                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -581,7 +579,7 @@ function PriorityDropdown({
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                우선순위 추가
+                {t("priority.addButton")}
             </button>
         </div>,
         document.body,
@@ -705,7 +703,7 @@ function InlineAddForm({
     parentId,
     onAdded,
     onCancel,
-    placeholder = "업무 제목 입력 후 Enter",
+    placeholder,
 }: {
     workspaceId: string;
     defaultStatusId?: string;
@@ -714,8 +712,10 @@ function InlineAddForm({
     onCancel: () => void;
     placeholder?: string;
 }) {
+    const t = useTranslations("workspace");
     const [title, setTitle] = useState("");
     const [isPending, startTransition] = useTransition();
+    const placeholderText = placeholder ?? t("inlineAdd.taskPlaceholder");
 
     function submit() {
         const trimmed = title.trim();
@@ -732,13 +732,13 @@ function InlineAddForm({
     return (
         <div className="flex items-center gap-2 rounded-md border border-stone-300 bg-white px-2 py-1.5">
             <input autoFocus className="min-w-0 flex-1 text-sm outline-none placeholder:text-stone-400"
-                placeholder={placeholder} value={title} onChange={(e) => setTitle(e.target.value)}
+                placeholder={placeholderText} value={title} onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onCancel(); }}
                 disabled={isPending}
             />
-            <button type="button" onClick={onCancel} className="shrink-0 text-xs text-stone-400 hover:text-stone-600" disabled={isPending}>취소</button>
+            <button type="button" onClick={onCancel} className="shrink-0 text-xs text-stone-400 hover:text-stone-600" disabled={isPending}>{t("common.cancel")}</button>
             <button type="button" onClick={submit} disabled={isPending || !title.trim()}
-                className="shrink-0 rounded bg-stone-800 px-2 py-0.5 text-xs text-white hover:bg-stone-700 disabled:opacity-40">추가</button>
+                className="shrink-0 rounded bg-stone-800 px-2 py-0.5 text-xs text-white hover:bg-stone-700 disabled:opacity-40">{t("common.add")}</button>
         </div>
     );
 }
@@ -770,6 +770,7 @@ const TaskRow = ({
     isDragging, dragHandleProps,
     onUpdate, onDelete, onAdded, onStatusesChange, onPrioritiesChange, onOpenPanel,
 }: TaskRowProps) => {
+    const t = useTranslations("workspace");
     const [isPending, startTransition] = useTransition();
     const [addingSub, setAddingSub] = useState(false);
     const [expanded, setExpanded] = useState(true);
@@ -816,7 +817,7 @@ const TaskRow = ({
                             type="button"
                             className="cursor-grab touch-none text-stone-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
                             {...dragHandleProps}
-                            title="드래그하여 순서 변경"
+                            title={t("taskRow.dragAria")}
                         >
                             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8-16a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
@@ -910,7 +911,7 @@ const TaskRow = ({
                     <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                         {depth < 2 && (
                             <button type="button" onClick={() => setAddingSub(true)}
-                                className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600" title="하위 업무 추가">
+                                className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600" title={t("taskRow.addSubtask")}>
                                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
@@ -933,8 +934,7 @@ const TaskRow = ({
                 <tr>
                     <td colSpan={8} style={{ paddingLeft: `${28 + (depth + 1) * 20}px` }} className="py-1.5 pr-3">
                         <InlineAddForm workspaceId={workspaceId} defaultStatusId={task.statusId} parentId={task.id}
-                            onAdded={(t) => { onAdded(t); setExpanded(true); }} onCancel={() => setAddingSub(false)}
-                            placeholder="하위 업무 제목 입력 후 Enter" />
+                            onAdded={(t) => { onAdded(t); setExpanded(true); }} onCancel={() => setAddingSub(false)} />
                     </td>
                 </tr>
             )}
@@ -1067,6 +1067,7 @@ function DroppableColumn({
     onStatusesChange: (s: ApiWorkspaceStatus[]) => void;
     onPrioritiesChange: (p: ApiWorkspacePriority[]) => void;
 }) {
+    const t = useTranslations("workspace");
     const { isOver, setNodeRef } = useDroppable({ id: status.id });
     const [adding, setAdding] = useState(false);
     const cm = tagColorOf(status.color);
@@ -1092,7 +1093,7 @@ function DroppableColumn({
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        업무 추가
+                        {t("common.addTask")}
                     </button>
                 )}
             </div>
@@ -1107,26 +1108,17 @@ function DroppableColumn({
 type MyWorkView = "list" | "board";
 type SortBy = "default" | "status" | "priority" | "startDate" | "dueDate";
 
-const SORT_LABELS: Record<SortBy, string> = {
-    default: "기본 순",
-    status: "상태 순",
-    priority: "우선순위 순",
-    startDate: "시작일 순",
-    dueDate: "종료일 순",
-};
 
 function FilterSortDropdown<T extends string>({
     value,
     options,
     onChange,
     label,
-    activeCount,
 }: {
     value: T;
     options: { value: T; label: string }[];
     onChange: (v: T) => void;
     label: string;
-    activeCount?: number;
 }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -1199,6 +1191,7 @@ function MyWorkTab({
     onPrioritiesChange: (p: ApiWorkspacePriority[]) => void;
     onTasksChange: (t: ApiWorkspaceTask[]) => void;
 }) {
+    const t = useTranslations("workspace");
     const [view, setView] = useState<MyWorkView>("list");
     const [addingTop, setAddingTop] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -1254,14 +1247,20 @@ function MyWorkTab({
 
     // 필터/정렬 옵션
     const statusOptions = [
-        { value: "all", label: "전체 상태" },
+        { value: "all", label: t("toolbar.allStatuses") },
         ...sortedStatuses.map((s) => ({ value: s.id, label: s.name })),
     ];
     const priorityOptions = [
-        { value: "all", label: "전체 우선순위" },
+        { value: "all", label: t("toolbar.allPriorities") },
         ...([...priorities].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))).map((p) => ({ value: p.id, label: p.name })),
     ];
-    const sortOptions = (Object.keys(SORT_LABELS) as SortBy[]).map((k) => ({ value: k, label: SORT_LABELS[k] }));
+    const sortOptions: { value: SortBy; label: string }[] = [
+        { value: "default", label: t("sort.default") },
+        { value: "status", label: t("sort.status") },
+        { value: "priority", label: t("sort.priority") },
+        { value: "startDate", label: t("sort.startDate") },
+        { value: "dueDate", label: t("sort.dueDate") },
+    ];
 
     // ── 리스트 뷰 DnD ──────────────────────────────────────────────────────
 
@@ -1324,7 +1323,7 @@ function MyWorkTab({
                     {(["list", "board"] as const).map((v) => (
                         <button key={v} type="button" onClick={() => setView(v)}
                             className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === v ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"}`}>
-                            {v === "list" ? "리스트" : "보드"}
+                            {v === "list" ? t("toolbar.list") : t("toolbar.board")}
                         </button>
                     ))}
                 </div>
@@ -1337,13 +1336,13 @@ function MyWorkTab({
                     value={filterStatusId}
                     options={statusOptions}
                     onChange={setFilterStatusId}
-                    label="상태"
+                    label={t("toolbar.filterStatus")}
                 />
                 <FilterSortDropdown
                     value={filterPriorityId}
                     options={priorityOptions}
                     onChange={setFilterPriorityId}
-                    label="우선순위"
+                    label={t("toolbar.filterPriority")}
                 />
 
                 {/* 구분선 */}
@@ -1354,7 +1353,7 @@ function MyWorkTab({
                     value={sortBy}
                     options={sortOptions}
                     onChange={setSortBy}
-                    label="정렬"
+                    label={t("toolbar.sort")}
                 />
 
                 {/* 필터/정렬 초기화 */}
@@ -1367,7 +1366,7 @@ function MyWorkTab({
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        초기화
+                        {t("toolbar.reset")}
                     </button>
                 )}
 
@@ -1378,7 +1377,7 @@ function MyWorkTab({
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        업무 추가
+                        {t("common.addTask")}
                     </button>
                 </div>
             </div>
@@ -1394,12 +1393,12 @@ function MyWorkTab({
                                 <thead>
                                     <tr className="border-b border-stone-200 bg-stone-50/60">
                                         <th className="w-6 py-2 pl-2" />
-                                        <th className="py-2 pr-3 pl-1 text-left text-xs font-medium text-stone-500">업무</th>
-                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">상태</th>
-                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">우선순위</th>
-                                        <th className="hidden py-2 pr-3 text-center text-xs font-medium text-stone-500 sm:table-cell">담당자</th>
-                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">시작일</th>
-                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">종료일</th>
+                                        <th className="py-2 pr-3 pl-1 text-left text-xs font-medium text-stone-500">{t("table.task")}</th>
+                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">{t("table.status")}</th>
+                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">{t("table.priority")}</th>
+                                        <th className="hidden py-2 pr-3 text-center text-xs font-medium text-stone-500 sm:table-cell">{t("table.assignee")}</th>
+                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">{t("table.startDate")}</th>
+                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">{t("table.dueDate")}</th>
                                         <th className="w-16 py-2 pr-2" />
                                     </tr>
                                 </thead>
@@ -1427,7 +1426,7 @@ function MyWorkTab({
                                     <tbody>
                                         <tr>
                                             <td colSpan={8} className="py-12 text-center text-sm text-stone-400">
-                                                {topTasks.length === 0 ? "업무가 없습니다. 업무 추가를 눌러 시작하세요." : "필터 조건에 맞는 업무가 없습니다."}
+                                                {topTasks.length === 0 ? t("empty.noTasks") : t("empty.noTasksFilter")}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1513,6 +1512,7 @@ function TimelineTab({
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
 }) {
+    const t = useTranslations("workspace");
     const todayRaw = new Date();
     todayRaw.setHours(0, 0, 0, 0);
     const today = todayRaw.getTime();
@@ -1548,12 +1548,12 @@ function TimelineTab({
     const noDate    = [...topTasks.filter((t) => !t.dueDate)].sort((a, b) => priorityScore(b) - priorityScore(a));
 
     const groups = [
-        { key: "overdue",  label: "기한 초과",   badge: "bg-red-100 text-red-700",       dot: "bg-red-500",    items: overdue },
-        { key: "today",    label: "오늘 마감",    badge: "bg-orange-100 text-orange-700", dot: "bg-orange-500", items: dueToday },
-        { key: "soon",     label: "3일 이내",     badge: "bg-yellow-100 text-yellow-700", dot: "bg-yellow-500", items: dueSoon },
-        { key: "week",     label: "이번 주",      badge: "bg-blue-100 text-blue-700",     dot: "bg-blue-400",   items: thisWeek },
-        { key: "later",    label: "이후",         badge: "bg-stone-100 text-stone-600",   dot: "bg-stone-400",  items: later },
-        { key: "nodate",   label: "날짜 미설정",  badge: "bg-stone-100 text-stone-500",   dot: "bg-stone-300",  items: noDate },
+        { key: "overdue",  label: t("timeline.overdue"),   badge: "bg-red-100 text-red-700",       dot: "bg-red-500",    items: overdue },
+        { key: "today",    label: t("timeline.today"),     badge: "bg-orange-100 text-orange-700", dot: "bg-orange-500", items: dueToday },
+        { key: "soon",     label: t("timeline.soon"),      badge: "bg-yellow-100 text-yellow-700", dot: "bg-yellow-500", items: dueSoon },
+        { key: "week",     label: t("timeline.thisWeek"),  badge: "bg-blue-100 text-blue-700",     dot: "bg-blue-400",   items: thisWeek },
+        { key: "later",    label: t("timeline.later"),     badge: "bg-stone-100 text-stone-600",   dot: "bg-stone-400",  items: later },
+        { key: "nodate",   label: t("timeline.noDate"),    badge: "bg-stone-100 text-stone-500",   dot: "bg-stone-300",  items: noDate },
     ].filter((g) => g.items.length > 0);
 
     if (groups.length === 0) {
@@ -1561,19 +1561,19 @@ function TimelineTab({
             <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
                     <p className="text-3xl">🎉</p>
-                    <p className="mt-3 text-sm font-semibold text-stone-700">완료되지 않은 업무가 없습니다!</p>
-                    <p className="mt-1 text-xs text-stone-400">모든 업무가 완료됐거나 아직 업무가 없습니다.</p>
+                    <p className="mt-3 text-sm font-semibold text-stone-700">{t("timeline.allDone")}</p>
+                    <p className="mt-1 text-xs text-stone-400">{t("timeline.allDoneDesc")}</p>
                 </div>
             </div>
         );
     }
 
-    function dueDateLabel(t: ApiWorkspaceTask) {
-        const d = diffDays(t);
-        if (d === null) return "날짜 없음";
-        if (d < 0) return `${Math.abs(d)}일 초과`;
-        if (d === 0) return "오늘";
-        return `D-${d}`;
+    function dueDateLabel(task: ApiWorkspaceTask) {
+        const d = diffDays(task);
+        if (d === null) return t("timeline.dateNone");
+        if (d < 0) return t("timeline.daysOverdue", { count: Math.abs(d) });
+        if (d === 0) return t("timeline.todayLabel");
+        return t("timeline.daysLeft", { count: d });
     }
 
     function dueDateColor(t: ApiWorkspaceTask) {
@@ -1595,7 +1595,7 @@ function TimelineTab({
                             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}>
                                 {group.label}
                             </span>
-                            <span className="mt-1 text-[10px] text-stone-400">{group.items.length}개</span>
+                            <span className="mt-1 text-[10px] text-stone-400">{t("timeline.items", { count: group.items.length })}</span>
                         </div>
                         {/* 타임라인 선 */}
                         <div className="relative flex w-8 shrink-0 flex-col items-center">
@@ -1657,6 +1657,7 @@ function DashboardPanel({
     statuses: ApiWorkspaceStatus[];
     priorities: ApiWorkspacePriority[];
 }) {
+    const t = useTranslations("workspace");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -1700,10 +1701,10 @@ function DashboardPanel({
             {/* ── 상단 지표 카드 ── */}
             <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
                 {[
-                    { label: "전체 업무", value: total, sub: `날짜 미설정 ${noDate}개`, color: "text-stone-900", bg: "bg-white border border-stone-100" },
-                    { label: "완료", value: completed, sub: `${progressPct}% 달성`, color: "text-green-700", bg: "bg-green-50 border border-green-100" },
-                    { label: "기한 초과", value: overdue, sub: "즉시 처리 필요", color: "text-red-600", bg: "bg-red-50 border border-red-100" },
-                    { label: "3일 이내 마감", value: dueSoon, sub: "주의 필요", color: "text-orange-600", bg: "bg-orange-50 border border-orange-100" },
+                    { label: t("dashboard.totalTasks"), value: total, sub: t("dashboard.noDateCount", { count: noDate }), color: "text-stone-900", bg: "bg-white border border-stone-100" },
+                    { label: t("dashboard.completed"), value: completed, sub: t("dashboard.achievement", { pct: progressPct }), color: "text-green-700", bg: "bg-green-50 border border-green-100" },
+                    { label: t("dashboard.overdue"), value: overdue, sub: t("dashboard.overdueNote"), color: "text-red-600", bg: "bg-red-50 border border-red-100" },
+                    { label: t("dashboard.dueSoon"), value: dueSoon, sub: t("dashboard.dueSoonNote"), color: "text-orange-600", bg: "bg-orange-50 border border-orange-100" },
                 ].map(({ label, value, sub, color, bg }) => (
                     <div key={label} className={`rounded-2xl ${bg} px-5 py-4`}>
                         <p className="text-xs font-medium text-stone-500">{label}</p>
@@ -1716,21 +1717,21 @@ function DashboardPanel({
             {/* ── 진행률 ── */}
             <div className="mb-5 rounded-2xl border border-stone-100 bg-white p-5">
                 <div className="mb-3 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-stone-700">전체 진행률</span>
+                    <span className="text-sm font-semibold text-stone-700">{t("dashboard.progress")}</span>
                     <span className="text-2xl font-bold text-stone-900">{progressPct}%</span>
                 </div>
                 <div className="h-4 w-full overflow-hidden rounded-full bg-stone-100">
                     <div className="h-full rounded-full bg-green-500 transition-all duration-700" style={{ width: `${progressPct}%` }} />
                 </div>
-                <p className="mt-2 text-xs text-stone-400">{completed} / {total} 완료</p>
+                <p className="mt-2 text-xs text-stone-400">{t("dashboard.progressDetail", { completed, total })}</p>
             </div>
 
             {/* ── 중단 2열 ── */}
             <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {/* 상태별 */}
                 <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                    <h3 className="mb-4 text-sm font-semibold text-stone-700">상태별 현황</h3>
-                    {byStatus.length === 0 ? <p className="text-xs text-stone-400">업무가 없습니다.</p> : (
+                    <h3 className="mb-4 text-sm font-semibold text-stone-700">{t("dashboard.statusBreakdown")}</h3>
+                    {byStatus.length === 0 ? <p className="text-xs text-stone-400">{t("dashboard.noTasks")}</p> : (
                         <div className="space-y-3">
                             {byStatus.map((s) => {
                                 const pct = total === 0 ? 0 : Math.round((s.count / total) * 100);
@@ -1741,7 +1742,7 @@ function DashboardPanel({
                                             <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${color.badge}`} style={color.badgeStyle}>
                                                 <span className={`h-1.5 w-1.5 rounded-full ${color.dot}`} style={color.dotStyle} />{s.name}
                                             </span>
-                                            <span className="text-xs tabular-nums text-stone-500">{s.count}개 · {pct}%</span>
+                                            <span className="text-xs tabular-nums text-stone-500">{t("dashboard.items", { count: s.count })} · {pct}%</span>
                                         </div>
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
                                             <div className={`h-full rounded-full ${color.dot} transition-all duration-500`} style={{ width: `${pct}%`, ...color.dotStyle }} />
@@ -1755,9 +1756,9 @@ function DashboardPanel({
 
                 {/* 우선순위별 */}
                 <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                    <h3 className="mb-4 text-sm font-semibold text-stone-700">우선순위별 현황</h3>
+                    <h3 className="mb-4 text-sm font-semibold text-stone-700">{t("dashboard.priorityBreakdown")}</h3>
                     {byPriority.length === 0 && noPriority === total
-                        ? <p className="text-xs text-stone-400">우선순위가 설정된 업무가 없습니다.</p>
+                        ? <p className="text-xs text-stone-400">{t("dashboard.noTasks")}</p>
                         : (
                             <div className="space-y-3">
                                 {byPriority.map((p) => {
@@ -1769,7 +1770,7 @@ function DashboardPanel({
                                                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${color.badge}`} style={color.badgeStyle}>
                                                     <span className={`h-1.5 w-1.5 rounded-full ${color.dot}`} style={color.dotStyle} />{p.name}
                                                 </span>
-                                                <span className="text-xs tabular-nums text-stone-500">{p.count}개 · {pct}%</span>
+                                                <span className="text-xs tabular-nums text-stone-500">{t("dashboard.items", { count: p.count })} · {pct}%</span>
                                             </div>
                                             <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
                                                 <div className={`h-full rounded-full ${color.dot} transition-all duration-500`} style={{ width: `${pct}%`, ...color.dotStyle }} />
@@ -1783,9 +1784,9 @@ function DashboardPanel({
                                         <div>
                                             <div className="mb-1.5 flex items-center justify-between">
                                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-500">
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />미설정
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />{t("dashboard.noPriority")}
                                                 </span>
-                                                <span className="text-xs tabular-nums text-stone-500">{noPriority}개 · {pct}%</span>
+                                                <span className="text-xs tabular-nums text-stone-500">{t("dashboard.items", { count: noPriority })} · {pct}%</span>
                                             </div>
                                             <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
                                                 <div className="h-full rounded-full bg-stone-300 transition-all duration-500" style={{ width: `${pct}%` }} />
@@ -1801,23 +1802,23 @@ function DashboardPanel({
 
             {/* ── 기한 임박 업무 전체 목록 ── */}
             <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                <h3 className="mb-4 text-sm font-semibold text-stone-700">기한 임박 업무 <span className="ml-1 text-xs font-normal text-stone-400">(±7일)</span></h3>
+                <h3 className="mb-4 text-sm font-semibold text-stone-700">{t("dashboard.upcomingTitle")} <span className="ml-1 text-xs font-normal text-stone-400">{t("dashboard.upcomingNote")}</span></h3>
                 {upcomingTasks.length === 0 ? (
-                    <p className="text-xs text-stone-400">7일 이내 마감되는 업무가 없습니다.</p>
+                    <p className="text-xs text-stone-400">{t("dashboard.noUpcoming")}</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {upcomingTasks.map((t) => {
-                            const due = new Date(t.dueDate!); due.setHours(0, 0, 0, 0);
+                        {upcomingTasks.map((task) => {
+                            const due = new Date(task.dueDate!); due.setHours(0, 0, 0, 0);
                             const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
-                            const color = tagColorOf(t.status.color);
-                            const label = diff < 0 ? `${Math.abs(diff)}일 초과` : diff === 0 ? "오늘" : `D-${diff}`;
+                            const color = tagColorOf(task.status.color);
+                            const label = diff < 0 ? t("timeline.daysOverdue", { count: Math.abs(diff) }) : diff === 0 ? t("timeline.todayLabel") : t("timeline.daysLeft", { count: diff });
                             const labelBg = diff < 0 ? "bg-red-100 text-red-600" : diff === 0 ? "bg-orange-100 text-orange-600" : "bg-stone-100 text-stone-500";
                             return (
-                                <div key={t.id} className="flex items-center gap-3 rounded-xl border border-stone-100 px-4 py-3">
+                                <div key={task.id} className="flex items-center gap-3 rounded-xl border border-stone-100 px-4 py-3">
                                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color.dot}`} style={color.dotStyle} />
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-xs font-semibold text-stone-800">{t.title}</p>
-                                        <p className="mt-0.5 truncate text-[11px] text-stone-400">{t.status.name}</p>
+                                        <p className="truncate text-xs font-semibold text-stone-800">{task.title}</p>
+                                        <p className="mt-0.5 truncate text-[11px] text-stone-400">{task.status.name}</p>
                                     </div>
                                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${labelBg}`}>{label}</span>
                                 </div>
@@ -1845,6 +1846,7 @@ function SummaryTab({
     statuses: ApiWorkspaceStatus[];
     priorities: ApiWorkspacePriority[];
 }) {
+    const t = useTranslations("workspace");
     const [subTab, setSubTab] = useState<SummarySubTab>("timeline");
 
     return (
@@ -1862,7 +1864,7 @@ function SummaryTab({
                                 : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
                         }`}
                     >
-                        {id === "timeline" ? "타임라인" : "업무 대시보드"}
+                        {id === "timeline" ? t("tabs.timeline") : t("tabs.dashboard")}
                     </button>
                 ))}
             </div>
@@ -1883,12 +1885,13 @@ function SummaryTab({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function RequestsTab() {
+    const t = useTranslations("workspace");
     return (
         <div className="flex flex-1 items-center justify-center p-8">
             <div className="text-center">
                 <p className="text-3xl" aria-hidden>📬</p>
-                <p className="mt-3 text-base font-semibold text-stone-700">요청 기능 준비 중</p>
-                <p className="mt-1 text-sm text-stone-400">다른 팀원에게 업무를 요청하거나 리뷰를 받을 수 있는 기능이 곧 추가됩니다.</p>
+                <p className="mt-3 text-base font-semibold text-stone-700">{t("requests.title")}</p>
+                <p className="mt-1 text-sm text-stone-400">{t("requests.desc")}</p>
             </div>
         </div>
     );
@@ -1909,22 +1912,31 @@ interface WorkspaceDetailClientProps {
 export default function WorkspaceDetailClient({
     workspace, initialTasks, initialStatuses, initialPriorities,
 }: WorkspaceDetailClientProps) {
+    const t = useTranslations("workspace");
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<WorkspaceTab>("mywork");
     const [tasks, setTasks] = useState<ApiWorkspaceTask[]>(initialTasks);
     const [statuses, setStatuses] = useState<ApiWorkspaceStatus[]>(initialStatuses);
     const [priorities, setPriorities] = useState<ApiWorkspacePriority[]>(initialPriorities);
+    const [calendarPanelTask, setCalendarPanelTask] = useState<ApiWorkspaceTask | null>(null);
 
     const project = workspace.project;
     const allTeams = [project.team, ...project.projectTeams.map((pt) => pt.team)].filter(Boolean);
-    const teamNames = [...new Set(allTeams.map((t) => t!.name))];
+    const teamNames = [...new Set(allTeams.map((tm) => tm!.name))];
+
+    const TABS: { id: WorkspaceTab; label: string }[] = [
+        { id: "mywork",   label: t("tabs.mywork") },
+        { id: "summary",  label: t("tabs.summary") },
+        { id: "requests", label: t("tabs.requests") },
+        { id: "calendar", label: t("tabs.calendar") },
+    ];
 
     return (
         <div className="flex min-h-full w-full flex-col">
             <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
                     <button type="button" onClick={() => router.back()}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700" aria-label="뒤로 가기">
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700" aria-label={t("header.backAria")}>
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -1932,11 +1944,11 @@ export default function WorkspaceDetailClient({
                     <div className="min-w-0 flex-1">
                         <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">{project.name}</h1>
                         <p className="truncate text-xs text-stone-500 sm:text-sm">
-                            {teamNames.length > 0 ? teamNames.join(" · ") : "개인 워크스페이스"}
+                            {teamNames.length > 0 ? teamNames.join(" · ") : t("header.personalWorkspace")}
                         </p>
                     </div>
                     <div className="shrink-0 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600">
-                        업무 {tasks.filter((t) => !t.parentId).length}개
+                        {t("header.taskCount", { count: tasks.filter((tk) => !tk.parentId).length })}
                     </div>
                 </div>
             </div>
@@ -1972,14 +1984,25 @@ export default function WorkspaceDetailClient({
                 )}
                 {activeTab === "requests" && <RequestsTab />}
                 {activeTab === "calendar" && (
-                    <CalendarTab
-                        tasks={tasks}
-                        statuses={statuses}
-                        workspaceId={workspace.id}
-                        onUpdate={(t) => setTasks((prev) => prev.map((x) => (x.id === t.id ? t : x)))}
-                        onAdded={(t) => setTasks((prev) => [...prev, t])}
-                        onSelectTask={(t) => setPanelTask(t)}
-                    />
+                    <>
+                        <CalendarTab
+                            tasks={tasks}
+                            statuses={statuses}
+                            workspaceId={workspace.id}
+                            onAdded={(tk) => setTasks((prev) => [...prev, tk])}
+                            onSelectTask={(tk) => setCalendarPanelTask(tk)}
+                        />
+                        {calendarPanelTask && (
+                            <TaskDetailPanel
+                                task={calendarPanelTask}
+                                statuses={statuses}
+                                priorities={priorities}
+                                workspaceId={workspace.id}
+                                onUpdate={(tk) => { setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x))); setCalendarPanelTask(tk); }}
+                                onClose={() => setCalendarPanelTask(null)}
+                            />
+                        )}
+                    </>
                 )}
             </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations, useLocale } from "next-intl";
 import type {
     ApiWorkspaceStatus,
     ApiWorkspacePriority,
@@ -30,8 +31,8 @@ function formatBytes(bytes: number) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(iso: string) {
-    return new Date(iso).toLocaleString("ko-KR", {
+function formatDate(iso: string, locale: string) {
+    return new Date(iso).toLocaleString(locale, {
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
@@ -54,19 +55,6 @@ function serverUrl(path: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 작은 메타 행 (라벨 + 컨트롤)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <div className="flex items-center gap-3 py-1.5">
-            <span className="w-16 shrink-0 text-xs font-medium text-stone-400">{label}</span>
-            <div className="flex-1">{children}</div>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // 심플 드롭다운 (상태 / 우선순위 용)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -83,13 +71,14 @@ function SimpleSelect<T extends { id: string; name: string; color: string }>({
     placeholder?: string;
     onChange: (id: string | null) => void;
 }) {
+    const t = useTranslations("workspace");
     return (
         <select
             value={value ?? ""}
             onChange={(e) => onChange(e.target.value || null)}
             className="rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-stone-400"
         >
-            {nullable && <option value="">{placeholder ?? "없음"}</option>}
+            {nullable && <option value="">{placeholder ?? t("taskDetail.none")}</option>}
             {items.map((item) => (
                 <option key={item.id} value={item.id}>
                     {item.name}
@@ -104,6 +93,8 @@ function SimpleSelect<T extends { id: string; name: string; color: string }>({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+    const t = useTranslations("workspace");
+    const locale = useLocale();
     const [comments, setComments] = useState<ApiWorkspaceTaskComment[]>([]);
     const [loading, setLoading] = useState(true);
     const [input, setInput] = useState("");
@@ -138,14 +129,14 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
     return (
         <div className="mb-6">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400">
-                추가 내용
+                {t("taskDetail.addMore")}
             </h3>
 
             {loading ? (
-                <p className="text-xs text-stone-400">불러오는 중…</p>
+                <p className="text-xs text-stone-400">{t("taskDetail.commentsLoading")}</p>
             ) : comments.length === 0 ? (
                 <div className="flex min-h-[80px] mb-2 items-center justify-center rounded-xl border border-dashed border-stone-200 bg-stone-50/50">
-                    <p className="text-xs text-stone-300">아직 댓글이 없습니다.</p>
+                    <p className="text-xs text-stone-300">{t("taskDetail.noComments")}</p>
                 </div>
             ) : (
                 <ul className="mb-3 space-y-3">
@@ -168,7 +159,7 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
                                         {c.user.name ?? c.user.email}
                                     </span>
                                     <span className="text-[10px] text-stone-400">
-                                        {formatDate(c.createdAt)}
+                                        {formatDate(c.createdAt, locale)}
                                     </span>
                                     <button
                                         type="button"
@@ -176,7 +167,7 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
                                         disabled={isPending}
                                         className="ml-auto text-[10px] text-stone-300 hover:text-red-400"
                                     >
-                                        삭제
+                                        {t("taskDetail.delete")}
                                     </button>
                                 </div>
                                 <p className="mt-0.5 whitespace-pre-wrap break-words text-xs text-stone-600">
@@ -195,20 +186,20 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit();
                     }}
-                    placeholder="댓글 입력 (Ctrl+Enter로 등록)"
+                    placeholder={t("taskDetail.commentPlaceholder")}
                     rows={4}
                     disabled={isPending}
                     className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm text-stone-700 outline-none transition-colors focus:border-stone-400 focus:bg-white placeholder:text-stone-300"
                 />
                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-stone-300">Ctrl+Enter로 등록</span>
+                    <span className="text-[10px] text-stone-300">{t("taskDetail.commentHint")}</span>
                     <button
                         type="button"
                         onClick={submit}
                         disabled={isPending || !input.trim()}
                         className="rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-40"
                     >
-                        등록
+                        {t("taskDetail.submitComment")}
                     </button>
                 </div>
             </div>
@@ -221,6 +212,7 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+    const t = useTranslations("workspace");
     const [attachments, setAttachments] = useState<ApiWorkspaceTaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -256,7 +248,7 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
         <div>
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
-                    첨부파일
+                    {t("taskDetail.attachments")}
                 </h3>
                 <button
                     type="button"
@@ -272,7 +264,7 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                             d="M12 4v16m8-8H4"
                         />
                     </svg>
-                    파일 추가
+                    {t("taskDetail.addFile")}
                 </button>
                 <input
                     ref={fileRef}
@@ -331,7 +323,7 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                                 d="M4 12a8 8 0 018-8v8H4z"
                             />
                         </svg>
-                        <span>업로드 중…</span>
+                        <span>{t("taskDetail.uploading")}</span>
                     </>
                 ) : isDragOver ? (
                     <>
@@ -348,7 +340,7 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                             />
                         </svg>
-                        <span className="font-medium">파일을 여기에 놓으세요</span>
+                        <span className="font-medium">{t("taskDetail.dropHere")}</span>
                     </>
                 ) : (
                     <>
@@ -365,15 +357,15 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                                 d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                             />
                         </svg>
-                        <span>여기에 파일을 드래그하거나 클릭하세요</span>
+                        <span>{t("taskDetail.dragOrClick")}</span>
                     </>
                 )}
             </div>
 
             {loading ? (
-                <p className="text-xs text-stone-400">불러오는 중…</p>
+                <p className="text-xs text-stone-400">{t("taskDetail.commentsLoading")}</p>
             ) : attachments.length === 0 ? (
-                <p className="text-xs text-stone-300">첨부된 파일이 없습니다.</p>
+                <p className="text-xs text-stone-300">{t("taskDetail.noFiles")}</p>
             ) : (
                 <ul className="space-y-1.5">
                     {attachments.map((a) => (
@@ -443,6 +435,8 @@ export default function TaskDetailPanel({
     onUpdate,
     onClose,
 }: Props) {
+    const t = useTranslations("workspace");
+    const locale = useLocale();
     const [isPending, startTransition] = useTransition();
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description ?? "");
@@ -494,7 +488,7 @@ export default function TaskDetailPanel({
             >
                 {/* ── 헤더 ── */}
                 <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3">
-                    <span className="text-xs text-stone-400">업무 상세</span>
+                    <span className="text-xs text-stone-400">{t("taskDetail.title")}</span>
                     <button
                         type="button"
                         onClick={onClose}
@@ -532,7 +526,7 @@ export default function TaskDetailPanel({
                             }}
                             disabled={isPending}
                             className="min-w-0 flex-1 rounded-lg border-0 bg-transparent px-0 text-lg font-bold text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0"
-                            placeholder="업무 제목"
+                            placeholder={t("taskDetail.taskTitlePlaceholder")}
                         />
                         {task.assignee && (
                             <div className="shrink-0 flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1">
@@ -559,7 +553,7 @@ export default function TaskDetailPanel({
                         {/* 1행: 상태 | 우선순위 */}
                         <div className="grid grid-cols-2 gap-x-4">
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">상태</span>
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">{t("taskDetail.status")}</span>
                                 <SimpleSelect
                                     value={task.statusId}
                                     items={statuses}
@@ -569,12 +563,11 @@ export default function TaskDetailPanel({
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">우선순위</span>
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">{t("taskDetail.priority")}</span>
                                 <SimpleSelect
                                     value={task.priorityId ?? null}
                                     items={priorities}
                                     nullable
-                                    placeholder="없음"
                                     onChange={(id) => update({ priorityId: id })}
                                 />
                             </div>
@@ -582,7 +575,7 @@ export default function TaskDetailPanel({
                         {/* 2행: 시작일 | 종료일 */}
                         <div className="grid grid-cols-2 gap-x-4">
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">시작일</span>
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">{t("taskDetail.startDate")}</span>
                                 <input
                                     type="date"
                                     defaultValue={task.startDate?.slice(0, 10) ?? ""}
@@ -592,7 +585,7 @@ export default function TaskDetailPanel({
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">종료일</span>
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">{t("taskDetail.dueDate")}</span>
                                 <input
                                     type="date"
                                     defaultValue={task.dueDate?.slice(0, 10) ?? ""}
@@ -607,14 +600,14 @@ export default function TaskDetailPanel({
                     {/* 내용 */}
                     <div>
                         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
-                            내용
+                            {t("taskDetail.description")}
                         </h3>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             onBlur={saveDescription}
                             disabled={isPending}
-                            placeholder="업무에 대한 상세 설명을 입력하세요…"
+                            placeholder={t("taskDetail.descriptionPlaceholder")}
                             rows={5}
                             className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm text-stone-700 outline-none transition-colors focus:border-stone-400 focus:bg-white placeholder:text-stone-300"
                         />
@@ -644,7 +637,7 @@ export default function TaskDetailPanel({
                         </span>
                     )}
                     <span className="ml-auto text-[10px] text-stone-300">
-                        생성 {new Date(task.createdAt).toLocaleDateString("ko-KR")}
+                        {t("taskDetail.created")} {new Date(task.createdAt).toLocaleDateString(locale)}
                     </span>
                 </div>
             </div>

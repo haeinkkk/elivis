@@ -2,7 +2,7 @@
 # 상용 환경 (production)
 # 사용: docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 #  - DB + Fastify API 서버를 모두 컨테이너로 실행
-#  - elivis-server 이미지는 apps/server/Dockerfile(멀티스테이지)로 빌드
+#  - elivis-api-server 이미지는 apps/server/apiServer/Dockerfile(멀티스테이지)로 빌드
 #  - DATABASE_URL 호스트명은 서비스명 elivis-postgres (컨테이너 내부 DNS)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -40,11 +40,11 @@ services:
     networks:
       - elivis-network
 
-  elivis-server:
-    container_name: elivis-server-prod
+  elivis-api-server:
+    container_name: elivis-api-server-prod
     build:
       context: .
-      dockerfile: apps/server/Dockerfile
+      dockerfile: apps/server/apiServer/Dockerfile
     restart: unless-stopped
     depends_on:
       elivis-postgres:

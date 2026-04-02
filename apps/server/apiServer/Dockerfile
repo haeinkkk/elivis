@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# 참조 위치: docker-compose.prod.yml > services.elivis-server.build.dockerfile
+# 참조 위치: docker-compose.prod.yml > services.elivis-api-server.build.dockerfile
 # 빌드 컨텍스트: 모노레포 루트(.)  ← docker compose -f docker-compose.prod.yml build
 #
 # ※ 개발(pnpm dev)에서는 이 파일을 사용하지 않습니다.
@@ -19,7 +19,7 @@ COPY packages/tsconfig/package.json        ./packages/tsconfig/
 COPY packages/eslint-config/package.json   ./packages/eslint-config/
 COPY packages/database/package.json        ./packages/database/
 COPY packages/types/package.json           ./packages/types/
-COPY apps/server/package.json              ./apps/server/
+COPY apps/server/apiServer/package.json    ./apps/server/apiServer/
 
 RUN pnpm install --frozen-lockfile
 
@@ -28,9 +28,9 @@ COPY packages/tsconfig/      ./packages/tsconfig/
 COPY packages/eslint-config/ ./packages/eslint-config/
 COPY packages/database/      ./packages/database/
 COPY packages/types/         ./packages/types/
-COPY apps/server/            ./apps/server/
+COPY apps/server/apiServer/  ./apps/server/apiServer/
 
-RUN pnpm exec turbo build --filter=@repo/database --filter=@repo/server
+RUN pnpm exec turbo build --filter=@repo/database --filter=@repo/api-server
 
 # ── Stage 2 · runner ─────────────────────────────────────────────────────────
 FROM node:24-alpine AS runner
@@ -42,15 +42,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # 런타임에 필요한 파일만 선택적으로 복사 (빌드 툴 제외)
-COPY --from=builder /app/node_modules                      ./node_modules
-COPY --from=builder /app/packages/database/dist            ./packages/database/dist
-COPY --from=builder /app/packages/database/package.json    ./packages/database/
-COPY --from=builder /app/packages/types/dist               ./packages/types/dist
-COPY --from=builder /app/packages/types/package.json       ./packages/types/
-COPY --from=builder /app/apps/server/dist                  ./apps/server/dist
-COPY --from=builder /app/apps/server/package.json          ./apps/server/
+COPY --from=builder /app/node_modules                           ./node_modules
+COPY --from=builder /app/packages/database/dist                 ./packages/database/dist
+COPY --from=builder /app/packages/database/package.json         ./packages/database/
+COPY --from=builder /app/packages/types/dist                    ./packages/types/dist
+COPY --from=builder /app/packages/types/package.json            ./packages/types/
+COPY --from=builder /app/apps/server/apiServer/dist             ./apps/server/apiServer/dist
+COPY --from=builder /app/apps/server/apiServer/package.json     ./apps/server/apiServer/
 
-WORKDIR /app/apps/server
+WORKDIR /app/apps/server/apiServer
 EXPOSE 4000
 
 # 보안: root 대신 node 유저로 실행

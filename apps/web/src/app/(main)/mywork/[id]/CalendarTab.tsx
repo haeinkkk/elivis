@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import type { ApiWorkspaceStatus, ApiWorkspaceTask } from "@/lib/map-api-workspace";
-import { createWorkspaceTaskAction, updateWorkspaceTaskAction } from "@/app/actions/workspaces";
+import { createWorkspaceTaskAction } from "@/app/actions/workspaces";
 import { TAG_COLORS } from "./WorkspaceDetailClient";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -166,108 +167,6 @@ function EventBar({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 태스크 상세 팝업
-// ─────────────────────────────────────────────────────────────────────────────
-
-function TaskPopup({
-    task,
-    workspaceId,
-    onUpdate,
-    onClose,
-}: {
-    task: ApiWorkspaceTask;
-    workspaceId: string;
-    onUpdate: (t: ApiWorkspaceTask) => void;
-    onClose: () => void;
-}) {
-    const [isPending, startTransition] = useTransition();
-    const statusColor = TAG_COLORS[task.status.color] ?? TAG_COLORS.gray;
-    const priorityColor = task.priority ? (TAG_COLORS[task.priority.color] ?? TAG_COLORS.gray) : null;
-
-    function updateDate(field: "startDate" | "dueDate", value: string | null) {
-        startTransition(async () => {
-            const res = await updateWorkspaceTaskAction(workspaceId, task.id, { [field]: value });
-            if (res.ok) onUpdate(res.task);
-        });
-    }
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
-            <div
-                className="w-full max-w-sm rounded-xl border border-stone-200 bg-white p-5 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* 제목 */}
-                <div className="mb-3 flex items-start justify-between gap-2">
-                    <h3 className="text-base font-semibold text-stone-900">{task.title}</h3>
-                    <button type="button" onClick={onClose}
-                        className="mt-0.5 shrink-0 rounded p-0.5 text-stone-400 hover:bg-stone-100">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* 상태 · 우선순위 */}
-                <div className="mb-3 flex flex-wrap gap-1.5">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusColor.badge}`}>
-                        <span className={`h-2 w-2 rounded-full ${statusColor.dot}`} />
-                        {task.status.name}
-                    </span>
-                    {task.priority && priorityColor && (
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${priorityColor.badge}`}>
-                            <span className={`h-2 w-2 rounded-full ${priorityColor.dot}`} />
-                            {task.priority.name}
-                        </span>
-                    )}
-                </div>
-
-                {/* 날짜 */}
-                <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                        <span className="w-14 shrink-0 text-xs font-medium text-stone-500">시작일</span>
-                        <input
-                            type="date"
-                            defaultValue={task.startDate ? task.startDate.slice(0, 10) : ""}
-                            disabled={isPending}
-                            onChange={(e) => updateDate("startDate", e.target.value || null)}
-                            className="rounded border border-stone-300 px-2 py-1 text-xs outline-none focus:border-stone-500"
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-14 shrink-0 text-xs font-medium text-stone-500">종료일</span>
-                        <input
-                            type="date"
-                            defaultValue={task.dueDate ? task.dueDate.slice(0, 10) : ""}
-                            disabled={isPending}
-                            onChange={(e) => updateDate("dueDate", e.target.value || null)}
-                            className="rounded border border-stone-300 px-2 py-1 text-xs outline-none focus:border-stone-500"
-                        />
-                    </div>
-                </div>
-
-                {/* 담당자 */}
-                {task.assignee && (
-                    <div className="mt-3 flex items-center gap-2 text-xs text-stone-500">
-                        <span className="w-14 shrink-0 font-medium">담당자</span>
-                        <div className="flex items-center gap-1.5">
-                            {task.assignee.avatarUrl ? (
-                                <img src={task.assignee.avatarUrl} className="h-5 w-5 rounded-full object-cover" alt="" />
-                            ) : (
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-200 text-[10px] font-semibold text-stone-600">
-                                    {(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}
-                                </span>
-                            )}
-                            <span>{task.assignee.name ?? task.assignee.email}</span>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // 날짜 셀 내 업무 추가 팝업
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -284,9 +183,10 @@ function DayAddPopup({
     onAdded: (t: ApiWorkspaceTask) => void;
     onClose: () => void;
 }) {
+    const t = useTranslations("workspace");
     const [title, setTitle] = useState("");
     const [isPending, startTransition] = useTransition();
-    const label = `${date.getMonth() + 1}월 ${date.getDate()}일`;
+    const label = t("calendar.addTaskTitle", { month: date.getMonth() + 1, day: date.getDate() });
 
     function submit() {
         const trimmed = title.trim();
@@ -309,21 +209,21 @@ function DayAddPopup({
                 className="w-full max-w-xs rounded-xl border border-stone-200 bg-white p-4 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                <p className="mb-2 text-xs font-semibold text-stone-500">{label} 업무 추가</p>
+                <p className="mb-2 text-xs font-semibold text-stone-500">{label}</p>
                 <input
                     autoFocus
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
-                    placeholder="업무 제목 입력 후 Enter"
+                    placeholder={t("calendar.taskPlaceholder")}
                     disabled={isPending}
                     className="mb-3 w-full rounded border border-stone-300 px-2 py-1.5 text-sm outline-none focus:border-stone-500"
                 />
                 <div className="flex justify-end gap-1.5">
                     <button type="button" onClick={onClose}
-                        className="rounded px-3 py-1 text-xs text-stone-500 hover:bg-stone-100">취소</button>
+                        className="rounded px-3 py-1 text-xs text-stone-500 hover:bg-stone-100">{t("calendar.cancel")}</button>
                     <button type="button" onClick={submit} disabled={isPending || !title.trim()}
-                        className="rounded bg-stone-800 px-3 py-1 text-xs text-white hover:bg-stone-700 disabled:opacity-40">추가</button>
+                        className="rounded bg-stone-800 px-3 py-1 text-xs text-white hover:bg-stone-700 disabled:opacity-40">{t("calendar.add")}</button>
                 </div>
             </div>
         </div>
@@ -334,30 +234,34 @@ function DayAddPopup({
 // 메인 CalendarTab 컴포넌트
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DOW_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
-const MONTH_LABELS = [
-    "1월", "2월", "3월", "4월", "5월", "6월",
-    "7월", "8월", "9월", "10월", "11월", "12월",
-];
-
 export default function CalendarTab({
     tasks,
     statuses,
     workspaceId,
-    onUpdate,
     onAdded,
     onSelectTask,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
     workspaceId: string;
-    onUpdate: (t: ApiWorkspaceTask) => void;
     onAdded: (t: ApiWorkspaceTask) => void;
     onSelectTask: (task: ApiWorkspaceTask) => void;
 }) {
+    const t = useTranslations("workspace");
     const today = startOfDay(new Date());
     const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
     const [addingDay, setAddingDay] = useState<Date | null>(null);
+
+    const DOW_LABELS = [
+        t("calendar.dow.sun"), t("calendar.dow.mon"), t("calendar.dow.tue"),
+        t("calendar.dow.wed"), t("calendar.dow.thu"), t("calendar.dow.fri"), t("calendar.dow.sat"),
+    ];
+    const MONTH_LABELS = [
+        t("calendar.months.jan"), t("calendar.months.feb"), t("calendar.months.mar"),
+        t("calendar.months.apr"), t("calendar.months.may"), t("calendar.months.jun"),
+        t("calendar.months.jul"), t("calendar.months.aug"), t("calendar.months.sep"),
+        t("calendar.months.oct"), t("calendar.months.nov"), t("calendar.months.dec"),
+    ];
 
     const year  = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -383,7 +287,7 @@ export default function CalendarTab({
                         </svg>
                     </button>
                     <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800">
-                        {year}년 {MONTH_LABELS[month]}
+                        {t("calendar.yearMonth", { year, month: MONTH_LABELS[month] })}
                     </span>
                     <button type="button" onClick={nextMonth}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
@@ -394,7 +298,7 @@ export default function CalendarTab({
                 </div>
                 <button type="button" onClick={goToday}
                     className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50">
-                    오늘
+                    {t("calendar.today")}
                 </button>
             </div>
 
@@ -448,7 +352,7 @@ export default function CalendarTab({
                                                 </span>
                                                 <button
                                                     type="button"
-                                                    title="업무 추가"
+                                                    title={t("calendar.addTaskAria")}
                                                     onClick={(e) => { e.stopPropagation(); setAddingDay(day); }}
                                                     className="absolute top-1 right-1 hidden h-5 w-5 items-center justify-center rounded text-stone-400 hover:bg-stone-200 group-hover:flex"
                                                 >

@@ -20,14 +20,10 @@
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:setup": "dotenv -e ../../.env -- prisma generate && dotenv -e ../../.env -- prisma migrate dev",
     "db:deploy": "dotenv -e ../../.env -- prisma migrate deploy && prisma generate",
-    "db:studio": "dotenv -e ../../.env -- prisma studio",
-    "db:seed": "dotenv -e ../../.env -- prisma db seed"
+    "db:studio": "dotenv -e ../../.env -- prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
