@@ -91,6 +91,72 @@ export async function addTeamMemberAction(
     }
 }
 
+export async function delegateTeamLeaderAction(
+    teamId: string,
+    userId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) {
+        return { ok: false, message: "로그인이 필요합니다." };
+    }
+
+    try {
+        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/leader`), {
+            method: "PUT",
+            headers: await apiFetchHeaders(),
+            body: JSON.stringify({ userId: userId.trim() }),
+            cache: "no-store",
+        });
+
+        const body = (await res.json()) as ApiEnvelope<unknown>;
+
+        if (!res.ok) {
+            return { ok: false, message: body.message ?? "팀장 위임에 실패했습니다." };
+        }
+
+        revalidatePath("/teams");
+        revalidatePath(`/teams/${teamId}`);
+        return { ok: true };
+    } catch {
+        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+    }
+}
+
+export async function removeTeamMemberAction(
+    teamId: string,
+    userId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) {
+        return { ok: false, message: "로그인이 필요합니다." };
+    }
+
+    try {
+        const baseHeaders = await apiFetchHeaders();
+        const { "Content-Type": _ct, ...headersWithoutContentType } = baseHeaders;
+        const res = await fetch(
+            apiUrl(`/api/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}`),
+            {
+                method: "DELETE",
+                headers: headersWithoutContentType,
+                cache: "no-store",
+            },
+        );
+
+        const body = (await res.json()) as ApiEnvelope<unknown>;
+
+        if (!res.ok) {
+            return { ok: false, message: body.message ?? "팀원 제외에 실패했습니다." };
+        }
+
+        revalidatePath("/teams");
+        revalidatePath(`/teams/${teamId}`);
+        return { ok: true };
+    } catch {
+        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+    }
+}
+
 export async function searchUsersForTeamAction(
     q: string,
 ): Promise<{ ok: true; users: ApiUserSearchRow[] } | { ok: false; message: string }> {

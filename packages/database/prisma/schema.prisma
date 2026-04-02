@@ -38,6 +38,12 @@ enum TeamRole {
   MEMBER /// 일반 팀원
 }
 
+/// 워크스페이스 뷰 종류
+enum WorkspaceViewType {
+  LIST  /// 리스트(테이블) 뷰
+  BOARD /// 보드(칸반) 뷰
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +66,10 @@ model User {
 
   teamsCreated    Team[]       @relation("TeamCreator")
   teamMemberships TeamMember[]
+  workspaces          Workspace[]
+  workspaceTasks      WorkspaceTask[]
+  taskComments        WorkspaceTaskComment[]
+  taskAttachments     WorkspaceTaskAttachment[]
 }
 
 model Project {
@@ -84,6 +94,7 @@ model Project {
   tasks   Task[]
   /// 공용 팀프로젝트 등 — 여러 팀에 동시에 연결
   projectTeams ProjectTeam[]
+  workspaces   Workspace[]
 
   @@index([teamId])
 }
@@ -179,4 +190,160 @@ model Task {
 
   project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignee User?   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 워크스페이스 (프로젝트 × 사용자 개인 작업 공간)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// 프로젝트가 생성될 때 연결된 팀의 모든 팀원에게 1개씩 자동 생성되는 개인 작업 공간
+model Workspace {
+  /// 앱에서 `generateWorkspaceId()`로 발급 (ws-xxxxxxxx)
+  id        String   @id
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       WorkspaceTask[]
+  views       WorkspaceView[]
+  statuses    WorkspaceStatus[]
+  priorities  WorkspacePriority[]
+
+  /// 프로젝트 내 사용자 1개
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@index([projectId])
+}
+
+/// 워크스페이스 내 개인 업무
+model WorkspaceTask {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id          String    @id
+  workspaceId String
+  title       String
+  /// 업무 상세 설명 (마크다운 허용)
+  description String?
+  /// WorkspaceStatus.id 를 저장 (워크스페이스별 커스텀 상태)
+  statusId    String
+  /// WorkspacePriority.id 를 저장 (선택 사항)
+  priorityId  String?
+  /// 같은 상태 내 정렬 순서 (작을수록 상단)
+  order       Int       @default(0)
+  /// 기본값은 워크스페이스 소유자, 다른 팀원에게 위임 가능
+  assigneeId  String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  /// 상위 업무 ID — null이면 최상위 업무
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignee    User?                   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  parent      WorkspaceTask?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subTasks    WorkspaceTask[]         @relation("SubTasks")
+  comments    WorkspaceTaskComment[]
+  attachments WorkspaceTaskAttachment[]
+
+  @@index([workspaceId])
+  @@index([assigneeId])
+  @@index([parentId])
+  @@index([workspaceId, statusId, order])
+}
+
+/// 업무 댓글
+model WorkspaceTaskComment {
+  id        String   @id
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task WorkspaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+/// 업무 첨부 파일
+model WorkspaceTaskAttachment {
+  id        String   @id
+  taskId    String
+  userId    String
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  task WorkspaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+/// 워크스페이스별 커스텀 우선순위 (Notion 스타일)
+model WorkspacePriority {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id          String   @id
+  workspaceId String
+  name        String
+  /// 색상 키: gray | red | orange | yellow | green | blue | purple | pink
+  color       String   @default("gray")
+  /// 목록 표시 순서 (작을수록 상단)
+  order       Int      @default(0)
+  /// 우선순위 가중치 (높을수록 먼저 처리. 0 = 미설정, 1~100 범위 권장)
+  value       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+/// 워크스페이스별 커스텀 업무 상태 (Notion 스타일)
+model WorkspaceStatus {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id          String   @id
+  workspaceId String
+  name        String
+  /// 색상 키: gray | red | orange | yellow | green | blue | purple | pink
+  color       String   @default("gray")
+  /// 목록 표시 순서 (작을수록 상단)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  /// 워크스페이스 내 상태 이름은 유일
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+/// 리스트/보드 뷰 설정 저장 — 워크스페이스당 각 타입 1개
+model WorkspaceView {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id          String            @id
+  workspaceId String
+  type        WorkspaceViewType
+  name        String
+  /// 열 너비·정렬 등 뷰별 추가 설정 JSON
+  configJson  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  /// 워크스페이스당 뷰 타입은 1개
+  @@unique([workspaceId, type])
+  @@index([workspaceId])
 }

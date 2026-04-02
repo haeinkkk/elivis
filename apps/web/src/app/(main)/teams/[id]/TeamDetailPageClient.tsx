@@ -9,7 +9,7 @@ import { TeamAddMemberModal } from "./TeamAddMemberModal";
 import { TeamIntroEditModal } from "./TeamIntroEditModal";
 import { TeamIntroPageContent, type TeamIntroPageContentHandle } from "./TeamIntroPageContent";
 import { TeamIntroBannerBlock } from "./TeamIntroBannerBlock";
-import { deleteTeamAction, updateTeamFieldsAction } from "@/app/actions/teams";
+import { delegateTeamLeaderAction, deleteTeamAction, removeTeamMemberAction, updateTeamFieldsAction } from "@/app/actions/teams";
 import { UserAvatar } from "@/components/UserAvatar";
 import type { TeamDetail, TeamMemberRow } from "@/lib/teams.server";
 
@@ -395,6 +395,15 @@ export function TeamDetailPageClient({ team }: { team: TeamDetail }) {
     const [shortDescDraft, setShortDescDraft] = useState(team.shortDescription ?? "");
     const [shortDescError, setShortDescError] = useState<string | null>(null);
     const [shortDescPending, startShortDescSave] = useTransition();
+
+    const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+    const [removeConfirmUserId, setRemoveConfirmUserId] = useState<string | null>(null);
+    const [removePending, startRemove] = useTransition();
+
+    const [delegateConfirmUserId, setDelegateConfirmUserId] = useState<string | null>(null);
+    const [delegatingUserId, setDelegatingUserId] = useState<string | null>(null);
+    const [delegateError, setDelegateError] = useState<string | null>(null);
+    const [delegatePending, startDelegate] = useTransition();
 
     useEffect(() => {
         setNameDraft(team.name);
@@ -820,7 +829,7 @@ export function TeamDetailPageClient({ team }: { team: TeamDetail }) {
                                         <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.name")}</th>
                                         <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.email")}</th>
                                         <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.role")}</th>
-                                        <th className="pb-2 font-medium text-stone-600">{t("members.table.joinedAt")}</th>
+                                        <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.joinedAt")}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-stone-600">
@@ -842,7 +851,7 @@ export function TeamDetailPageClient({ team }: { team: TeamDetail }) {
                                             </td>
                                             <td className="py-3 pr-4">{m.user.email}</td>
                                             <td className="py-3 pr-4">{t(`roles.${roleLabel(m.role)}` as any)}</td>
-                                            <td className="py-3">{formatDateKo(m.joinedAt)}</td>
+                                            <td className="py-3 pr-4">{formatDateKo(m.joinedAt)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -1043,20 +1052,224 @@ export function TeamDetailPageClient({ team }: { team: TeamDetail }) {
                     <div
                         className="fixed inset-0 z-40 bg-stone-900/40"
                         aria-hidden
-                        onClick={() => setComposeChangeOpen(false)}
+                        onClick={() => {
+                            if (!delegatePending && !removePending) {
+                                setComposeChangeOpen(false);
+                                setDelegateConfirmUserId(null);
+                                setRemoveConfirmUserId(null);
+                                setDelegateError(null);
+                            }
+                        }}
                     />
-                    <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl">
-                        <h3 className="text-base font-semibold text-stone-800">{t("members.composeChangeModal.title")}</h3>
-                        <p className="mt-2 text-sm text-stone-600">
-                            {t("members.composeChangeModal.desc")}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => setComposeChangeOpen(false)}
-                            className="mt-5 w-full rounded-lg bg-stone-800 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
-                        >
-                            {t("common.ok")}
-                        </button>
+                    <div
+                        className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(80vh,560px)] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 bg-white shadow-xl"
+                        role="dialog"
+                        aria-modal
+                        aria-labelledby="compose-change-modal-title"
+                    >
+                        <div className="flex items-start justify-between border-b border-stone-100 px-5 py-4">
+                            <div>
+                                <h3
+                                    id="compose-change-modal-title"
+                                    className="text-base font-semibold text-stone-800"
+                                >
+                                    {t("members.composeChangeModal.title")}
+                                </h3>
+                                <p className="mt-0.5 text-sm text-stone-500">
+                                    {t("members.composeChangeModal.desc")}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setComposeChangeOpen(false);
+                                    setDelegateConfirmUserId(null);
+                                    setRemoveConfirmUserId(null);
+                                    setDelegateError(null);
+                                }}
+                                disabled={delegatePending || removePending}
+                                className="ml-4 shrink-0 rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 disabled:opacity-40"
+                                aria-label={t("common.close")}
+                            >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <ul className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+                            {team.members.map((m) => {
+                                const isLeaderRow = m.role === "LEADER";
+                                const isDelegateConfirming = delegateConfirmUserId === m.user.id;
+                                const isRemoveConfirming = removeConfirmUserId === m.user.id;
+                                const isDelegating = delegatingUserId === m.user.id && delegatePending;
+                                const isRemoving = removingMemberId === m.user.id && removePending;
+
+                                return (
+                                    <li
+                                        key={m.user.id}
+                                        className="flex flex-col gap-2 border-b border-stone-100 px-2 py-3 last:border-0"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <UserAvatar
+                                                userId={m.user.id}
+                                                label={displayUserName(m.user)}
+                                                avatarUrl={m.user.avatarUrl}
+                                                sizeClass="h-9 w-9 text-sm"
+                                                ringClass="ring-0"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-stone-800 truncate">
+                                                        {displayUserName(m.user)}
+                                                    </span>
+                                                    <span
+                                                        className={[
+                                                            "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                                                            isLeaderRow
+                                                                ? "bg-amber-100 text-amber-800"
+                                                                : "bg-stone-100 text-stone-600",
+                                                        ].join(" ")}
+                                                    >
+                                                        {t(`roles.${roleLabel(m.role)}` as any)}
+                                                    </span>
+                                                </div>
+                                                <p className="truncate text-xs text-stone-500">{m.user.email}</p>
+                                            </div>
+                                            {!isLeaderRow && !isDelegateConfirming && !isRemoveConfirming && (
+                                                <div className="flex shrink-0 items-center gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        disabled={delegatePending || removePending}
+                                                        onClick={() => {
+                                                            setDelegateError(null);
+                                                            setRemoveConfirmUserId(null);
+                                                            setDelegateConfirmUserId(m.user.id);
+                                                        }}
+                                                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800 disabled:opacity-40"
+                                                    >
+                                                        {t("members.composeChangeModal.delegateLeader")}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={delegatePending || removePending}
+                                                        onClick={() => {
+                                                            setDelegateError(null);
+                                                            setDelegateConfirmUserId(null);
+                                                            setRemoveConfirmUserId(m.user.id);
+                                                        }}
+                                                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                                                    >
+                                                        {t("members.composeChangeModal.removeMember")}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {isDelegateConfirming && (
+                                            <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                                                <span className="text-xs text-amber-800">
+                                                    {t("members.composeChangeModal.delegateConfirmLabel")}
+                                                </span>
+                                                <div className="flex shrink-0 items-center gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        disabled={isDelegating}
+                                                        onClick={() => {
+                                                            setDelegatingUserId(m.user.id);
+                                                            setDelegateError(null);
+                                                            startDelegate(async () => {
+                                                                const r = await delegateTeamLeaderAction(team.id, m.user.id);
+                                                                setDelegatingUserId(null);
+                                                                setDelegateConfirmUserId(null);
+                                                                if (!r.ok) {
+                                                                    setDelegateError(r.message ?? t("members.composeChangeModal.delegateError"));
+                                                                } else {
+                                                                    setComposeChangeOpen(false);
+                                                                    router.refresh();
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="rounded-md bg-amber-600 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-amber-700 disabled:opacity-60"
+                                                    >
+                                                        {isDelegating ? t("members.composeChangeModal.delegating") : t("members.composeChangeModal.delegateConfirm")}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={isDelegating}
+                                                        onClick={() => setDelegateConfirmUserId(null)}
+                                                        className="rounded-md border border-amber-200 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-60"
+                                                    >
+                                                        {t("common.cancel")}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {isRemoveConfirming && (
+                                            <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+                                                <span className="text-xs text-red-700">
+                                                    {t("members.composeChangeModal.removeConfirmLabel")}
+                                                </span>
+                                                <div className="flex shrink-0 items-center gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        disabled={isRemoving}
+                                                        onClick={() => {
+                                                            setRemovingMemberId(m.user.id);
+                                                            setDelegateError(null);
+                                                            startRemove(async () => {
+                                                                const r = await removeTeamMemberAction(team.id, m.user.id);
+                                                                setRemovingMemberId(null);
+                                                                setRemoveConfirmUserId(null);
+                                                                if (!r.ok) {
+                                                                    setDelegateError(r.message ?? t("members.composeChangeModal.delegateError"));
+                                                                } else {
+                                                                    router.refresh();
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+                                                    >
+                                                        {isRemoving ? t("members.composeChangeModal.removing") : t("members.composeChangeModal.removeConfirm")}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={isRemoving}
+                                                        onClick={() => setRemoveConfirmUserId(null)}
+                                                        className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                                                    >
+                                                        {t("common.cancel")}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+
+                        {delegateError && (
+                            <div className="border-t border-stone-100 px-5 py-3">
+                                <p className="text-sm text-red-600">{delegateError}</p>
+                            </div>
+                        )}
+
+                        <div className="border-t border-stone-100 px-5 py-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setComposeChangeOpen(false);
+                                    setDelegateConfirmUserId(null);
+                                    setRemoveConfirmUserId(null);
+                                    setDelegateError(null);
+                                }}
+                                disabled={delegatePending || removePending}
+                                className="w-full rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                            >
+                                {t("common.close")}
+                            </button>
+                        </div>
                     </div>
                 </>
             )}

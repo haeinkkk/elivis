@@ -97,7 +97,8 @@ function projectWhereUserInLinkedTeams(userId: string) {
 
 /**
  * SUPER_ADMIN 이거나, 해당 프로젝트의 멤버이거나,
- * `teamId` / `projectTeams`로 연결된 팀 중 한 곳이라도 팀원이면 true.
+ * `teamId` / `projectTeams`로 연결된 팀 중 한 곳이라도 팀원이면서 isPublic: true 이면 true.
+ * isPublic: false 인 프로젝트는 ProjectMember 또는 SUPER_ADMIN 만 접근 가능.
  */
 export async function canAccessProject(
   userId: string,
@@ -111,7 +112,11 @@ export async function canAccessProject(
 
   const row = await prisma.project.findFirst({
     where: {
-      AND: [{ id: projectId }, projectWhereUserInLinkedTeams(userId)],
+      AND: [
+        { id: projectId },
+        { isPublic: true },
+        projectWhereUserInLinkedTeams(userId),
+      ],
     },
     select: { id: true },
   });

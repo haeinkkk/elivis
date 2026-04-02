@@ -3,6 +3,7 @@ import {
     checkProjectPermission,
     generatePublicId,
     generateProjectId,
+    generateWorkspaceId,
     isSuperAdmin,
 } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -20,7 +21,6 @@ export interface CreateProjectBody {
     startDate?: string;
     endDate?: string;
     noEndDate?: boolean;
-    isPublic?: boolean;
     /** 추가 참여자(프로젝트장은 항상 요청자) */
     participantUserIds?: string[];
 }
@@ -126,7 +126,6 @@ export function createProjectController(app: FastifyInstance) {
             startDate: rawStart,
             endDate: rawEnd,
             noEndDate: rawNoEnd,
-            isPublic: rawIsPublic,
             participantUserIds: rawParticipantIds,
         } = request.body;
         const lang = request.lang;
@@ -136,7 +135,7 @@ export function createProjectController(app: FastifyInstance) {
         }
 
         const noEndDate = Boolean(rawNoEnd);
-        const isPublic = rawIsPublic !== false;
+        const isPublic = true;
 
         const startTrim = rawStart?.trim() ?? "";
         const endTrim = rawEnd?.trim() ?? "";
@@ -188,6 +187,8 @@ export function createProjectController(app: FastifyInstance) {
         }
 
         const primaryTeamId = teamIdsUnique[0];
+        // teamId(주 팀 FK)에 이미 저장되므로 projectTeams에서는 제외해 중복 방지
+        const extraTeamIds = teamIdsUnique.slice(1);
 
         const participantIds = [
             ...new Set(
@@ -218,34 +219,88 @@ export function createProjectController(app: FastifyInstance) {
             })),
         ];
 
-        const project = await app.prisma.project.create({
-            data: {
-                id: generateProjectId(),
-                name: name.trim(),
-                description: description?.trim() || undefined,
-                teamId: primaryTeamId,
-                startDate,
-                endDate: noEndDate ? undefined : endDate,
-                noEndDate,
-                isPublic,
-                members: { create: memberCreates },
-                ...(teamIdsUnique.length > 0
-                    ? {
-                          projectTeams: {
-                              create: teamIdsUnique.map((tid) => ({
-                                  id: generatePublicId(),
-                                  teamId: tid,
-                              })),
-                          },
-                      }
-                    : {}),
-            },
-            include: {
-                members: {
-                    where: { userId: request.userId },
-                    select: { role: true },
+        const projectId = generateProjectId();
+
+        // 연결된 모든 팀의 팀원 userId 수집 (워크스페이스 자동 생성용)
+        const linkedTeamMemberIds = new Set<string>();
+        linkedTeamMemberIds.add(request.userId);
+
+        if (teamIdsUnique.length > 0) {
+            const teamMembers = await app.prisma.teamMember.findMany({
+                where: { teamId: { in: teamIdsUnique } },
+                select: { userId: true },
+            });
+            for (const m of teamMembers) linkedTeamMemberIds.add(m.userId);
+        }
+
+        const project = await app.prisma.$transaction(async (tx) => {
+            const created_ = await tx.project.create({
+                data: {
+                    id: projectId,
+                    name: name.trim(),
+                    description: description?.trim() || undefined,
+                    teamId: primaryTeamId,
+                    startDate,
+                    endDate: noEndDate ? undefined : endDate,
+                    noEndDate,
+                    isPublic,
+                    members: { create: memberCreates },
+                    ...(extraTeamIds.length > 0
+                        ? {
+                              projectTeams: {
+                                  create: extraTeamIds.map((tid) => ({
+                                      id: generatePublicId(),
+                                      teamId: tid,
+                                  })),
+                              },
+                          }
+                        : {}),
                 },
-            },
+                include: {
+                    members: {
+                        where: { userId: request.userId },
+                        select: { role: true },
+                    },
+                },
+            });
+
+            // 프로젝트 생성자 + 연결 팀 전원 워크스페이스 자동 생성
+            await tx.workspace.createMany({
+                data: [...linkedTeamMemberIds].map((userId) => ({
+                    id: generateWorkspaceId(),
+                    projectId,
+                    userId,
+                })),
+                skipDuplicates: true,
+            });
+
+            // 새로 생성된 워크스페이스에 기본 상태 3개 시드
+            const newWorkspaces = await tx.workspace.findMany({
+                where: { projectId },
+                select: { id: true },
+            });
+            const defaultStatuses = newWorkspaces.flatMap((ws) => [
+                { id: generatePublicId(), workspaceId: ws.id, name: "할 일",   color: "gray",  order: 0 },
+                { id: generatePublicId(), workspaceId: ws.id, name: "진행 중", color: "blue",  order: 1 },
+                { id: generatePublicId(), workspaceId: ws.id, name: "완료",    color: "green", order: 2 },
+            ]);
+            await (tx as any).workspaceStatus.createMany({
+                data: defaultStatuses,
+                skipDuplicates: true,
+            });
+
+            const defaultPriorities = newWorkspaces.flatMap((ws) => [
+                { id: generatePublicId(), workspaceId: ws.id, name: "긴급", color: "red",    order: 0 },
+                { id: generatePublicId(), workspaceId: ws.id, name: "높음", color: "orange", order: 1 },
+                { id: generatePublicId(), workspaceId: ws.id, name: "보통", color: "blue",   order: 2 },
+                { id: generatePublicId(), workspaceId: ws.id, name: "낮음", color: "gray",   order: 3 },
+            ]);
+            await (tx as any).workspacePriority.createMany({
+                data: defaultPriorities,
+                skipDuplicates: true,
+            });
+
+            return created_;
         });
 
         return reply.code(201).send(created(project, t(lang, MSG.PROJECT_CREATED)));
@@ -429,10 +484,46 @@ export function createProjectController(app: FastifyInstance) {
         const { userId, role = "MEMBER" } = request.body;
         const lang = request.lang;
 
-        const member = await app.prisma.projectMember.upsert({
-            where: { userId_projectId: { userId, projectId } },
-            update: { role },
-            create: { id: generatePublicId(), userId, projectId, role },
+        const member = await app.prisma.$transaction(async (tx) => {
+            const m = await tx.projectMember.upsert({
+                where: { userId_projectId: { userId, projectId } },
+                update: { role },
+                create: { id: generatePublicId(), userId, projectId, role },
+            });
+
+            // 해당 사용자의 워크스페이스가 없을 때만 생성 후 기본 상태/우선순위 시드
+            const existingWs = await tx.workspace.findFirst({
+                where: { userId, projectId },
+                select: { id: true },
+            });
+
+            if (!existingWs) {
+                const wsId = generateWorkspaceId();
+                await tx.workspace.create({
+                    data: { id: wsId, projectId, userId },
+                });
+
+                await (tx as any).workspaceStatus.createMany({
+                    data: [
+                        { id: generatePublicId(), workspaceId: wsId, name: "할 일",   color: "gray",  order: 0 },
+                        { id: generatePublicId(), workspaceId: wsId, name: "진행 중", color: "blue",  order: 1 },
+                        { id: generatePublicId(), workspaceId: wsId, name: "완료",    color: "green", order: 2 },
+                    ],
+                    skipDuplicates: true,
+                });
+
+                await (tx as any).workspacePriority.createMany({
+                    data: [
+                        { id: generatePublicId(), workspaceId: wsId, name: "긴급", color: "red",    order: 0 },
+                        { id: generatePublicId(), workspaceId: wsId, name: "높음", color: "orange", order: 1 },
+                        { id: generatePublicId(), workspaceId: wsId, name: "보통", color: "blue",   order: 2 },
+                        { id: generatePublicId(), workspaceId: wsId, name: "낮음", color: "gray",   order: 3 },
+                    ],
+                    skipDuplicates: true,
+                });
+            }
+
+            return m;
         });
 
         return reply.code(201).send(created(member, t(lang, MSG.PROJECT_MEMBER_ADDED)));

@@ -16,6 +16,7 @@ import { healthRoutes } from "./routes/health.routes";
 import { projectRoutes } from "./routes/project.routes";
 import { teamRoutes } from "./routes/team.routes";
 import { userRoutes } from "./routes/user.routes";
+import { workspaceRoutes } from "./routes/workspace.routes";
 import { createStorageService } from "./services/storage.service";
 import { initSetupToken } from "./services/setup.service";
 import { languageMiddleware } from "./middleware/language";
@@ -79,8 +80,9 @@ async function main() {
   await app.register(authRoutes,    { prefix: "/api" });
   await app.register(userRoutes,    { prefix: "/api" });
   await app.register(projectRoutes, { prefix: "/api" });
-  await app.register(teamRoutes,    { prefix: "/api" });
-  await app.register(adminRoutes,   { prefix: "/api" });
+  await app.register(teamRoutes,      { prefix: "/api" });
+  await app.register(workspaceRoutes, { prefix: "/api" });
+  await app.register(adminRoutes,     { prefix: "/api" });
 
   // ── 최초 설치 토큰 출력 (DB에 유저가 0명일 때만) ──────────────────────────
   app.addHook("onReady", async () => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import type { ApiWorkspaceListItem } from "@/lib/map-api-workspace";
 
 export const NOTIFICATION_READ_KEY = "elivis-notifications-all-read";
 export const NOTIFICATION_READ_EVENT = "elivis-notifications-read";
@@ -11,20 +12,11 @@ export const NOTIFICATION_READ_EVENT = "elivis-notifications-read";
 export type SidebarSize = "expanded" | "collapsed" | "hidden";
 
 const navItemDefs = [
-  { href: "/", labelKey: "dashboard" as const, icon: HomeIcon, redDot: false },
   { href: "/mywork", labelKey: "myWork" as const, icon: FolderIcon, redDot: false },
   { href: "/teams", labelKey: "teams" as const, icon: TeamIcon, redDot: false },
   { href: "/projects", labelKey: "projects" as const, icon: ProjectIcon, redDot: false },
   { href: "/notification", labelKey: "notifications" as const, icon: BellIcon, redDot: true },
 ];
-
-function HomeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-    </svg>
-  );
-}
 function FolderIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -59,6 +51,7 @@ interface AppSidebarProps {
   size: SidebarSize;
   onSizeChange: (s: SidebarSize) => void;
   isSuperAdmin?: boolean;
+  workspaces?: ApiWorkspaceListItem[];
 }
 
 function getHasUnreadNotifications(): boolean {
@@ -72,12 +65,14 @@ export function AppSidebar({
   size,
   onSizeChange,
   isSuperAdmin = false,
+  workspaces = [],
 }: AppSidebarProps) {
   const pathname = usePathname();
   const tNav = useTranslations("nav");
   const tSidebar = useTranslations("sidebar");
   // 서버/클라이언트 초기 렌더를 동일하게 하기 위해 false로 고정. 실제 값은 useEffect에서 반영.
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const showLabels = size === "expanded";
   const showFloatingRestore = size === "hidden";
 
@@ -243,23 +238,79 @@ export function AppSidebar({
               showLabels ? "my-4 border-t border-stone-100 pt-4" : "my-3 border-t border-stone-100 pt-3"
             }`}
           >
-            {showLabels && (
-              <p className="px-3 text-xs font-medium uppercase tracking-wider text-stone-400">
-                {tNav("workspace")}
-              </p>
+            {showLabels ? (
+              /* expanded: 헤더 + 토글 버튼 + 목록 */
+              <>
+                <button
+                  type="button"
+                  onClick={() => setWorkspaceExpanded((v) => !v)}
+                  className="flex w-full items-center justify-between px-3 py-1 text-left"
+                >
+                  <span className="text-xs font-medium uppercase tracking-wider text-stone-400">
+                    {tNav("workspace")}
+                  </span>
+                  <svg
+                    className={`h-3.5 w-3.5 text-stone-400 transition-transform ${workspaceExpanded ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {workspaceExpanded && (
+                  <ul className="mt-1 space-y-0.5">
+                    {workspaces.length === 0 ? (
+                      <li className="px-3 py-2 text-xs text-stone-400">
+                        워크스페이스가 없습니다
+                      </li>
+                    ) : (
+                      workspaces.map((ws) => {
+                        const isActive = pathname === `/mywork/${ws.id}`;
+                        return (
+                          <li key={ws.id}>
+                            <Link
+                              href={`/mywork/${ws.id}`}
+                              onClick={onClose}
+                              title={ws.project.name}
+                              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                isActive
+                                  ? "bg-orange-50 text-orange-800"
+                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                              }`}
+                            >
+                              <span
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-semibold ${
+                                  isActive ? "bg-orange-200 text-orange-800" : "bg-stone-200 text-stone-600"
+                                }`}
+                              >
+                                {ws.project.name[0]?.toUpperCase() ?? "W"}
+                              </span>
+                              <span className="min-w-0 flex-1 truncate text-xs">
+                                {ws.project.name}
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })
+                    )}
+                  </ul>
+                )}
+              </>
+            ) : (
+              /* collapsed: 아이콘만 — 워크스페이스 목록 페이지로 이동 */
+              <Link
+                href="/mywork"
+                onClick={onClose}
+                title={tNav("workspace")}
+                className={`flex justify-center rounded-lg px-2 py-2.5 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-800`}
+              >
+                <svg className="h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </svg>
+              </Link>
             )}
-            <Link
-              href="/workspace"
-              onClick={onClose}
-              className={`mt-2 flex w-full items-center gap-3 rounded-lg text-sm text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-800 ${
-                showLabels ? "px-3 py-2.5 text-left" : "justify-center px-2 py-2.5"
-              }`}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-200 text-xs font-medium text-stone-600">
-                M
-              </span>
-              {showLabels && <span className="truncate">{tNav("myWorkspace")}</span>}
-            </Link>
           </div>
         </nav>
 

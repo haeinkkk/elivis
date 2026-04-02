@@ -10,4 +10,4 @@ if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
 
 export * from "@prisma/client";
 export * from "./permissions";
-export { generateProjectId, generatePublicId, generateTeamId } from "./id";
+export { generateProjectId, generatePublicId, generateTeamId, generateWorkspaceId } from "./id";

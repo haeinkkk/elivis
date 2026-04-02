@@ -27,3 +27,8 @@ export function generateTeamId(): string {
 export function generateProjectId(): string {
     return `prj-${generatePublicId(8)}`;
 }
+
+/** 워크스페이스 ID 규칙: `ws-xxxxxxxx` (뒤 8자는 `generatePublicId(8)`) */
+export function generateWorkspaceId(): string {
+    return `ws-${generatePublicId(8)}`;
+}

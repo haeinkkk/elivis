@@ -133,7 +133,6 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [projectType, setProjectType] = useState<"personal" | "team">("personal");
-    const [isPublic, setIsPublic] = useState(true);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [noEndDate, setNoEndDate] = useState(false);
@@ -294,7 +293,6 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                 startDate: startDate.trim(),
                 endDate: noEndDate ? undefined : endDate.trim() || undefined,
                 noEndDate,
-                isPublic,
                 participantUserIds: participants.map((p) => p.id),
             });
 
@@ -633,32 +631,6 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             <FieldError id="project-team-error" message={fieldErrors.team} />
                         </div>
                     )}
-
-                    <div>
-                        <p className="text-sm font-medium text-stone-700">프로젝트 공개 여부</p>
-                        <div className="mt-2 flex gap-4">
-                            <label className="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="isPublic"
-                                    checked={isPublic}
-                                    onChange={() => setIsPublic(true)}
-                                    className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
-                                />
-                                <span className="text-sm text-stone-700">공개</span>
-                            </label>
-                            <label className="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="isPublic"
-                                    checked={!isPublic}
-                                    onChange={() => setIsPublic(false)}
-                                    className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
-                                />
-                                <span className="text-sm text-stone-700">비공개</span>
-                            </label>
-                        </div>
-                    </div>
 
                     <div
                         className={

@@ -70,6 +70,11 @@ export interface DeleteTeamBody {
     confirmName: string;
 }
 
+export interface DelegateLeaderBody {
+    /** 팀장을 위임받을 팀원의 userId */
+    userId: string;
+}
+
 const INTRO_LAYOUT_JSON_MAX = 65536;
 
 function isValidIntroLayoutJsonString(s: string): boolean {
@@ -599,6 +604,95 @@ export function createTeamController(app: FastifyInstance) {
             .send(created({ teamId, userId: targetUserId }, t(lang, MSG.TEAM_MEMBER_ADDED)));
     }
 
+    async function removeTeamMember(
+        request: FastifyRequest<{ Params: { id: string; userId: string } }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const targetUserId = request.params.userId?.trim();
+        const lang = request.lang;
+
+        // 본인 제외 불가
+        if (targetUserId === request.userId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_MEMBER_REMOVE_SELF)));
+        }
+
+        // 요청자가 팀장인지 확인
+        const leader = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: request.userId } },
+        });
+        if (!leader || leader.role !== "LEADER") {
+            return reply.code(403).send(forbidden(t(lang, MSG.TEAM_MEMBER_REMOVE_FORBIDDEN)));
+        }
+
+        // 대상 멤버 존재 확인
+        const target = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: targetUserId } },
+        });
+        if (!target) {
+            return reply.code(404).send(notFound(t(lang, MSG.TEAM_MEMBER_NOT_FOUND)));
+        }
+
+        // 팀장은 제외 불가 (팀장 위임 후 제외해야 함)
+        if (target.role === "LEADER") {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_MEMBER_REMOVE_LEADER)));
+        }
+
+        // TeamMember만 삭제 (Workspace는 보존)
+        await app.prisma.teamMember.delete({
+            where: { teamId_userId: { teamId, userId: targetUserId } },
+        });
+
+        return reply.send(ok({ teamId, userId: targetUserId }, t(lang, MSG.TEAM_MEMBER_REMOVED)));
+    }
+
+    async function delegateLeader(
+        request: FastifyRequest<{ Params: { id: string }; Body: DelegateLeaderBody }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const targetUserId = request.body.userId?.trim();
+        const lang = request.lang;
+
+        if (!targetUserId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_MEMBER_INVALID)));
+        }
+
+        if (targetUserId === request.userId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_LEADER_DELEGATE_SELF)));
+        }
+
+        const currentMember = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: request.userId } },
+        });
+        if (!currentMember || currentMember.role !== "LEADER") {
+            return reply.code(403).send(forbidden(t(lang, MSG.TEAM_EDIT_FORBIDDEN)));
+        }
+
+        const target = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: targetUserId } },
+        });
+        if (!target) {
+            return reply.code(404).send(notFound(t(lang, MSG.TEAM_MEMBER_NOT_FOUND)));
+        }
+        if (target.role === "LEADER") {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_LEADER_ALREADY)));
+        }
+
+        await app.prisma.$transaction([
+            app.prisma.teamMember.update({
+                where: { teamId_userId: { teamId, userId: targetUserId } },
+                data: { role: "LEADER" },
+            }),
+            app.prisma.teamMember.update({
+                where: { teamId_userId: { teamId, userId: request.userId } },
+                data: { role: "MEMBER" },
+            }),
+        ]);
+
+        return reply.send(ok({ teamId, newLeaderId: targetUserId }, t(lang, MSG.TEAM_LEADER_DELEGATED)));
+    }
+
     async function updateTeam(
         request: FastifyRequest<{ Params: { id: string }; Body: UpdateTeamBody }>,
         reply: FastifyReply,
@@ -849,6 +943,8 @@ export function createTeamController(app: FastifyInstance) {
         updateMyTeamPins,
         getTeam,
         addTeamMember,
+        removeTeamMember,
+        delegateLeader,
         updateTeam,
         deleteTeam,
         uploadTeamBanner,

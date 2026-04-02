@@ -5,6 +5,7 @@ import {
     type AddTeamMemberBody,
     type CreateTeamBody,
     type DeleteTeamBody,
+    type DelegateLeaderBody,
     type UpdateTeamBody,
 } from "../controllers/team.controller";
 import { authenticateUser } from "../middleware/auth";
@@ -16,6 +17,8 @@ export async function teamRoutes(app: FastifyInstance) {
         updateMyTeamPins,
         getTeam,
         addTeamMember,
+        removeTeamMember,
+        delegateLeader,
         updateTeam,
         deleteTeam,
         uploadTeamBanner,
@@ -78,5 +81,17 @@ export async function teamRoutes(app: FastifyInstance) {
         "/teams/:id/members",
         { preHandler: [authenticateUser] },
         addTeamMember,
+    );
+
+    app.delete<{ Params: { id: string; userId: string } }>(
+        "/teams/:id/members/:userId",
+        { preHandler: [authenticateUser] },
+        removeTeamMember,
+    );
+
+    app.put<{ Params: { id: string }; Body: DelegateLeaderBody }>(
+        "/teams/:id/leader",
+        { preHandler: [authenticateUser] },
+        delegateLeader,
     );
 }

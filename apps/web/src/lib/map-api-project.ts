@@ -14,6 +14,10 @@ export type ApiProjectListItem = {
     projectTeams?: { team: { id: string; name: string } }[];
     /** `members`: ProjectMember + 연결 팀 팀원(userId 중복 제거) 합산 — 목록 표시용 */
     _count: { members: number; tasks: number };
+    /** 현재 사용자가 ProjectMember로 직접 등록된 경우 true (생성자 포함) */
+    viewerIsMember?: boolean;
+    /** 현재 사용자가 연결된 팀의 팀원인 경우 true */
+    viewerIsTeamMember?: boolean;
 };
 
 /** GET /api/projects 응답 `data` */

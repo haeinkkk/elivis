@@ -134,6 +134,8 @@ curl -X POST http://localhost:4000/api/auth/signup \
 
 ## Scripts
 
+### Development
+
 | Command | Description |
 |---|---|
 | `pnpm setup` | Full environment setup (install → docker → migrate) |
@@ -141,13 +143,34 @@ curl -X POST http://localhost:4000/api/auth/signup \
 | `pnpm dev:web` | Start web only |
 | `pnpm dev:server` | Start API server only |
 | `pnpm dev:desktop` | Start Electron only |
+
+### Build & Quality
+
+| Command | Description |
+|---|---|
 | `pnpm build` | Build all packages |
 | `pnpm build:desktop` | Build Electron installer |
 | `pnpm lint` | Run ESLint across all packages |
 | `pnpm type-check` | TypeScript type-check across all packages |
+
+### Database
+
+| Command | Description |
+|---|---|
+| `pnpm db:deploy` | Apply pending migrations to the database |
+| `pnpm db:studio` | Open Prisma Studio (visual DB browser) |
+
+### Docker
+
+| Command | Description |
+|---|---|
 | `pnpm docker:dev:up` | Start Docker services (dev) |
 | `pnpm docker:dev:down` | Stop Docker services (dev) |
+| `pnpm docker:dev:logs` | Tail Docker service logs (dev) |
 | `pnpm docker:prod:up` | Start all services in production mode |
+| `pnpm docker:prod:down` | Stop production containers |
+| `pnpm docker:prod:build` | Build production Docker images |
+| `pnpm docker:prod:logs` | Tail Docker service logs (prod) |
 
 ---
 
@@ -189,13 +212,6 @@ Detailed documentation for each application lives in `docs/`:
 | Desktop App | [`docs/desktop/README.md`](docs/desktop/README.md) |
 
 ---
-
-## ID 규칙
-
-- **Team**: `t-xxxxxxxx`
-- **Project**: `prj-xxxxxxxx`
-
-`xxxxxxxx`는 영문 대소문자 + 숫자 조합 8자리이며, 앱에서 생성해 DB `id`에 저장합니다.
 
 ## Production Deployment
 

@@ -177,6 +177,43 @@ POST /api/auth/signup
 
 `xxxxxxxx`는 8자리 영문 대소문자 + 숫자 조합입니다.
 
+### 워크스페이스 (`/api/workspaces`)
+
+| Method | Path | 인증 | 권한 | 설명 |
+|--------|------|------|------|------|
+| `GET` | `/api/workspaces` | Bearer | 로그인 유저 | 내 워크스페이스 목록 (프로젝트 정보 포함) |
+| `GET` | `/api/workspaces/:workspaceId` | Bearer | 소유자 | 워크스페이스 상세 (뷰 설정 포함) |
+| `GET` | `/api/workspaces/:workspaceId/tasks` | Bearer | 소유자 | 업무 목록 |
+| `POST` | `/api/workspaces/:workspaceId/tasks` | Bearer | 소유자 | 업무 생성 |
+| `PATCH` | `/api/workspaces/:workspaceId/tasks/:taskId` | Bearer | 소유자 | 업무 수정 (상태·제목·순서·담당자) |
+| `DELETE` | `/api/workspaces/:workspaceId/tasks/:taskId` | Bearer | 소유자 | 업무 삭제 |
+
+**워크스페이스 자동 생성 규칙**
+
+- 프로젝트가 생성(`POST /api/projects`)될 때, **트랜잭션 안에서** 자동으로 워크스페이스를 생성합니다.
+- 대상: 프로젝트 생성자 + **연결된 모든 팀** (`Project.teamId` + `ProjectTeam`) 소속 팀원 전원
+- 각 유저별로 `Workspace(projectId, userId)` 1개씩 생성 (`@@unique([projectId, userId])`로 중복 방지)
+- 이후 팀원이 추가되더라도 워크스페이스는 자동으로 생성되지 않습니다(후속 확장 예정).
+
+**업무 상태(WorkspaceTaskStatus)**
+
+| 값 | 설명 |
+|----|------|
+| `TODO` | 할 일 |
+| `DOING` | 진행 중 |
+| `DONE` | 완료 |
+
+**뷰 타입(WorkspaceViewType)**
+
+| 값 | 설명 |
+|----|------|
+| `LIST` | 리스트(테이블) 뷰 |
+| `BOARD` | 보드(칸반) 뷰 |
+
+### 공개 ID 추가 규칙
+
+- **Workspace**: `ws-xxxxxxxx`
+
 ### 관리자 (`/api/admin`)
 
 | Method | Path | 인증 | 권한 | 설명 |
