@@ -13,6 +13,7 @@ import type {
     ApiWorkspaceTask,
     ApiWorkspaceTaskComment,
     ApiWorkspaceTaskAttachment,
+    ApiWorkspaceTaskNote,
 } from "@/lib/map-api-workspace";
 
 // ─── 상태 (WorkspaceStatus) ───────────────────────────────────────────────────
@@ -410,6 +411,71 @@ export async function deleteTaskAttachmentAction(
         if (!res.ok) {
             const body = (await res.json()) as ApiEnvelope<null>;
             return { ok: false, message: body.message ?? "파일 삭제에 실패했습니다." };
+        }
+        return { ok: true };
+    } catch {
+        return { ok: false, message: "서버 오류가 발생했습니다." };
+    }
+}
+
+// ─── 노트 ─────────────────────────────────────────────────────────────────────
+
+export async function listTaskNotesAction(
+    workspaceId: string,
+    taskId: string,
+): Promise<{ ok: true; notes: ApiWorkspaceTaskNote[] } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    try {
+        const res = await fetch(
+            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`),
+            { headers: await apiFetchHeaders(), cache: "no-store" },
+        );
+        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskNote[]>;
+        if (!res.ok) return { ok: false, message: body.message ?? "노트를 불러오지 못했습니다." };
+        return { ok: true, notes: body.data ?? [] };
+    } catch {
+        return { ok: false, message: "서버 오류가 발생했습니다." };
+    }
+}
+
+export async function createTaskNoteAction(
+    workspaceId: string,
+    taskId: string,
+    content: string,
+): Promise<{ ok: true; note: ApiWorkspaceTaskNote } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    try {
+        const res = await fetch(
+            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`),
+            { method: "POST", headers: await apiFetchHeaders(), body: JSON.stringify({ content }) },
+        );
+        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskNote>;
+        if (!res.ok) return { ok: false, message: body.message ?? "노트 등록에 실패했습니다." };
+        return { ok: true, note: body.data };
+    } catch {
+        return { ok: false, message: "서버 오류가 발생했습니다." };
+    }
+}
+
+export async function deleteTaskNoteAction(
+    workspaceId: string,
+    taskId: string,
+    noteId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    try {
+        const baseHeaders = await apiFetchHeaders();
+        const { "Content-Type": _ct, ...h } = baseHeaders;
+        const res = await fetch(
+            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes/${encodeURIComponent(noteId)}`),
+            { method: "DELETE", headers: h },
+        );
+        if (!res.ok) {
+            const body = (await res.json()) as ApiEnvelope<null>;
+            return { ok: false, message: body.message ?? "노트 삭제에 실패했습니다." };
         }
         return { ok: true };
     } catch {

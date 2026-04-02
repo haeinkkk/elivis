@@ -113,6 +113,14 @@ export type ApiWorkspaceTaskComment = {
     user: ApiTaskUser;
 };
 
+export type ApiWorkspaceTaskNote = {
+    id: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    user: ApiTaskUser;
+};
+
 export type ApiWorkspaceTaskAttachment = {
     id: string;
     fileName: string;

@@ -437,8 +437,10 @@ export const ja = {
       language:          "言語",
     },
     sidebar: {
-      collapse: "サイドバーを折りたたむ",
-      restore:  "サイドバーを再表示",
+      collapse:        "サイドバーを折りたたむ",
+      restore:         "サイドバーを再表示",
+      favoriteTeams:    "チームのお気に入り",
+      favoriteProjects: "プロジェクトのお気に入り",
     },
     settings: {
       title: "マイ設定",
@@ -625,7 +627,9 @@ export const ja = {
         status: "ステータス", priority: "優先度",
         startDate: "開始日", dueDate: "終了日",
         description: "内容", descriptionPlaceholder: "タスクの詳細な説明を入力してください…",
-        created: "作成", none: "なし", addMore: "追加情報",
+        descriptionEditPlaceholder: "ここに入力して内容を編集してください…",
+        saveDescription: "保存",
+        created: "作成", none: "なし", addMore: "コメント",
         commentsLoading: "読み込み中…", noComments: "まだコメントがありません。",
         delete: "削除",         commentPlaceholder: "コメントを入力（Ctrl+Enterで投稿）",
         commentHint: "Ctrl+Enterで投稿",

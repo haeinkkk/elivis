@@ -17,6 +17,8 @@ import {
     type WorkspaceTaskCommentParams,
     type CreateWorkspaceTaskCommentBody,
     type WorkspaceTaskAttachmentParams,
+    type WorkspaceTaskNoteParams,
+    type CreateWorkspaceTaskNoteBody,
 } from "../controllers/workspace.controller";
 
 export async function workspaceRoutes(app: FastifyInstance) {
@@ -42,6 +44,9 @@ export async function workspaceRoutes(app: FastifyInstance) {
         listTaskAttachments,
         uploadTaskAttachment,
         deleteTaskAttachment,
+        listTaskNotes,
+        createTaskNote,
+        deleteTaskNote,
     } = createWorkspaceController(app);
 
     app.get("/workspaces", { preHandler: [authenticateUser] }, listWorkspaces);
@@ -77,4 +82,9 @@ export async function workspaceRoutes(app: FastifyInstance) {
     app.get<{ Params: WorkspaceTaskParams }>("/workspaces/:workspaceId/tasks/:taskId/attachments", { preHandler: [authenticateUser] }, listTaskAttachments);
     app.post<{ Params: WorkspaceTaskParams }>("/workspaces/:workspaceId/tasks/:taskId/attachments", { preHandler: [authenticateUser] }, uploadTaskAttachment);
     app.delete<{ Params: WorkspaceTaskAttachmentParams }>("/workspaces/:workspaceId/tasks/:taskId/attachments/:attachmentId", { preHandler: [authenticateUser] }, deleteTaskAttachment);
+
+    // 노트 CRUD
+    app.get<{ Params: WorkspaceTaskParams }>("/workspaces/:workspaceId/tasks/:taskId/notes", { preHandler: [authenticateUser] }, listTaskNotes);
+    app.post<{ Params: WorkspaceTaskParams; Body: CreateWorkspaceTaskNoteBody }>("/workspaces/:workspaceId/tasks/:taskId/notes", { preHandler: [authenticateUser] }, createTaskNote);
+    app.delete<{ Params: WorkspaceTaskNoteParams }>("/workspaces/:workspaceId/tasks/:taskId/notes/:noteId", { preHandler: [authenticateUser] }, deleteTaskNote);
 }

@@ -105,6 +105,7 @@ model User {
   workspaceTasks      WorkspaceTask[]
   taskComments        WorkspaceTaskComment[]
   taskAttachments     WorkspaceTaskAttachment[]
+  taskNotes           WorkspaceTaskNote[]
   notifications       Notification[]
   projectHistories    ProjectHistory[]
 }
@@ -319,6 +320,7 @@ model WorkspaceTask {
   subTasks    WorkspaceTask[]         @relation("SubTasks")
   comments    WorkspaceTaskComment[]
   attachments WorkspaceTaskAttachment[]
+  notes       WorkspaceTaskNote[]
 
   @@index([workspaceId])
   @@index([assigneeId])
@@ -331,6 +333,23 @@ model WorkspaceTaskComment {
   id        String   @id
   taskId    String
   userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task WorkspaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+/// 업무 노트 (리치 텍스트, 여러 개 작성 가능)
+model WorkspaceTaskNote {
+  id        String   @id
+  taskId    String
+  userId    String
+  /// Tiptap HTML 형식
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

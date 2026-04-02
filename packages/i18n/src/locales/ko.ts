@@ -446,8 +446,10 @@ export const ko = {
       language:          "언어",
     },
     sidebar: {
-      collapse: "사이드바 접기/숨기기",
-      restore:  "사이드바 다시 열기",
+      collapse:        "사이드바 접기/숨기기",
+      restore:         "사이드바 다시 열기",
+      favoriteTeams:    "팀 즐겨찾기",
+      favoriteProjects: "프로젝트 즐겨찾기",
     },
     settings: {
       title: "내 설정",
@@ -634,7 +636,9 @@ export const ko = {
         status: "상태", priority: "우선순위",
         startDate: "시작일", dueDate: "종료일",
         description: "내용", descriptionPlaceholder: "업무에 대한 상세 설명을 입력하세요…",
-        created: "생성", none: "없음", addMore: "추가 내용",
+        descriptionEditPlaceholder: "내용을 수정하려면 여기에 입력하세요…",
+        saveDescription: "저장",
+        created: "생성", none: "없음", addMore: "댓글",
         commentsLoading: "불러오는 중…", noComments: "아직 댓글이 없습니다.",
         delete: "삭제",         commentPlaceholder: "댓글 입력 (Ctrl+Enter로 등록)",
         commentHint: "Ctrl+Enter로 등록",

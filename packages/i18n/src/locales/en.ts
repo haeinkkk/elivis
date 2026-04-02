@@ -437,8 +437,10 @@ export const en = {
       language:          "Language",
     },
     sidebar: {
-      collapse: "Collapse sidebar",
-      restore:  "Reopen sidebar",
+      collapse:        "Collapse sidebar",
+      restore:         "Reopen sidebar",
+      favoriteTeams:    "Favorite Teams",
+      favoriteProjects: "Favorite Projects",
     },
     settings: {
       title: "My Settings",
@@ -625,7 +627,9 @@ export const en = {
         status: "Status", priority: "Priority",
         startDate: "Start date", dueDate: "Due date",
         description: "Description", descriptionPlaceholder: "Enter a detailed description of the task…",
-        created: "Created", none: "None", addMore: "Add more",
+        descriptionEditPlaceholder: "Type here to edit the description…",
+        saveDescription: "Save",
+        created: "Created", none: "None", addMore: "Comments",
         commentsLoading: "Loading…", noComments: "No comments yet.",
         delete: "Delete",         commentPlaceholder: "Write a comment (Ctrl+Enter to submit)",
         commentHint: "Ctrl+Enter to submit",

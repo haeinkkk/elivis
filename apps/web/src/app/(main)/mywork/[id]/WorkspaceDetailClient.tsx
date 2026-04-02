@@ -1581,9 +1581,11 @@ function MyWorkTab({
 function TimelineTab({
     tasks,
     statuses,
+    onSelectTask,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
+    onSelectTask?: (task: ApiWorkspaceTask) => void;
 }) {
     const t = useTranslations("workspace");
     const todayRaw = new Date();
@@ -1682,7 +1684,11 @@ function TimelineTab({
                                 const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
                                 return (
                                     <div key={task.id}
-                                        className="flex items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md">
+                                        role={onSelectTask ? "button" : undefined}
+                                        tabIndex={onSelectTask ? 0 : undefined}
+                                        onClick={() => onSelectTask?.(task)}
+                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelectTask?.(task); }}
+                                        className={`flex items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${onSelectTask ? "cursor-pointer hover:border-stone-300" : ""}`}>
                                         <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`} style={statusColor.dotStyle} />
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-sm font-medium text-stone-800">{task.title}</p>
@@ -1914,10 +1920,12 @@ function SummaryTab({
     tasks,
     statuses,
     priorities,
+    onSelectTask,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
     priorities: ApiWorkspacePriority[];
+    onSelectTask?: (task: ApiWorkspaceTask) => void;
 }) {
     const t = useTranslations("workspace");
     const [subTab, setSubTab] = useState<SummarySubTab>("timeline");
@@ -1944,7 +1952,9 @@ function SummaryTab({
 
             {/* 서브탭 콘텐츠 */}
             <div className="min-h-0 flex-1">
-                {subTab === "timeline" && <TimelineTab tasks={tasks} statuses={statuses} />}
+                {subTab === "timeline" && (
+                    <TimelineTab tasks={tasks} statuses={statuses} onSelectTask={onSelectTask} />
+                )}
                 {subTab === "dashboard" && (
                     <DashboardPanel tasks={tasks} statuses={statuses} priorities={priorities} />
                 )}
@@ -1992,6 +2002,7 @@ export default function WorkspaceDetailClient({
     const [statuses, setStatuses] = useState<ApiWorkspaceStatus[]>(initialStatuses);
     const [priorities, setPriorities] = useState<ApiWorkspacePriority[]>(initialPriorities);
     const [calendarPanelTask, setCalendarPanelTask] = useState<ApiWorkspaceTask | null>(null);
+    const [summaryPanelTask, setSummaryPanelTask] = useState<ApiWorkspaceTask | null>(null);
 
     const project = workspace.project;
     const allTeams = [project.team, ...project.projectTeams.map((pt) => pt.team)].filter(Boolean);
@@ -2053,7 +2064,27 @@ export default function WorkspaceDetailClient({
                     />
                 )}
                 {activeTab === "summary" && (
-                    <SummaryTab tasks={tasks} statuses={statuses} priorities={priorities} />
+                    <>
+                        <SummaryTab
+                            tasks={tasks}
+                            statuses={statuses}
+                            priorities={priorities}
+                            onSelectTask={setSummaryPanelTask}
+                        />
+                        {summaryPanelTask && (
+                            <TaskDetailPanel
+                                task={summaryPanelTask}
+                                statuses={statuses}
+                                priorities={priorities}
+                                workspaceId={workspace.id}
+                                onUpdate={(tk) => {
+                                    setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)));
+                                    setSummaryPanelTask(tk);
+                                }}
+                                onClose={() => setSummaryPanelTask(null)}
+                            />
+                        )}
+                    </>
                 )}
                 {activeTab === "requests" && <RequestsTab />}
                 {activeTab === "calendar" && (

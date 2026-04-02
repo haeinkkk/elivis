@@ -57,6 +57,14 @@ export interface WorkspaceTaskAttachmentParams extends WorkspaceTaskParams {
     attachmentId: string;
 }
 
+export interface WorkspaceTaskNoteParams extends WorkspaceTaskParams {
+    noteId: string;
+}
+
+export interface CreateWorkspaceTaskNoteBody {
+    content: string;
+}
+
 export interface CreateWorkspaceStatusBody {
     name: string;
     color?: string;
@@ -677,6 +685,7 @@ export function createWorkspaceController(app: FastifyInstance) {
             select: {
                 id: true,
                 title: true,
+                description: true,
                 statusId: true,
                 priorityId: true,
                 order: true,
@@ -1233,6 +1242,90 @@ export function createWorkspaceController(app: FastifyInstance) {
         return reply.send(ok({ id: attachmentId }, "파일이 삭제되었습니다."));
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // 노트 API
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** GET /api/workspaces/:workspaceId/tasks/:taskId/notes */
+    async function listTaskNotes(
+        request: FastifyRequest<{ Params: WorkspaceTaskParams }>,
+        reply: FastifyReply,
+    ) {
+        const { workspaceId, taskId } = request.params;
+        const lang = request.lang;
+
+        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
+
+        const notes = await (app.prisma as any).workspaceTaskNote.findMany({
+            where: { taskId },
+            orderBy: { createdAt: "asc" },
+            select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                updatedAt: true,
+                user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+            },
+        });
+        return reply.send(ok(notes, "노트 목록입니다."));
+    }
+
+    /** POST /api/workspaces/:workspaceId/tasks/:taskId/notes */
+    async function createTaskNote(
+        request: FastifyRequest<{ Params: WorkspaceTaskParams; Body: CreateWorkspaceTaskNoteBody }>,
+        reply: FastifyReply,
+    ) {
+        const { workspaceId, taskId } = request.params;
+        const lang = request.lang;
+        const content = String(request.body?.content ?? "").trim();
+
+        if (!content) {
+            return reply.code(400).send(badRequest("노트 내용을 입력해 주세요."));
+        }
+
+        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
+
+        const note = await (app.prisma as any).workspaceTaskNote.create({
+            data: { id: generatePublicId(), taskId, userId: request.userId, content },
+            select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                updatedAt: true,
+                user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+            },
+        });
+
+        return reply.code(201).send(created(note, "노트가 등록되었습니다."));
+    }
+
+    /** DELETE /api/workspaces/:workspaceId/tasks/:taskId/notes/:noteId */
+    async function deleteTaskNote(
+        request: FastifyRequest<{ Params: WorkspaceTaskNoteParams }>,
+        reply: FastifyReply,
+    ) {
+        const { workspaceId, taskId, noteId } = request.params;
+        const lang = request.lang;
+
+        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
+
+        const note = await (app.prisma as any).workspaceTaskNote.findFirst({
+            where: { id: noteId, taskId },
+        });
+        if (!note) {
+            return reply.code(404).send(notFound("노트를 찾을 수 없습니다."));
+        }
+        if (note.userId !== request.userId) {
+            return reply.code(403).send(forbidden("본인 노트만 삭제할 수 있습니다."));
+        }
+
+        await (app.prisma as any).workspaceTaskNote.delete({ where: { id: noteId } });
+        return reply.send(ok({ id: noteId }, "노트가 삭제되었습니다."));
+    }
+
     return {
         listWorkspaces,
         getWorkspace,
@@ -1255,5 +1348,8 @@ export function createWorkspaceController(app: FastifyInstance) {
         listTaskAttachments,
         uploadTaskAttachment,
         deleteTaskAttachment,
+        listTaskNotes,
+        createTaskNote,
+        deleteTaskNote,
     };
 }

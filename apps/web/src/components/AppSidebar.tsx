@@ -262,7 +262,7 @@ export function AppSidebar({
               {showLabels ? (
                 <>
                   <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400">
-                    즐겨찾기 팀
+                    {tSidebar("favoriteTeams")}
                   </p>
                   <ul className="mt-1 space-y-0.5">
                     {teamFavorites.map((fav) => {
@@ -339,7 +339,7 @@ export function AppSidebar({
               {showLabels ? (
                 <>
                   <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400">
-                    즐겨찾기 프로젝트
+                    {tSidebar("favoriteProjects")}
                   </p>
                   <ul className="mt-1 space-y-0.5">
                     {projectFavorites.map((fav) => {
