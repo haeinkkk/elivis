@@ -130,3 +130,49 @@ export type ApiWorkspaceTaskAttachment = {
     createdAt: string;
     user: ApiTaskUser;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 업무 요청
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ApiTaskRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+
+/** GET /api/workspaces/:workspaceId/task-requests */
+export type ApiTaskRequest = {
+    id: string;
+    projectId: string;
+    fromUserId: string;
+    toUserId: string;
+    title: string;
+    content: string | null;
+    isUrgent: boolean;
+    status: ApiTaskRequestStatus;
+    createdAt: string;
+    updatedAt: string;
+    fromUser: {
+        id: string;
+        name: string | null;
+        email: string;
+        avatarUrl: string | null;
+    };
+    project: {
+        id: string;
+        name: string;
+    };
+};
+
+/** GET /api/projects/:projectId/tasks — 워크스페이스(소유자) + 업무 + 상태 + 우선순위 한 묶음 */
+export type ApiProjectTasksItem = {
+    workspace: {
+        id: string;
+        user: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatarUrl: string | null;
+        };
+    };
+    tasks: ApiWorkspaceTask[];
+    statuses: ApiWorkspaceStatus[];
+    priorities: ApiWorkspacePriority[];
+};

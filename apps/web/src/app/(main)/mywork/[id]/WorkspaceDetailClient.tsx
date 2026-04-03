@@ -26,11 +26,17 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import type {
+    ApiTaskRequest,
     ApiWorkspaceDetail,
     ApiWorkspacePriority,
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
 } from "@/lib/map-api-workspace";
+import {
+    listTaskRequestsAction,
+    acceptTaskRequestAction,
+    rejectTaskRequestAction,
+} from "@/app/actions/taskRequests";
 import {
     createWorkspaceTaskAction,
     updateWorkspaceTaskAction,
@@ -1967,15 +1973,186 @@ function SummaryTab({
 // 플레이스홀더 탭
 // ─────────────────────────────────────────────────────────────────────────────
 
-function RequestsTab() {
-    const t = useTranslations("workspace");
-    return (
-        <div className="flex flex-1 items-center justify-center p-8">
-            <div className="text-center">
-                <p className="text-3xl" aria-hidden>📬</p>
-                <p className="mt-3 text-base font-semibold text-stone-700">{t("requests.title")}</p>
-                <p className="mt-1 text-sm text-stone-400">{t("requests.desc")}</p>
+function RequestsTab({ workspaceId, onAccepted }: { workspaceId: string; onAccepted: () => void }) {
+    const router = useRouter();
+    const [requests, setRequests] = useState<ApiTaskRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setLoading(true);
+        listTaskRequestsAction(workspaceId)
+            .then((res) => {
+                if (res.ok) setRequests(res.requests);
+                else setError(res.message);
+            })
+            .catch(() => setError("목록을 불러오는데 실패했습니다."))
+            .finally(() => setLoading(false));
+    }, [workspaceId]);
+
+    async function handleAccept(requestId: string) {
+        setProcessingId(requestId);
+        setActionError(null);
+        const res = await acceptTaskRequestAction(requestId, workspaceId);
+        setProcessingId(null);
+        if (!res.ok) {
+            setActionError(res.message);
+            return;
+        }
+        setRequests((prev) => prev.filter((r) => r.id !== requestId));
+        // 서버에서 새 업무 데이터 재조회 후 내 작업공간 탭으로 이동
+        router.refresh();
+        onAccepted();
+    }
+
+    async function handleReject(requestId: string) {
+        setProcessingId(requestId);
+        setActionError(null);
+        const res = await rejectTaskRequestAction(requestId, workspaceId);
+        setProcessingId(null);
+        if (!res.ok) {
+            setActionError(res.message);
+            return;
+        }
+        setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    }
+
+    function formatDate(iso: string) {
+        return new Date(iso).toLocaleDateString("ko-KR", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    }
+
+    if (loading) {
+        return (
+            <div className="flex flex-1 items-center justify-center py-20">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
             </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-1 items-center justify-center py-20">
+                <p className="text-sm text-red-500">{error}</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-1 flex-col overflow-hidden">
+            {/* 헤더 */}
+            <div className="border-b border-stone-200 bg-white px-5 py-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-semibold text-stone-800">요청업무</h2>
+                        <p className="text-xs text-stone-400">팀원에게서 받은 대기 중인 요청이에요</p>
+                    </div>
+                    <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                        {requests.length}건
+                    </span>
+                </div>
+            </div>
+
+            {actionError && (
+                <div className="mx-5 mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+                    {actionError}
+                </div>
+            )}
+
+            {/* 목록 */}
+            {requests.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center py-20 text-center">
+                    <div>
+                        <p className="text-3xl" aria-hidden>📬</p>
+                        <p className="mt-3 text-sm font-semibold text-stone-700">받은 요청이 없습니다</p>
+                        <p className="mt-1 text-xs text-stone-400">팀원의 업무 요청이 여기에 표시됩니다</p>
+                    </div>
+                </div>
+            ) : (
+                <ul className="min-h-0 flex-1 divide-y divide-stone-100 overflow-y-auto">
+                    {requests.map((req) => {
+                        const senderName = req.fromUser.name?.trim() || req.fromUser.email.split("@")[0];
+                        const isProcessing = processingId === req.id;
+
+                        return (
+                            <li key={req.id} className="flex flex-col gap-3 bg-white px-5 py-4 transition-colors hover:bg-stone-50/60">
+                                {/* 발신자 + 날짜 */}
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        {req.fromUser.avatarUrl ? (
+                                            <img
+                                                src={req.fromUser.avatarUrl}
+                                                alt={senderName}
+                                                className="h-7 w-7 rounded-full object-cover ring-1 ring-stone-200"
+                                            />
+                                        ) : (
+                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white">
+                                                {senderName[0]?.toUpperCase() ?? "?"}
+                                            </span>
+                                        )}
+                                        <div>
+                                            <span className="text-xs font-semibold text-stone-800">
+                                                {senderName}
+                                            </span>
+                                            {req.project && (
+                                                <span className="ml-1.5 text-xs text-stone-400">
+                                                    ({req.project.name})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span className="shrink-0 text-[11px] text-stone-400">
+                                        {formatDate(req.createdAt)}
+                                    </span>
+                                </div>
+
+                                {/* 제목 */}
+                                <p className="text-sm font-semibold text-stone-800">{req.title}</p>
+
+                                {/* 긴급 뱃지 */}
+                                {req.isUrgent && (
+                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600">
+                                        긴급
+                                    </span>
+                                )}
+
+                                {/* 내용 */}
+                                {req.content && (
+                                    <p className="whitespace-pre-line rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">
+                                        {req.content}
+                                    </p>
+                                )}
+
+                                {/* 수락 / 거절 버튼 */}
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAccept(req.id)}
+                                        disabled={isProcessing}
+                                        className="flex-1 rounded-lg bg-stone-800 py-1.5 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-50"
+                                    >
+                                        {isProcessing ? "처리 중…" : "수락"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleReject(req.id)}
+                                        disabled={isProcessing}
+                                        className="flex-1 rounded-lg border border-stone-200 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50 disabled:opacity-50"
+                                    >
+                                        {isProcessing ? "처리 중…" : "거절"}
+                                    </button>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
         </div>
     );
 }
@@ -1990,19 +2167,23 @@ interface WorkspaceDetailClientProps {
     initialTasks: ApiWorkspaceTask[];
     initialStatuses: ApiWorkspaceStatus[];
     initialPriorities: ApiWorkspacePriority[];
+    initialTab?: WorkspaceTab;
 }
 
 export default function WorkspaceDetailClient({
-    workspace, initialTasks, initialStatuses, initialPriorities,
+    workspace, initialTasks, initialStatuses, initialPriorities, initialTab,
 }: WorkspaceDetailClientProps) {
     const t = useTranslations("workspace");
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<WorkspaceTab>("mywork");
+    const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialTab ?? "mywork");
     const [tasks, setTasks] = useState<ApiWorkspaceTask[]>(initialTasks);
     const [statuses, setStatuses] = useState<ApiWorkspaceStatus[]>(initialStatuses);
     const [priorities, setPriorities] = useState<ApiWorkspacePriority[]>(initialPriorities);
     const [calendarPanelTask, setCalendarPanelTask] = useState<ApiWorkspaceTask | null>(null);
     const [summaryPanelTask, setSummaryPanelTask] = useState<ApiWorkspaceTask | null>(null);
+
+    // router.refresh() 호출 시 서버에서 새 initialTasks가 내려오면 동기화
+    useEffect(() => { setTasks(initialTasks); }, [initialTasks]);
 
     const project = workspace.project;
     const allTeams = [project.team, ...project.projectTeams.map((pt) => pt.team)].filter(Boolean);
@@ -2086,7 +2267,12 @@ export default function WorkspaceDetailClient({
                         )}
                     </>
                 )}
-                {activeTab === "requests" && <RequestsTab />}
+                {activeTab === "requests" && (
+                    <RequestsTab
+                        workspaceId={workspace.id}
+                        onAccepted={() => setActiveTab("mywork")}
+                    />
+                )}
                 {activeTab === "calendar" && (
                     <>
                         <CalendarTab

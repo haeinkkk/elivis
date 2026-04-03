@@ -14,7 +14,7 @@ import type { GetProjectsQuery } from "../controllers/projects.controller";
 import { authenticateProjectManager, authenticateUser } from "../middleware/auth";
 
 export async function projectRoutes(app: FastifyInstance) {
-    const { createProject, getProject, updateProject, deleteProject, addMember } =
+    const { createProject, getProject, updateProject, deleteProject, addMember, getProjectTasks } =
         createProjectController(app);
     const { getProjects } = createProjectsController(app);
 
@@ -52,6 +52,12 @@ export async function projectRoutes(app: FastifyInstance) {
         "/projects/:projectId/members",
         { preHandler: [authenticateUser, authenticateProjectManager] },
         addMember,
+    );
+
+    app.get<{ Params: ProjectParams }>(
+        "/projects/:projectId/tasks",
+        { preHandler: [authenticateUser] },
+        getProjectTasks,
     );
 
     // ── 즐겨찾기 ────────────────────────────────────────────────────────────

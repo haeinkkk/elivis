@@ -46,14 +46,24 @@ enum WorkspaceViewType {
 
 /// 알림 종류
 enum NotificationType {
-  TASK_ASSIGNED        /// 업무 할당됨
-  TASK_COMMENT         /// 업무에 댓글 달림
-  TASK_DUE_SOON        /// 업무 마감 임박
-  TASK_STATUS_CHANGED  /// 업무 상태 변경됨 (notifyOnChange)
-  PROJECT_MEMBER_ADDED /// 프로젝트에 멤버 추가됨
-  TEAM_MEMBER_ADDED    /// 팀에 멤버 추가됨
-  MENTION              /// 언급됨
-  SYSTEM               /// 시스템 알림
+  TASK_ASSIGNED          /// 업무 할당됨
+  TASK_COMMENT           /// 업무에 댓글 달림
+  TASK_DUE_SOON          /// 업무 마감 임박
+  TASK_STATUS_CHANGED    /// 업무 상태 변경됨 (notifyOnChange)
+  PROJECT_MEMBER_ADDED   /// 프로젝트에 멤버 추가됨
+  TEAM_MEMBER_ADDED      /// 팀에 멤버 추가됨
+  MENTION                /// 언급됨
+  SYSTEM                 /// 시스템 알림
+  TASK_REQUEST_RECEIVED  /// 업무 요청 받음
+  TASK_REQUEST_ACCEPTED  /// 업무 요청 수락됨
+  TASK_REQUEST_REJECTED  /// 업무 요청 거절됨
+}
+
+/// 업무 요청 상태
+enum WorkspaceTaskRequestStatus {
+  PENDING   /// 대기 중
+  ACCEPTED  /// 수락됨
+  REJECTED  /// 거절됨
 }
 
 /// 프로젝트 히스토리 행동 종류
@@ -105,9 +115,13 @@ model User {
   workspaceTasks      WorkspaceTask[]
   taskComments        WorkspaceTaskComment[]
   taskAttachments     WorkspaceTaskAttachment[]
+  teamPosts           TeamPost[]
+  teamPostComments    TeamPostComment[]
   taskNotes           WorkspaceTaskNote[]
   notifications       Notification[]
   projectHistories    ProjectHistory[]
+  taskRequestsFrom    WorkspaceTaskRequest[] @relation("TaskRequestFrom")
+  taskRequestsTo      WorkspaceTaskRequest[] @relation("TaskRequestTo")
 }
 
 model Project {
@@ -135,6 +149,7 @@ model Project {
   workspaces   Workspace[]
   histories    ProjectHistory[]
   favorites    ProjectFavorite[]
+  taskRequests WorkspaceTaskRequest[]
 
   @@index([teamId])
 }
@@ -212,6 +227,7 @@ model Team {
   favorites TeamFavorite[]
   projects  Project[]
   projectTeams ProjectTeam[]
+  posts     TeamPost[]
 
   @@unique([name])
   @@index([createdAt(sort: Desc)])
@@ -495,4 +511,103 @@ model Notification {
   @@index([userId])
   @@index([userId, isRead])
   @@index([createdAt(sort: Desc)])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 업무 요청
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// 팀원이 다른 팀원에게 업무를 요청할 때 사용
+model WorkspaceTaskRequest {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id           String                     @id
+  projectId    String
+  fromUserId   String
+  toUserId     String
+  title     String
+  content   String?
+  /// 긴급 요청 여부
+  isUrgent  Boolean                    @default(false)
+  status    WorkspaceTaskRequestStatus @default(PENDING)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fromUser User    @relation("TaskRequestFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User    @relation("TaskRequestTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([toUserId, status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 팀 커뮤니티
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// 팀 커뮤니티 게시글
+model TeamPost {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id        String   @id
+  teamId    String
+  authorId  String
+  /// 카테고리: general | notice | discussion | share
+  category  String   @default("general")
+  title     String
+  /// 마크다운 허용
+  content   String
+  /// true면 목록 상단 고정 (팀장만 설정 가능)
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team        Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  author      User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments    TeamPostComment[]
+  attachments TeamPostAttachment[]
+
+  @@index([teamId])
+  @@index([authorId])
+  @@index([teamId, isPinned, createdAt(sort: Desc)])
+}
+
+/// 팀 커뮤니티 게시글 첨부파일
+model TeamPostAttachment {
+  id        String   @id
+  postId    String
+  /// 파일 원본명
+  name      String
+  /// 공개 URL (로컬: /uploads/..., S3: https://...)
+  url       String
+  mimeType  String
+  /// 파일 크기 (bytes)
+  size      Int
+  createdAt DateTime @default(now())
+
+  post TeamPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+/// 팀 커뮤니티 게시글 댓글
+model TeamPostComment {
+  /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
+  id        String   @id
+  postId    String
+  authorId  String
+  /// null이면 최상위 댓글, non-null이면 해당 댓글의 답글
+  parentId  String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post    TeamPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  TeamPostComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies TeamPostComment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
 }

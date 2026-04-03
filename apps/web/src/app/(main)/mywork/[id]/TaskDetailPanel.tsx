@@ -109,19 +109,22 @@ function SimpleSelect<T extends { id: string; name: string; color: string }>({
     nullable,
     placeholder,
     onChange,
+    disabled = false,
 }: {
     value: string | null;
     items: T[];
     nullable?: boolean;
     placeholder?: string;
     onChange: (id: string | null) => void;
+    disabled?: boolean;
 }) {
     const t = useTranslations("workspace");
     return (
         <select
             value={value ?? ""}
-            onChange={(e) => onChange(e.target.value || null)}
-            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-stone-400"
+            onChange={(e) => !disabled && onChange(e.target.value || null)}
+            disabled={disabled}
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
         >
             {nullable && <option value="">{placeholder ?? t("taskDetail.none")}</option>}
             {items.map((item) => (
@@ -137,7 +140,7 @@ function SimpleSelect<T extends { id: string; name: string; color: string }>({
 // 노트 섹션 (리치 텍스트, 여러 개 작성)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NotesSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+function NotesSection({ workspaceId, taskId, readOnly = false, currentUserId = "" }: { workspaceId: string; taskId: string; readOnly?: boolean; currentUserId?: string }) {
     const locale = useLocale();
     const [notes, setNotes] = useState<ApiWorkspaceTaskNote[]>([]);
     const [loading, setLoading] = useState(true);
@@ -223,14 +226,16 @@ function NotesSection({ workspaceId, taskId }: { workspaceId: string; taskId: st
                                     <span className="text-[10px] text-stone-400">
                                         {formatDate(n.createdAt, locale)}
                                     </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => remove(n.id)}
-                                        disabled={isPending}
-                                        className="ml-auto text-[10px] text-stone-300 hover:text-red-400"
-                                    >
-                                        삭제
-                                    </button>
+                                    {(!readOnly || n.user.id === currentUserId) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => remove(n.id)}
+                                            disabled={isPending}
+                                            className="ml-auto text-[10px] text-stone-300 hover:text-red-400"
+                                        >
+                                            삭제
+                                        </button>
+                                    )}
                                 </div>
                                 {/* Tiptap HTML 렌더링 */}
                                 <div
@@ -244,96 +249,99 @@ function NotesSection({ workspaceId, taskId }: { workspaceId: string; taskId: st
                 </ul>
             )}
 
-            {/* Tiptap 에디터 입력부 */}
-            <div className="overflow-hidden rounded-xl border border-stone-200 bg-stone-50/60 focus-within:border-stone-400 focus-within:bg-white transition-colors">
-                {/* 툴바 */}
-                <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-100 px-2 py-1.5">
-                    {/* 글자 크기 */}
-                    <select
-                        key={fontSizeKey}
-                        title="글자 크기"
-                        defaultValue=""
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            if (!editor) return;
-                            if (val === "") {
-                                (editor.chain().focus() as any).unsetFontSize().run();
-                            } else {
-                                (editor.chain().focus() as any).setFontSize(val).run();
-                            }
-                            // key 변경으로 select 리셋 (React controlled 방식 우회)
-                            setFontSizeKey((k) => k + 1);
-                        }}
-                        className="rounded border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-500 outline-none hover:bg-stone-50 focus:border-stone-400"
-                    >
-                        <option value="" disabled>크기</option>
-                        {["10","12","14","16","18","20","24","28","32","36"].map((s) => (
-                            <option key={s} value={s}>{s}px</option>
+            {/* Tiptap 에디터 입력부 — readOnly 시 숨김 */}
+            {!readOnly && (
+                <>
+                <div className="overflow-hidden rounded-xl border border-stone-200 bg-stone-50/60 focus-within:border-stone-400 focus-within:bg-white transition-colors">
+                    {/* 툴바 */}
+                    <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-100 px-2 py-1.5">
+                        {/* 글자 크기 */}
+                        <select
+                            key={fontSizeKey}
+                            title="글자 크기"
+                            defaultValue=""
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (!editor) return;
+                                if (val === "") {
+                                    (editor.chain().focus() as any).unsetFontSize().run();
+                                } else {
+                                    (editor.chain().focus() as any).setFontSize(val).run();
+                                }
+                                setFontSizeKey((k) => k + 1);
+                            }}
+                            className="rounded border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-500 outline-none hover:bg-stone-50 focus:border-stone-400"
+                        >
+                            <option value="" disabled>크기</option>
+                            {["10","12","14","16","18","20","24","28","32","36"].map((s) => (
+                                <option key={s} value={s}>{s}px</option>
+                            ))}
+                        </select>
+
+                        <div className="mx-1 h-3 w-px bg-stone-200" />
+
+                        {/* 텍스트 스타일 */}
+                        {[
+                            { cmd: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), icon: "B", title: "굵게", className: "font-bold" },
+                            { cmd: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), icon: "I", title: "기울임", className: "italic" },
+                            { cmd: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), icon: "S", title: "취소선", className: "line-through" },
+                        ].map(({ cmd, active, icon, title, className }) => (
+                            <button
+                                key={title}
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); cmd(); }}
+                                title={title}
+                                className={`rounded px-2 py-0.5 text-xs transition-colors ${className ?? ""} ${active ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                            >
+                                {icon}
+                            </button>
                         ))}
-                    </select>
 
-                    <div className="mx-1 h-3 w-px bg-stone-200" />
+                        <div className="mx-1 h-3 w-px bg-stone-200" />
 
-                    {/* 텍스트 스타일 */}
-                    {[
-                        { cmd: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), icon: "B", title: "굵게", className: "font-bold" },
-                        { cmd: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), icon: "I", title: "기울임", className: "italic" },
-                        { cmd: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), icon: "S", title: "취소선", className: "line-through" },
-                    ].map(({ cmd, active, icon, title, className }) => (
-                        <button
-                            key={title}
-                            type="button"
-                            onMouseDown={(e) => { e.preventDefault(); cmd(); }}
-                            title={title}
-                            className={`rounded px-2 py-0.5 text-xs transition-colors ${className ?? ""} ${active ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
-                        >
-                            {icon}
-                        </button>
-                    ))}
+                        {/* 목록 / 인용 */}
+                        {[
+                            { cmd: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), icon: "•—", title: "목록" },
+                            { cmd: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), icon: "1—", title: "번호 목록" },
+                            { cmd: () => editor?.chain().focus().toggleBlockquote().run(), active: editor?.isActive("blockquote"), icon: "❝", title: "인용" },
+                        ].map(({ cmd, active, icon, title }) => (
+                            <button
+                                key={title}
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); cmd(); }}
+                                title={title}
+                                className={`rounded px-2 py-0.5 text-xs transition-colors ${active ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                            >
+                                {icon}
+                            </button>
+                        ))}
+                    </div>
 
-                    <div className="mx-1 h-3 w-px bg-stone-200" />
-
-                    {/* 목록 / 인용 */}
-                    {[
-                        { cmd: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), icon: "•—", title: "목록" },
-                        { cmd: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), icon: "1—", title: "번호 목록" },
-                        { cmd: () => editor?.chain().focus().toggleBlockquote().run(), active: editor?.isActive("blockquote"), icon: "❝", title: "인용" },
-                    ].map(({ cmd, active, icon, title }) => (
-                        <button
-                            key={title}
-                            type="button"
-                            onMouseDown={(e) => { e.preventDefault(); cmd(); }}
-                            title={title}
-                            className={`rounded px-2 py-0.5 text-xs transition-colors ${active ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
-                        >
-                            {icon}
-                        </button>
-                    ))}
+                    {/* 에디터 본문 */}
+                    <EditorContent
+                        editor={editor}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault();
+                                submit();
+                            }
+                        }}
+                    />
                 </div>
 
-                {/* 에디터 본문 */}
-                <EditorContent
-                    editor={editor}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                            e.preventDefault();
-                            submit();
-                        }
-                    }}
-                />
-            </div>
-
-            <div className="mt-2 flex items-center justify-between">
-                <span className="text-[10px] text-stone-300">Ctrl+Enter로 저장</span>
-                <button
-                    type="button"
-                    onClick={submit}
-                    disabled={isPending}
-                    className="rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-40"
-                >
-                    저장
-                </button>
-            </div>
+                <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[10px] text-stone-300">Ctrl+Enter로 저장</span>
+                    <button
+                        type="button"
+                        onClick={submit}
+                        disabled={isPending}
+                        className="rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-40"
+                    >
+                        저장
+                    </button>
+                </div>
+                </>
+            )}
         </div>
     );
 }
@@ -342,7 +350,7 @@ function NotesSection({ workspaceId, taskId }: { workspaceId: string; taskId: st
 // 댓글 섹션
 // ─────────────────────────────────────────────────────────────────────────────
 
-function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+function CommentsSection({ workspaceId, taskId, currentUserId = "" }: { workspaceId: string; taskId: string; currentUserId?: string }) {
     const t = useTranslations("workspace");
     const locale = useLocale();
     const [comments, setComments] = useState<ApiWorkspaceTaskComment[]>([]);
@@ -436,14 +444,16 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
                                     <span className="text-[10px] text-stone-400">
                                         {formatDate(c.createdAt, locale)}
                                     </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => remove(c.id)}
-                                        disabled={isPending}
-                                        className="ml-auto text-[10px] text-stone-300 hover:text-red-400"
-                                    >
-                                        {t("taskDetail.delete")}
-                                    </button>
+                                    {(!currentUserId || c.user.id === currentUserId) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => remove(c.id)}
+                                            disabled={isPending}
+                                            className="ml-auto text-[10px] text-stone-300 hover:text-red-400"
+                                        >
+                                            {t("taskDetail.delete")}
+                                        </button>
+                                    )}
                                 </div>
                                 <div
                                     className="prose prose-sm max-w-none text-stone-700 [&_p]:my-0.5 [&_ul]:my-1 [&_ol]:my-1 [&_strong]:font-semibold [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 [&_blockquote]:pl-3 [&_blockquote]:text-stone-500 [&_span[style]]:leading-relaxed"
@@ -544,7 +554,7 @@ function CommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId:
 // 첨부파일 섹션
 // ─────────────────────────────────────────────────────────────────────────────
 
-function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+function AttachmentsSection({ workspaceId, taskId, readOnly = false }: { workspaceId: string; taskId: string; readOnly?: boolean }) {
     const t = useTranslations("workspace");
     const [attachments, setAttachments] = useState<ApiWorkspaceTaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -583,39 +593,45 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
                     {t("taskDetail.attachments")}
                 </h3>
-                <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-50 disabled:opacity-40"
-                >
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
+                {!readOnly && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => fileRef.current?.click()}
+                            disabled={uploading}
+                            className="flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-50 disabled:opacity-40"
+                        >
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
+                            {t("taskDetail.addFile")}
+                        </button>
+                        <input
+                            ref={fileRef}
+                            type="file"
+                            multiple
+                            hidden
+                            onChange={(e) => handleFiles(e.target.files)}
                         />
-                    </svg>
-                    {t("taskDetail.addFile")}
-                </button>
-                <input
-                    ref={fileRef}
-                    type="file"
-                    multiple
-                    hidden
-                    onChange={(e) => handleFiles(e.target.files)}
-                />
+                    </>
+                )}
             </div>
 
             {/* 드래그 앤 드랍 영역 */}
             <div
-                onClick={() => !uploading && fileRef.current?.click()}
+                onClick={() => !readOnly && !uploading && fileRef.current?.click()}
                 onDragOver={(e) => {
+                    if (readOnly) return;
                     e.preventDefault();
                     setIsDragOver(true);
                 }}
                 onDragEnter={(e) => {
+                    if (readOnly) return;
                     e.preventDefault();
                     setIsDragOver(true);
                 }}
@@ -626,9 +642,9 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                 onDrop={(e) => {
                     e.preventDefault();
                     setIsDragOver(false);
-                    handleFiles(e.dataTransfer.files);
+                    if (!readOnly) handleFiles(e.dataTransfer.files);
                 }}
-                className={`mb-3 flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-xs transition-all
+                className={`mb-3 flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-xs transition-all ${readOnly ? "cursor-default" : "cursor-pointer"}
                     ${
                         isDragOver
                             ? "border-stone-500 bg-stone-100 text-stone-600 scale-[1.01]"
@@ -675,6 +691,8 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                         </svg>
                         <span className="font-medium">{t("taskDetail.dropHere")}</span>
                     </>
+                ) : readOnly ? (
+                    <span className="text-stone-300">첨부파일 보기 전용</span>
                 ) : (
                     <>
                         <svg
@@ -720,25 +738,27 @@ function AttachmentsSection({ workspaceId, taskId }: { workspaceId: string; task
                                     {formatBytes(a.fileSize)}
                                 </span>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => remove(a.id)}
-                                className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 hover:text-red-400"
-                            >
-                                <svg
-                                    className="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
+                            {!readOnly && (
+                                <button
+                                    type="button"
+                                    onClick={() => remove(a.id)}
+                                    className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 hover:text-red-400"
                                 >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
+                                    <svg
+                                        className="h-3.5 w-3.5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -758,6 +778,10 @@ interface Props {
     workspaceId: string;
     onUpdate: (t: ApiWorkspaceTask) => void;
     onClose: () => void;
+    /** true면 업무 내용 조회만 가능하고 수정/노트/첨부파일 추가 불가. 댓글은 항상 작성 가능. */
+    readOnly?: boolean;
+    /** 현재 로그인한 사용자 ID — 본인 노트/댓글 삭제 버튼 표시에 사용 */
+    currentUserId?: string;
 }
 
 export default function TaskDetailPanel({
@@ -767,6 +791,8 @@ export default function TaskDetailPanel({
     workspaceId,
     onUpdate,
     onClose,
+    readOnly = false,
+    currentUserId = "",
 }: Props) {
     const t = useTranslations("workspace");
     const locale = useLocale();
@@ -779,6 +805,7 @@ export default function TaskDetailPanel({
     }, [task.id]);
 
     function update(patch: Parameters<typeof updateWorkspaceTaskAction>[2]) {
+        if (readOnly) return;
         startTransition(async () => {
             const res = await updateWorkspaceTaskAction(workspaceId, task.id, patch);
             if (res.ok) onUpdate(res.task);
@@ -812,7 +839,14 @@ export default function TaskDetailPanel({
             >
                 {/* ── 헤더 ── */}
                 <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3">
-                    <span className="text-sm font-bold text-stone-900">{t("taskDetail.title")}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-stone-900">{t("taskDetail.title")}</span>
+                        {readOnly && (
+                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-400">
+                                읽기 전용
+                            </span>
+                        )}
+                    </div>
                     <button
                         type="button"
                         onClick={onClose}
@@ -841,7 +875,7 @@ export default function TaskDetailPanel({
                         <input
                             ref={titleRef}
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => !readOnly && setTitle(e.target.value)}
                             onBlur={saveTitle}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
@@ -849,7 +883,8 @@ export default function TaskDetailPanel({
                                 }
                             }}
                             disabled={isPending}
-                            className="min-w-0 flex-1 rounded-lg border-0 bg-transparent px-0 text-lg font-bold text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0"
+                            readOnly={readOnly}
+                            className={`min-w-0 flex-1 rounded-lg border-0 bg-transparent px-0 text-lg font-bold text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 ${readOnly ? "cursor-default select-text" : ""}`}
                             placeholder={t("taskDetail.taskTitlePlaceholder")}
                         />
                         {task.assignee && (
@@ -882,8 +917,9 @@ export default function TaskDetailPanel({
                                     value={task.statusId}
                                     items={statuses}
                                     onChange={(id) => {
-                                        if (id) update({ statusId: id });
+                                        if (id && !readOnly) update({ statusId: id });
                                     }}
+                                    disabled={readOnly}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -892,7 +928,8 @@ export default function TaskDetailPanel({
                                     value={task.priorityId ?? null}
                                     items={priorities}
                                     nullable
-                                    onChange={(id) => update({ priorityId: id })}
+                                    onChange={(id) => { if (!readOnly) update({ priorityId: id }); }}
+                                    disabled={readOnly}
                                 />
                             </div>
                         </div>
@@ -903,9 +940,9 @@ export default function TaskDetailPanel({
                                 <input
                                     type="date"
                                     defaultValue={task.startDate?.slice(0, 10) ?? ""}
-                                    disabled={isPending}
-                                    onChange={(e) => update({ startDate: e.target.value || null })}
-                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400"
+                                    disabled={isPending || readOnly}
+                                    onChange={(e) => !readOnly && update({ startDate: e.target.value || null })}
+                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -913,22 +950,22 @@ export default function TaskDetailPanel({
                                 <input
                                     type="date"
                                     defaultValue={task.dueDate?.slice(0, 10) ?? ""}
-                                    disabled={isPending}
-                                    onChange={(e) => update({ dueDate: e.target.value || null })}
-                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400"
+                                    disabled={isPending || readOnly}
+                                    onChange={(e) => !readOnly && update({ dueDate: e.target.value || null })}
+                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* 노트 (리치 텍스트, 여러 개) */}
-                    <NotesSection workspaceId={workspaceId} taskId={task.id} />
+                    <NotesSection workspaceId={workspaceId} taskId={task.id} readOnly={readOnly} currentUserId={currentUserId} />
 
                     {/* 첨부파일 */}
-                    <AttachmentsSection workspaceId={workspaceId} taskId={task.id} />
+                    <AttachmentsSection workspaceId={workspaceId} taskId={task.id} readOnly={readOnly} />
 
-                    {/* 댓글 */}
-                    <CommentsSection workspaceId={workspaceId} taskId={task.id} />
+                    {/* 댓글 — 항상 작성 가능 */}
+                    <CommentsSection workspaceId={workspaceId} taskId={task.id} currentUserId={currentUserId} />
                 </div>
 
                 {/* ── 하단 배지 ── */}

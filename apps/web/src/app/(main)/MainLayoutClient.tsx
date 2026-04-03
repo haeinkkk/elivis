@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TopLoadingBar } from "@/components/TopLoadingBar";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { UserProfile } from "@/lib/users";
 import type { ApiWorkspaceListItem } from "@/lib/map-api-workspace";
@@ -52,12 +52,24 @@ export function MainLayoutClient({ children, user, workspaces, accessToken, team
   const pathname = usePathname();
   const title    = getPageTitle(pathname);
 
-  // 전역 알림 소켓 — AppSidebar 뱃지 + 헤더 벨 드롭다운이 공유
+  // 전역 알림 소켓 — Context로 AppSidebar 뱃지 + 헤더 벨 드롭다운이 공유
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications(accessToken);
 
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllAsRead }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        markAsRead,
+        markAllAsRead,
+        panelOpen: notifPanelOpen,
+        openPanel: () => setNotifPanelOpen(true),
+        closePanel: () => setNotifPanelOpen(false),
+      }}
+    >
     <UserStatusProvider initialStatus={user?.status ?? "WORKING"}>
       <div className="flex h-screen bg-[#f8f7f5]">
         <TopLoadingBar />
@@ -68,7 +80,6 @@ export function MainLayoutClient({ children, user, workspaces, accessToken, team
           onSizeChange={setSidebarSize}
           isSuperAdmin={user?.systemRole === "SUPER_ADMIN"}
           workspaces={workspaces}
-          unreadNotificationCount={unreadCount}
           teamFavorites={teamFavorites}
           projectFavorites={projectFavorites}
         />
@@ -77,17 +88,12 @@ export function MainLayoutClient({ children, user, workspaces, accessToken, team
             onMenuClick={() => setSidebarOpen((o) => !o)}
             title={title}
             user={user}
-            notificationSlot={
-              <NotificationBell
-                notifications={notifications}
-                unreadCount={unreadCount}
-                onMarkAsRead={markAsRead}
-                onMarkAllAsRead={markAllAsRead}
-              />
-            }
           />
           <main className="relative z-0 min-h-0 flex-1 overflow-auto">{children}</main>
         </div>
+
+        {/* 통합 알림 패널 — 헤더 벨 + 사이드바 버튼이 공유 */}
+        <NotificationPanel />
       </div>
     </UserStatusProvider>
     </NotificationContext.Provider>

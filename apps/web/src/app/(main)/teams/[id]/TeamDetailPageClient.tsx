@@ -9,6 +9,7 @@ import { TeamAddMemberModal } from "./TeamAddMemberModal";
 import { TeamIntroEditModal } from "./TeamIntroEditModal";
 import { TeamIntroPageContent, type TeamIntroPageContentHandle } from "./TeamIntroPageContent";
 import { TeamIntroBannerBlock } from "./TeamIntroBannerBlock";
+import { TeamCommunityTab } from "./TeamCommunityTab";
 import { delegateTeamLeaderAction, deleteTeamAction, removeTeamMemberAction, updateTeamFieldsAction } from "@/app/actions/teams";
 import { UserAvatar } from "@/components/UserAvatar";
 import { TeamFavoriteButton } from "@/components/TeamFavoriteButton";
@@ -516,10 +517,12 @@ export function TeamDetailPageClient({
     team,
     isFavorite = false,
     isSuperAdmin = false,
+    myUserId = "",
 }: {
     team: TeamDetail;
     isFavorite?: boolean;
     isSuperAdmin?: boolean;
+    myUserId?: string;
 }) {
     const router = useRouter();
     const t = useTranslations("teams.detail");
@@ -594,13 +597,15 @@ export function TeamDetailPageClient({
     }, [activeTab]);
 
     return (
-        <div className="flex min-h-full w-full flex-col">
-            <TeamIntroBannerBlock
-                teamId={team.id}
-                bannerUrl={team.bannerUrl}
-                canEdit={isLeader}
-                variant="pageTop"
-            />
+        <div className={`flex w-full flex-col ${activeTab === "community" ? "h-full overflow-hidden" : "min-h-full"}`}>
+            {activeTab !== "community" && (
+                <TeamIntroBannerBlock
+                    teamId={team.id}
+                    bannerUrl={team.bannerUrl}
+                    canEdit={isLeader}
+                    variant="pageTop"
+                />
+            )}
             <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
                     <button
@@ -801,7 +806,7 @@ export function TeamDetailPageClient({
                 </div>
             </div>
 
-            <div className="min-h-0 flex-1 p-4 sm:p-5 md:p-6">
+            <div className={`min-h-0 flex-1 ${activeTab === "community" ? "flex flex-col" : "p-4 sm:p-5 md:p-6"}`}>
                 {activeTab === "projects" && (
                     <div className="space-y-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1020,49 +1025,11 @@ export function TeamDetailPageClient({
 
                 {/* ── 커뮤니티 탭 ─────────────────────────────────────────────── */}
                 {activeTab === "community" && (
-                    <div className="flex flex-col items-center justify-center px-4 py-20 text-center sm:py-28">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 text-stone-400">
-                            <svg
-                                className="h-8 w-8"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.4}
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
-                                />
-                            </svg>
-                        </div>
-                        <h3 className="mb-2 text-base font-semibold text-stone-700">
-                            {t("community.emptyTitle")}
-                        </h3>
-                        <p className="mb-6 max-w-sm text-sm text-stone-500">
-                            {t("community.comingSoon")}
-                        </p>
-                        <button
-                            type="button"
-                            disabled
-                            className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-stone-800 px-5 py-2.5 text-sm font-medium text-white opacity-40"
-                        >
-                            <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2}
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M12 4.5v15m7.5-7.5h-15"
-                                />
-                            </svg>
-                            {t("community.writePost")}
-                        </button>
-                    </div>
+                    <TeamCommunityTab
+                        teamId={team.id}
+                        myUserId={myUserId}
+                        isLeader={isLeader}
+                    />
                 )}
 
                 {/* ── 설정 탭 ──────────────────────────────────────────────────── */}

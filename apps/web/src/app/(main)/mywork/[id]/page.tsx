@@ -8,10 +8,17 @@ import WorkspaceDetailClient from "./WorkspaceDetailClient";
 
 interface PageProps {
     params: Promise<{ id: string }>;
+    searchParams: Promise<{ tab?: string }>;
 }
 
-export default async function WorkspaceDetailPage({ params }: PageProps) {
+export default async function WorkspaceDetailPage({ params, searchParams }: PageProps) {
     const { id } = await params;
+    const { tab } = await searchParams;
+    const VALID_TABS = ["mywork", "summary", "requests", "calendar"] as const;
+    type WorkspaceTab = (typeof VALID_TABS)[number];
+    const initialTab: WorkspaceTab = VALID_TABS.includes(tab as WorkspaceTab)
+        ? (tab as WorkspaceTab)
+        : "mywork";
 
     const result = await fetchWorkspaceById(id);
 
@@ -49,6 +56,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
             initialTasks={tasks ?? []}
             initialStatuses={statuses ?? []}
             initialPriorities={priorities ?? []}
+            initialTab={initialTab}
         />
     );
 }

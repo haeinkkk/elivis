@@ -116,6 +116,44 @@ async function findOwnWorkspace(
     });
 }
 
+/**
+ * 워크스페이스 소유자이거나 같은 프로젝트 멤버면 접근 허용.
+ * 직접 ProjectMember 뿐만 아니라 팀을 통한 프로젝트 접근도 허용.
+ * 조회(읽기) 전용 API에 사용.
+ */
+async function findAccessibleWorkspace(
+    app: FastifyInstance,
+    workspaceId: string,
+    userId: string,
+) {
+    const ws = await app.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { id: true, userId: true, projectId: true },
+    });
+    if (!ws) return null;
+    // 소유자면 바로 허용
+    if (ws.userId === userId) return ws;
+    // 직접 프로젝트 멤버 확인
+    const directMember = await app.prisma.projectMember.findUnique({
+        where: { userId_projectId: { userId, projectId: ws.projectId } },
+        select: { role: true },
+    });
+    if (directMember) return ws;
+    // 팀을 통한 프로젝트 접근 확인 (공개 프로젝트 + 팀 멤버)
+    const teamAccess = await (app.prisma as any).project.findFirst({
+        where: {
+            id: ws.projectId,
+            isPublic: true,
+            OR: [
+                { team: { members: { some: { userId } } } },
+                { projectTeams: { some: { team: { members: { some: { userId } } } } } },
+            ],
+        },
+        select: { id: true },
+    });
+    return teamAccess ? ws : null;
+}
+
 /** 접근 불가 시 404/403 응답 전송 */
 async function rejectNoWorkspace(
     app: FastifyInstance,
@@ -1038,7 +1076,7 @@ export function createWorkspaceController(app: FastifyInstance) {
         const { workspaceId, taskId } = request.params;
         const lang = request.lang;
 
-        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        const ws = await findAccessibleWorkspace(app, workspaceId, request.userId);
         if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
 
         const comments = await (app.prisma as any).workspaceTaskComment.findMany({
@@ -1065,7 +1103,7 @@ export function createWorkspaceController(app: FastifyInstance) {
             return reply.code(400).send(badRequest("댓글 내용을 입력해 주세요."));
         }
 
-        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        const ws = await findAccessibleWorkspace(app, workspaceId, request.userId);
         if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
 
         const comment = await (app.prisma as any).workspaceTaskComment.create({
@@ -1099,7 +1137,7 @@ export function createWorkspaceController(app: FastifyInstance) {
         const { workspaceId, taskId, commentId } = request.params;
         const lang = request.lang;
 
-        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        const ws = await findAccessibleWorkspace(app, workspaceId, request.userId);
         if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
 
         const comment = await (app.prisma as any).workspaceTaskComment.findFirst({
@@ -1139,7 +1177,7 @@ export function createWorkspaceController(app: FastifyInstance) {
         const { workspaceId, taskId } = request.params;
         const lang = request.lang;
 
-        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        const ws = await findAccessibleWorkspace(app, workspaceId, request.userId);
         if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
 
         const attachments = await (app.prisma as any).workspaceTaskAttachment.findMany({
@@ -1254,7 +1292,7 @@ export function createWorkspaceController(app: FastifyInstance) {
         const { workspaceId, taskId } = request.params;
         const lang = request.lang;
 
-        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        const ws = await findAccessibleWorkspace(app, workspaceId, request.userId);
         if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
 
         const notes = await (app.prisma as any).workspaceTaskNote.findMany({

@@ -12,16 +12,20 @@ import {
     ProjectSettingsProjectTab,
     ProjectSettingsSecurityTab,
 } from "./ProjectSettingsPanels";
+import { ProjectTasksTab, type ApiProjectTasksItem } from "./ProjectTasksTab";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore – dynamic segment folder name
+import ProjectCalendarTab from "./ProjectCalendarTab";
 
 /** 서버에서 API로 받은 데이터는 props로 전달(팀 상세와 동일). Server Action 직렬화 없음 */
 export type ProjectDetailLoadMode = "server_ok" | "server_miss" | "client_only";
 
-type ProjectTab = "overview" | "list" | "board" | "calendar" | "wiki" | "settings";
+type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "settings";
 
 const TABS: { id: ProjectTab; label: string }[] = [
     { id: "overview", label: "대시보드" },
     { id: "list", label: "업무" },
-    { id: "board", label: "요청" },
     { id: "calendar", label: "캘린더" },
     { id: "wiki", label: "위키" },
     { id: "settings", label: "설정" },
@@ -58,103 +62,39 @@ const DEMO_WIKI_MARKDOWN = `## 가이드라인 (데모)
 | UI | 프론트 |
 `;
 
-// 데모용 최근 업무 (추후 실제 업무 API 연동)
-type TaskStatus = "대기" | "진행중" | "검토" | "완료";
-type MockTask = {
-    id: string;
-    title: string;
-    status: TaskStatus;
-    assignee?: string;
-    dueDate?: string;
+/** API color 키 → CSS 색상 */
+const STATUS_COLOR_MAP: Record<string, string> = {
+    gray:   "#78716c",
+    red:    "#ef4444",
+    orange: "#f97316",
+    yellow: "#eab308",
+    green:  "#22c55e",
+    blue:   "#3b82f6",
+    purple: "#a855f7",
+    pink:   "#ec4899",
 };
-const MOCK_RECENT_TASKS: MockTask[] = [
-    {
-        id: "1",
-        title: "기획서 초안 작성",
-        status: "완료",
-        assignee: "김철수",
-        dueDate: "2025-03-15",
-    },
-    {
-        id: "2",
-        title: "API 스펙 정의",
-        status: "진행중",
-        assignee: "이영희",
-        dueDate: "2025-03-22",
-    },
-    {
-        id: "3",
-        title: "디자인 시안 검토",
-        status: "검토",
-        assignee: "박민수",
-        dueDate: "2025-03-20",
-    },
-    {
-        id: "4",
-        title: "DB 스키마 설계",
-        status: "진행중",
-        assignee: "정수진",
-        dueDate: "2025-03-25",
-    },
-    { id: "5", title: "개발 환경 셋업", status: "대기", assignee: "—", dueDate: "2025-03-28" },
-];
 
-/** 진행중인 업무 데모 (5개) */
-const MOCK_IN_PROGRESS_TASKS: MockTask[] = [
-    {
-        id: "2",
-        title: "API 스펙 정의",
-        status: "진행중",
-        assignee: "이영희",
-        dueDate: "2025-03-22",
-    },
-    {
-        id: "4",
-        title: "DB 스키마 설계",
-        status: "진행중",
-        assignee: "정수진",
-        dueDate: "2025-03-25",
-    },
-    {
-        id: "6",
-        title: "프론트엔드 컴포넌트 개발",
-        status: "진행중",
-        assignee: "김철수",
-        dueDate: "2025-03-28",
-    },
-    {
-        id: "7",
-        title: "백엔드 API 구현",
-        status: "진행중",
-        assignee: "박민수",
-        dueDate: "2025-03-30",
-    },
-    {
-        id: "8",
-        title: "테스트 케이스 작성",
-        status: "진행중",
-        assignee: "이영희",
-        dueDate: "2025-04-02",
-    },
-];
+function statusCssColor(color: string): string {
+    return STATUS_COLOR_MAP[color] ?? "#78716c";
+}
 
-// 차트용: 업무 상태별 개수 (데모 — 실제 데이터 연동 시 계산)
-const STATUS_COLORS: Record<TaskStatus, string> = {
-    대기: "#78716c",
-    진행중: "#3b82f6",
-    검토: "#d97706",
-    완료: "#16a34a",
-};
-function getStatusCounts(
-    tasks: MockTask[],
-): { status: TaskStatus; count: number; color: string }[] {
-    const counts: Record<TaskStatus, number> = { 대기: 0, 진행중: 0, 검토: 0, 완료: 0 };
-    tasks.forEach((t) => counts[t.status]++);
-    return (["대기", "진행중", "검토", "완료"] as TaskStatus[]).map((status) => ({
-        status,
-        count: counts[status],
-        color: STATUS_COLORS[status],
-    }));
+/** 완료 상태 판별 (color=green 또는 이름에 "완료"/"done"/"complete" 포함) */
+function isCompletedStatus(s: { color: string; name: string }): boolean {
+    return (
+        s.color === "green" ||
+        s.name.includes("완료") ||
+        s.name.toLowerCase().includes("done") ||
+        s.name.toLowerCase().includes("complete")
+    );
+}
+
+/** 진행중 상태 판별 */
+function isInProgressStatus(s: { color: string; name: string }): boolean {
+    return (
+        s.color === "blue" ||
+        s.name.includes("진행") ||
+        s.name.toLowerCase().includes("progress")
+    );
 }
 
 function formatDateKo(dateStr: string): string {
@@ -254,10 +194,14 @@ export function ProjectDetailPageClient({
     initialProject,
     loadMode,
     isFavorite = false,
+    projectTasksData = [],
+    currentUserId = "",
 }: {
     initialProject: Project | null;
     loadMode: ProjectDetailLoadMode;
     isFavorite?: boolean;
+    projectTasksData?: ApiProjectTasksItem[];
+    currentUserId?: string;
 }) {
     const params = useParams();
     const router = useRouter();
@@ -302,8 +246,6 @@ export function ProjectDetailPageClient({
         );
     }
 
-    const remaining = project ? getRemainingDays(project.endDate, project.noEndDate) : null;
-    const progressPercent = project ? getProgressPercent(project) : null;
 
     return (
         <div className="flex min-h-full w-full flex-col">
@@ -460,105 +402,26 @@ export function ProjectDetailPageClient({
             </div>
 
             {/* 탭별 콘텐츠 */}
-            <div className="min-h-0 flex-1 p-4 sm:p-5 md:p-6">
+            <div className={`min-h-0 flex-1 ${activeTab === "list" || activeTab === "calendar" ? "" : "p-4 sm:p-5 md:p-6"}`}>
                 {activeTab === "overview" && (
                     <OverviewTab
                         project={project}
-                        remainingDays={remaining}
-                        progressPercent={progressPercent}
-                        recentTasks={MOCK_RECENT_TASKS}
-                        inProgressTasks={MOCK_IN_PROGRESS_TASKS}
+                        projectTasksData={projectTasksData}
                         onSeeMoreTasks={() => setActiveTab("list")}
                     />
                 )}
 
                 {activeTab === "list" && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-6">
-                        <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
-                            📋 업무
-                        </h2>
-                        <p className="mt-1 text-sm text-stone-500">
-                            엑셀처럼 한 줄씩 업무를 관리합니다.
-                        </p>
-                        <div className="mt-6 overflow-x-auto">
-                            <table className="w-full min-w-[400px] text-left text-sm">
-                                <thead>
-                                    <tr className="border-b border-stone-200">
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">
-                                            할 일
-                                        </th>
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">
-                                            상태
-                                        </th>
-                                        <th className="pb-2 font-medium text-stone-600">담당</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-stone-600">
-                                    <tr className="border-b border-stone-100">
-                                        <td className="py-2 pr-4">데모 행 1</td>
-                                        <td className="py-2 pr-4">대기</td>
-                                        <td className="py-2">—</td>
-                                    </tr>
-                                    <tr className="border-b border-stone-100">
-                                        <td className="py-2 pr-4">데모 행 2</td>
-                                        <td className="py-2 pr-4">진행중</td>
-                                        <td className="py-2">—</td>
-                                    </tr>
-                                    <tr className="border-b border-stone-100">
-                                        <td className="py-2 pr-4">데모 행 3</td>
-                                        <td className="py-2 pr-4">완료</td>
-                                        <td className="py-2">—</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p className="mt-4 text-xs text-stone-400">
-                            (데모) 추후 실제 업무 데이터 연동
-                        </p>
-                    </div>
-                )}
-
-                {activeTab === "board" && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-6">
-                        <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
-                            🧱 요청
-                        </h2>
-                        <p className="mt-1 text-sm text-stone-500">
-                            칸반 스타일로 업무를 관리합니다.
-                        </p>
-                        <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
-                            {["할 일", "진행중", "검토", "완료"].map((col) => (
-                                <div
-                                    key={col}
-                                    className="min-w-[200px] rounded-lg border border-stone-200 bg-stone-50/50 p-3"
-                                >
-                                    <p className="text-xs font-medium uppercase tracking-wider text-stone-500">
-                                        {col}
-                                    </p>
-                                    <div className="mt-2 rounded-lg border border-dashed border-stone-200 bg-white p-4 text-center text-sm text-stone-400">
-                                        카드 영역
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <p className="mt-4 text-xs text-stone-400">(데모) 추후 칸반 카드 연동</p>
-                    </div>
+                    <ProjectTasksTab
+                        participants={project?.participants ?? []}
+                        projectTasksData={projectTasksData}
+                        currentUserId={currentUserId}
+                        projectId={id}
+                    />
                 )}
 
                 {activeTab === "calendar" && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-6">
-                        <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
-                            📅 캘린더
-                        </h2>
-                        <p className="mt-1 text-sm text-stone-500">월별 일정을 확인합니다.</p>
-                        <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50/30 p-8 text-center">
-                            <p className="text-stone-500">월별 캘린더 뷰 (데모)</p>
-                            <p className="mt-2 text-sm text-stone-400">
-                                일정/마일스톤이 여기에 표시됩니다.
-                            </p>
-                        </div>
-                        <p className="mt-4 text-xs text-stone-400">(데모) 추후 캘린더 API 연동</p>
-                    </div>
+                    <ProjectCalendarTab projectTasksData={projectTasksData} />
                 )}
 
                 {activeTab === "wiki" && (
@@ -677,17 +540,11 @@ function DonutChart({
 // ——— 개요 탭 ———
 function OverviewTab({
     project,
-    remainingDays,
-    progressPercent,
-    recentTasks,
-    inProgressTasks,
+    projectTasksData,
     onSeeMoreTasks,
 }: {
     project: Project | null;
-    remainingDays: number | null;
-    progressPercent: number | null;
-    recentTasks: MockTask[];
-    inProgressTasks: MockTask[];
+    projectTasksData: ApiProjectTasksItem[];
     onSeeMoreTasks?: () => void;
 }) {
     if (!project) {
@@ -698,249 +555,478 @@ function OverviewTab({
         );
     }
 
-    const statusCounts = getStatusCounts(recentTasks);
-    const totalTasks = recentTasks.length;
-    const completedCount = recentTasks.filter((t) => t.status === "완료").length;
-    const completionPercent = totalTasks ? Math.round((completedCount / totalTasks) * 100) : 0;
+    // ── 실데이터 집계 ──────────────────────────────────────────────
+    const allTasks = projectTasksData.flatMap((item) => item.tasks);
+
+    // 워크스페이스별 상태/우선순위를 id 기준 중복 제거
+    const statusById = new Map(
+        projectTasksData.flatMap((item) => item.statuses).map((s) => [s.id, s]),
+    );
+    const uniqueStatuses = [...statusById.values()].sort((a, b) => a.order - b.order);
+
+    const totalTasks = allTasks.length;
+    const completedTasks = allTasks.filter((t) => {
+        const s = statusById.get(t.statusId);
+        return s ? isCompletedStatus(s) : false;
+    });
+    const inProgressTasks = allTasks.filter((t) => {
+        const s = statusById.get(t.statusId);
+        return s ? isInProgressStatus(s) : false;
+    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdueTasks = allTasks.filter((t) => {
+        const s = statusById.get(t.statusId);
+        const done = s ? isCompletedStatus(s) : false;
+        if (done || !t.dueDate) return false;
+        return new Date(t.dueDate) < today;
+    });
+
+    // 상태별 업무 수 (막대 그래프용)
+    const statusCounts = uniqueStatuses.map((s) => ({
+        id: s.id,
+        name: s.name,
+        color: statusCssColor(s.color),
+        count: allTasks.filter((t) => t.statusId === s.id).length,
+    }));
     const maxCount = Math.max(1, ...statusCounts.map((s) => s.count));
 
+    // 완료율
+    const completionPercent = totalTasks ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+
+    // 최근 업무 (updatedAt 내림차순)
+    const recentTasks = [...allTasks]
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 8);
+
+    // ── 일정 계산 ──────────────────────────────────────────────────
+    const remainingDays = getRemainingDays(project.endDate, project.noEndDate);
+    const progressPercent = getProgressPercent(project);
     const daysSinceStart = getDaysSinceStart(project);
 
+    const dDayLabel =
+        remainingDays === null
+            ? daysSinceStart !== null
+                ? `D+${daysSinceStart}`
+                : "—"
+            : remainingDays > 0
+              ? `D-${remainingDays}`
+              : remainingDays === 0
+                ? "D-Day"
+                : `D+${Math.abs(remainingDays)}`;
+
+    const dDayColor =
+        remainingDays === null
+            ? "bg-stone-100 text-stone-600"
+            : remainingDays > 14
+              ? "bg-blue-50 text-blue-700"
+              : remainingDays > 0
+                ? "bg-amber-50 text-amber-700"
+                : "bg-red-50 text-red-600";
+
+    const dDayTextColor =
+        remainingDays === null
+            ? "text-stone-800"
+            : remainingDays > 14
+              ? "text-blue-600"
+              : remainingDays > 0
+                ? "text-amber-600"
+                : "text-red-600";
+
     return (
-        <div className="space-y-6">
-            {/* 상단: 일정 카드 — 왼쪽 날짜 | 가운데 남은 기간 | 오른쪽 진행 링 */}
+        <div className="space-y-5">
+            {/* ── 1. 일정 히어로 카드 ───────────────────────────────── */}
             <section
-                className="overflow-hidden rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 transition-shadow hover:shadow-md"
+                className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
                 style={{ animation: "overview-fade-in 0.4s ease-out" }}
             >
-                <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-                    {/* 왼쪽: 시작일, 종료일 */}
-                    <div className="flex flex-col gap-5">
-                        <div>
-                            <p className="text-xs font-medium text-stone-400">시작일</p>
-                            <p className="mt-1 text-xl font-bold text-stone-900 sm:text-2xl">
+                {/* 상단 헤더 바 */}
+                <div className="flex items-center justify-between border-b border-stone-100 px-6 py-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                        프로젝트 기간
+                    </span>
+                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold tracking-wide ${dDayColor}`}>
+                        {dDayLabel}
+                    </span>
+                </div>
+
+                <div className="px-6 py-5 sm:px-8 sm:py-6">
+                    {/* 날짜 행 */}
+                    <div className="flex items-end justify-between gap-4">
+                        {/* 시작일 */}
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                                시작일
+                            </p>
+                            <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
                                 {formatDateKo(project.startDate)}
                             </p>
                         </div>
-                        <div>
-                            <p className="text-xs font-medium text-stone-400">종료일</p>
-                            <p className="mt-1 text-xl font-bold text-stone-900 sm:text-2xl">
-                                {project.noEndDate ? "무한.." : formatDateKo(project.endDate)}
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* 가운데: N일 남았어요 / 지났어요 (강조) */}
-                    <div className="flex flex-1 flex-col items-center justify-center sm:px-6">
-                        <p className="flex items-baseline gap-2">
+                        {/* 가운데: 강조 D-Day 수치 */}
+                        <div className="flex flex-col items-center gap-1">
                             {remainingDays === null ? (
                                 daysSinceStart !== null ? (
                                     <>
-                                        <span className="text-4xl font-bold text-stone-900 sm:text-5xl">
-                                            {daysSinceStart}일
+                                        <span className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}>
+                                            {daysSinceStart}
                                         </span>
-                                        <span className="text-xl font-bold text-stone-900 sm:text-2xl">
-                                            지났어요!
+                                        <span className="text-sm font-semibold text-stone-500">
+                                            일 진행 중
                                         </span>
                                     </>
                                 ) : (
-                                    <span className="text-xl font-medium text-stone-500">
+                                    <span className="text-xl font-semibold text-stone-400">
                                         종료일 없음
                                     </span>
                                 )
                             ) : remainingDays > 0 ? (
                                 <>
-                                    <span className="text-4xl font-bold text-stone-900 sm:text-5xl">
-                                        {remainingDays}일
+                                    <span className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}>
+                                        {remainingDays}
                                     </span>
-                                    <span className="text-xl font-bold text-stone-900 sm:text-2xl">
-                                        남았어요!!
+                                    <span className="text-sm font-semibold text-stone-500">
+                                        일 남았어요
                                     </span>
                                 </>
                             ) : remainingDays === 0 ? (
                                 <>
-                                    <span className="text-4xl font-bold text-amber-600 sm:text-5xl">
-                                        0일
-                                    </span>
-                                    <span className="text-xl font-bold text-stone-900 sm:text-2xl">
-                                        오늘 마감이에요!
+                                    <span className="text-3xl font-black text-red-600 sm:text-4xl">
+                                        오늘 마감
                                     </span>
                                 </>
                             ) : (
                                 <>
-                                    <span className="text-3xl font-bold text-amber-600 sm:text-4xl">
-                                        마감일 지남
+                                    <span className={`text-4xl font-black tabular-nums sm:text-5xl ${dDayTextColor}`}>
+                                        {Math.abs(remainingDays)}
+                                    </span>
+                                    <span className="text-sm font-semibold text-red-500">
+                                        일 초과됐어요
                                     </span>
                                 </>
                             )}
-                        </p>
+                        </div>
+
+                        {/* 종료일 */}
+                        <div className="min-w-0 text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                                종료일
+                            </p>
+                            <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
+                                {project.noEndDate ? "∞ 무기한" : formatDateKo(project.endDate)}
+                            </p>
+                        </div>
                     </div>
 
-                    {/* 오른쪽: 일정 진행률 도넛 */}
-                    {progressPercent !== null && (
-                        <div className="flex flex-col items-center">
-                            <div className="relative">
-                                <DonutChart
-                                    percent={progressPercent}
-                                    size={120}
-                                    strokeWidth={12}
-                                    color="#78716c"
+                    {/* 타임라인 바 */}
+                    {!project.noEndDate && progressPercent !== null && (
+                        <div className="mt-5">
+                            <div className="relative h-2.5 overflow-hidden rounded-full bg-stone-100">
+                                <div
+                                    className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out"
+                                    style={{
+                                        width: `${progressPercent}%`,
+                                        background:
+                                            remainingDays !== null && remainingDays < 0
+                                                ? "linear-gradient(90deg, #f87171, #ef4444)"
+                                                : remainingDays !== null && remainingDays <= 14
+                                                  ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+                                                  : "linear-gradient(90deg, #60a5fa, #3b82f6)",
+                                    }}
                                 />
-                                <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-stone-900">
-                                    {project.noEndDate ? "—" : `${progressPercent}%`}
-                                </span>
+                                {/* 오늘 마커 */}
+                                <div
+                                    className="absolute top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-stone-600 shadow"
+                                    style={{ left: `${Math.min(progressPercent, 99)}%` }}
+                                />
                             </div>
-                            <p className="mt-2 text-xs font-medium text-stone-400">일정 진행률</p>
+                            <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-400">
+                                <span>시작</span>
+                                <span className="font-semibold text-stone-600">
+                                    {progressPercent}% 경과
+                                </span>
+                                <span>종료</span>
+                            </div>
                         </div>
                     )}
                 </div>
             </section>
 
-            {/* 그래프 3열: 완료율 + 업무 상태 분포 + 진행중인 업무 */}
-            <section className="grid gap-6 lg:grid-cols-3">
+            {/* ── 2. 통계 카드 4개 ─────────────────────────────────── */}
+            <section
+                className="grid grid-cols-2 gap-4 lg:grid-cols-4"
+                style={{ animation: "overview-fade-in 0.4s ease-out 0.05s both" }}
+            >
+                {[
+                    {
+                        label: "전체 업무",
+                        value: totalTasks,
+                        unit: "개",
+                        color: "text-stone-800",
+                        bg: "bg-stone-50",
+                        icon: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2",
+                    },
+                    {
+                        label: "완료",
+                        value: completedTasks.length,
+                        unit: "개",
+                        color: "text-green-600",
+                        bg: "bg-green-50",
+                        icon: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                    },
+                    {
+                        label: "진행중",
+                        value: inProgressTasks.length,
+                        unit: "개",
+                        color: "text-blue-600",
+                        bg: "bg-blue-50",
+                        icon: "M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z",
+                    },
+                    {
+                        label: "기한 초과",
+                        value: overdueTasks.length,
+                        unit: "개",
+                        color: overdueTasks.length > 0 ? "text-red-600" : "text-stone-400",
+                        bg: overdueTasks.length > 0 ? "bg-red-50" : "bg-stone-50",
+                        icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z",
+                    },
+                ].map(({ label, value, unit, color, bg, icon }) => (
+                    <div
+                        key={label}
+                        className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-4 sm:p-5"
+                    >
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+                            <svg className={`h-5 w-5 ${color}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
+                            </svg>
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-medium text-stone-400">{label}</p>
+                            <p className={`mt-0.5 text-2xl font-bold tabular-nums ${color}`}>
+                                {value}
+                                <span className="ml-0.5 text-sm font-medium">{unit}</span>
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </section>
+
+            {/* ── 3. 차트 영역 (완료율 + 상태분포 + 진행중 업무) ────── */}
+            <section className="grid gap-5 lg:grid-cols-3">
                 {/* 완료율 도넛 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 transition-all hover:shadow-md sm:p-6"
-                    style={{ animation: "overview-fade-in 0.4s ease-out 0.05s both" }}
+                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    style={{ animation: "overview-fade-in 0.4s ease-out 0.1s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-600">업무 완료율</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">완료된 업무 비율이에요</p>
-                    <div className="mt-6 flex flex-wrap items-center gap-8">
-                        <div className="flex flex-col items-center">
-                            <div className="relative">
-                                <DonutChart
-                                    percent={completionPercent}
-                                    size={140}
-                                    strokeWidth={14}
-                                    color="#22c55e"
-                                />
-                                <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold tabular-nums text-stone-800">
-                                    {completionPercent}%
-                                </span>
-                            </div>
+                    <h3 className="text-sm font-semibold text-stone-700">업무 완료율</h3>
+                    <p className="mt-0.5 text-xs text-stone-400">
+                        {totalTasks > 0
+                            ? `전체 ${totalTasks}개 중 ${completedTasks.length}개 완료`
+                            : "등록된 업무가 없어요"}
+                    </p>
+                    <div className="mt-5 flex items-center gap-6">
+                        <div className="relative shrink-0">
+                            <DonutChart
+                                percent={completionPercent}
+                                size={110}
+                                strokeWidth={12}
+                                color="#22c55e"
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center text-xl font-bold tabular-nums text-stone-800">
+                                {completionPercent}%
+                            </span>
                         </div>
-                        <div className="flex-1 space-y-2 min-w-[140px]">
-                            <p className="text-sm text-stone-600">
-                                <span className="font-semibold text-green-600">
-                                    {completedCount}개
-                                </span>{" "}
-                                완료 / 전체 {totalTasks}개
-                            </p>
-                            <div className="h-2 overflow-hidden rounded-full bg-stone-100">
-                                <div
-                                    className="h-full rounded-full bg-green-500 transition-all duration-700 ease-out"
-                                    style={{ width: `${completionPercent}%` }}
-                                />
-                            </div>
+                        <div className="min-w-0 flex-1 space-y-2.5">
+                            {[
+                                { label: "완료", count: completedTasks.length, color: "#22c55e" },
+                                { label: "진행중", count: inProgressTasks.length, color: "#3b82f6" },
+                                {
+                                    label: "기타",
+                                    count: totalTasks - completedTasks.length - inProgressTasks.length,
+                                    color: "#d1d5db",
+                                },
+                            ].map(({ label, count, color }) => (
+                                <div key={label} className="flex items-center gap-2">
+                                    <span
+                                        className="h-2 w-2 shrink-0 rounded-full"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className="min-w-0 flex-1 truncate text-xs text-stone-500">
+                                        {label}
+                                    </span>
+                                    <span className="shrink-0 text-xs font-semibold tabular-nums text-stone-700">
+                                        {count}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
                 {/* 업무 상태별 막대 그래프 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 transition-all hover:shadow-md sm:p-6"
-                    style={{ animation: "overview-fade-in 0.4s ease-out 0.1s both" }}
+                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    style={{ animation: "overview-fade-in 0.4s ease-out 0.15s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-600">업무 상태 분포</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">상태별 업무 개수예요</p>
-                    <div className="mt-6 space-y-4">
-                        {statusCounts.map(({ status, count, color }) => (
-                            <div key={status} className="flex items-center gap-3">
-                                <span className="w-16 shrink-0 text-sm font-medium text-stone-600">
-                                    {status}
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                    <div className="h-8 overflow-hidden rounded-lg bg-stone-100">
-                                        <div
-                                            className="h-full rounded-lg transition-all duration-700 ease-out"
-                                            style={{
-                                                width: `${maxCount ? (count / maxCount) * 100 : 0}%`,
-                                                backgroundColor: color,
-                                            }}
-                                        />
+                    <h3 className="text-sm font-semibold text-stone-700">업무 상태 분포</h3>
+                    <p className="mt-0.5 text-xs text-stone-400">상태별 업무 개수</p>
+                    {statusCounts.length === 0 ? (
+                        <p className="mt-6 text-center text-sm text-stone-400">상태 정보 없음</p>
+                    ) : (
+                        <div className="mt-5 space-y-3">
+                            {statusCounts.map(({ id, name, count, color }) => (
+                                <div key={id} className="flex items-center gap-2.5">
+                                    <span className="w-14 shrink-0 truncate text-xs font-medium text-stone-600">
+                                        {name}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="h-6 overflow-hidden rounded-md bg-stone-100">
+                                            <div
+                                                className="h-full rounded-md transition-all duration-700 ease-out"
+                                                style={{
+                                                    width: `${(count / maxCount) * 100}%`,
+                                                    backgroundColor: color,
+                                                    opacity: count === 0 ? 0.25 : 1,
+                                                }}
+                                            />
+                                        </div>
                                     </div>
+                                    <span className="w-6 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-600">
+                                        {count}
+                                    </span>
                                 </div>
-                                <span className="w-8 shrink-0 text-right text-sm font-semibold tabular-nums text-stone-700">
-                                    {count}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* 진행중인 업무 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 transition-all hover:shadow-md sm:p-6"
-                    style={{ animation: "overview-fade-in 0.4s ease-out 0.15s both" }}
+                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    style={{ animation: "overview-fade-in 0.4s ease-out 0.2s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-600">진행중인 업무</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">지금 진행 중인 업무예요</p>
-                    <ul className="mt-4 space-y-2">
-                        {inProgressTasks.slice(0, 5).map((task) => (
-                            <li
-                                key={task.id}
-                                className="flex items-center justify-between gap-2 rounded-lg border border-stone-100 bg-stone-50/50 px-3 py-2.5 transition-colors hover:bg-stone-100/80"
-                            >
-                                <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
-                                    {task.title}
-                                </span>
-                                <span className="shrink-0 text-xs text-stone-500">
-                                    {task.assignee}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                    {onSeeMoreTasks && (
+                    <h3 className="text-sm font-semibold text-stone-700">진행중인 업무</h3>
+                    <p className="mt-0.5 text-xs text-stone-400">
+                        {inProgressTasks.length > 0
+                            ? `총 ${inProgressTasks.length}개 진행 중`
+                            : "진행 중인 업무가 없어요"}
+                    </p>
+                    {inProgressTasks.length === 0 ? (
+                        <div className="mt-6 flex flex-col items-center justify-center gap-2 py-6 text-stone-300">
+                            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.2} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            <span className="text-xs">모두 완료됐어요!</span>
+                        </div>
+                    ) : (
+                        <ul className="mt-3 space-y-1.5">
+                            {inProgressTasks.slice(0, 6).map((task) => (
+                                <li
+                                    key={task.id}
+                                    className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-stone-50"
+                                >
+                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
+                                    <span className="min-w-0 flex-1 truncate text-sm text-stone-700">
+                                        {task.title}
+                                    </span>
+                                    {task.assignee?.name && (
+                                        <span className="shrink-0 text-xs text-stone-400">
+                                            {task.assignee.name}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {inProgressTasks.length > 6 && onSeeMoreTasks && (
                         <button
                             type="button"
                             onClick={onSeeMoreTasks}
-                            className="mt-3 w-full rounded-lg border border-stone-200 bg-white py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-800"
+                            className="mt-3 w-full rounded-lg border border-stone-200 bg-white py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-50 hover:text-stone-700"
                         >
-                            더보기
+                            +{inProgressTasks.length - 6}개 더보기
                         </button>
                     )}
                 </div>
             </section>
 
-            {/* 최근 업무 리스트 */}
+            {/* ── 4. 최근 업무 리스트 ──────────────────────────────── */}
             <section
                 className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
                 style={{ animation: "overview-fade-in 0.4s ease-out 0.3s both" }}
             >
-                <h3 className="text-sm font-semibold text-stone-600">최근 업무</h3>
-                <p className="mt-0.5 text-xs text-stone-400">방금 손댄 업무 5건이에요</p>
-                <ul className="mt-4 space-y-2">
-                    {recentTasks.map((task, i) => (
-                        <li
-                            key={task.id}
-                            className="flex items-center justify-between gap-3 rounded-xl border border-stone-100 bg-stone-50/70 px-4 py-3 transition-all hover:bg-stone-100/80 hover:border-stone-200"
-                            style={{
-                                animation: `overview-fade-in 0.35s ease-out ${0.35 + i * 0.05}s both`,
-                            }}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-semibold text-stone-700">최근 업무</h3>
+                        <p className="mt-0.5 text-xs text-stone-400">최근 수정된 업무 순이에요</p>
+                    </div>
+                    {onSeeMoreTasks && (
+                        <button
+                            type="button"
+                            onClick={onSeeMoreTasks}
+                            className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
                         >
-                            <span className="min-w-0 flex-1 truncate font-medium text-stone-800">
-                                {task.title}
-                            </span>
-                            <span
-                                className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium text-white shadow-sm"
-                                style={{ backgroundColor: STATUS_COLORS[task.status] }}
-                            >
-                                {task.status}
-                            </span>
-                            <span className="hidden shrink-0 text-sm text-stone-500 sm:inline">
-                                {task.assignee}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-                {onSeeMoreTasks && (
-                    <button
-                        type="button"
-                        onClick={onSeeMoreTasks}
-                        className="mt-4 w-full rounded-lg border border-stone-200 bg-white py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-800"
-                    >
-                        더보기
-                    </button>
+                            전체보기
+                        </button>
+                    )}
+                </div>
+
+                {recentTasks.length === 0 ? (
+                    <div className="mt-6 py-8 text-center text-sm text-stone-400">
+                        등록된 업무가 없어요
+                    </div>
+                ) : (
+                    <ul className="mt-4 divide-y divide-stone-50">
+                        {recentTasks.map((task, i) => {
+                            const taskStatus = statusById.get(task.statusId);
+                            return (
+                                <li
+                                    key={task.id}
+                                    className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                                    style={{
+                                        animation: `overview-fade-in 0.35s ease-out ${0.3 + i * 0.04}s both`,
+                                    }}
+                                >
+                                    {/* 상태 도트 */}
+                                    <span
+                                        className="h-2 w-2 shrink-0 rounded-full"
+                                        style={{
+                                            backgroundColor: taskStatus
+                                                ? statusCssColor(taskStatus.color)
+                                                : "#d1d5db",
+                                        }}
+                                    />
+                                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
+                                        {task.title}
+                                    </span>
+                                    {/* 상태 뱃지 */}
+                                    {taskStatus && (
+                                        <span
+                                            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                                            style={{ backgroundColor: statusCssColor(taskStatus.color) }}
+                                        >
+                                            {taskStatus.name}
+                                        </span>
+                                    )}
+                                    {/* 담당자 */}
+                                    {task.assignee?.name && (
+                                        <span className="hidden shrink-0 text-xs text-stone-400 sm:inline">
+                                            {task.assignee.name}
+                                        </span>
+                                    )}
+                                    {/* 마감일 */}
+                                    {task.dueDate && (
+                                        <span className="hidden shrink-0 text-xs text-stone-400 md:inline">
+                                            {new Date(task.dueDate).toLocaleDateString("ko-KR", {
+                                                month: "short",
+                                                day: "numeric",
+                                            })}
+                                        </span>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 )}
             </section>
         </div>

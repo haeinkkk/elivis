@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import type { ApiEnvelope } from "./api-envelope";
 import type {
+    ApiProjectTasksItem,
     ApiWorkspaceDetail,
     ApiWorkspaceListItem,
     ApiWorkspacePriority,
@@ -102,6 +103,26 @@ export async function fetchWorkspaceStatuses(
         if (!res.ok) return null;
 
         const body = (await res.json()) as ApiEnvelope<ApiWorkspaceStatus[]>;
+        return body.data;
+    } catch {
+        return null;
+    }
+}
+
+/** GET /api/projects/:projectId/tasks — 프로젝트 소속 모든 팀원의 업무 목록 */
+export async function fetchProjectAllTasks(
+    projectId: string,
+): Promise<ApiProjectTasksItem[] | null> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) return null;
+
+    try {
+        const res = await fetch(
+            apiUrl(`/api/projects/${encodeURIComponent(projectId)}/tasks`),
+            { headers: await apiFetchHeaders(), cache: "no-store" },
+        );
+        if (!res.ok) return null;
+        const body = (await res.json()) as ApiEnvelope<ApiProjectTasksItem[]>;
         return body.data;
     } catch {
         return null;

@@ -9,15 +9,15 @@ import { toAvatarSrc } from "@/components/UserAvatar";
 import { LanguageSelector } from "./LanguageSelector";
 import type { UserProfile } from "@/lib/user-types";
 import { StatusDropdown } from "./StatusDropdown";
+import { NotificationBell } from "./notifications/NotificationBell";
 
 interface AppHeaderProps {
     onMenuClick: () => void;
     title?: string;
     user?: UserProfile | null;
-    notificationSlot?: React.ReactNode;
 }
 
-export function AppHeader({ onMenuClick, title = "", user, notificationSlot }: AppHeaderProps) {
+export function AppHeader({ onMenuClick, title = "", user }: AppHeaderProps) {
     const t = useTranslations("header");
     const tCommon = useTranslations("common");
 
@@ -99,8 +99,8 @@ export function AppHeader({ onMenuClick, title = "", user, notificationSlot }: A
                 {/* 언어 전환 드롭다운 */}
                 <LanguageSelector variant="header" align="right" />
 
-                {/* 알림 벨 (슬롯) */}
-                {notificationSlot}
+                {/* 알림 벨 */}
+                <NotificationBell />
 
                 {/* 프로필 드롭다운 */}
                 <div ref={userMenuRef} className="relative">

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { ApiWorkspaceListItem } from "@/lib/map-api-workspace";
 import type { ApiTeamFavoriteItem } from "@/lib/map-api-team";
 import type { ApiProjectFavoriteItem } from "@/lib/map-api-project";
+import { useNotificationContext } from "@/context/NotificationContext";
 
 /** @deprecated sessionStorage 방식은 더 이상 사용하지 않습니다. 하위 호환을 위해 유지 */
 export const NOTIFICATION_READ_KEY = "elivis-notifications-all-read";
@@ -15,10 +16,9 @@ export const NOTIFICATION_READ_EVENT = "elivis-notifications-read";
 export type SidebarSize = "expanded" | "collapsed" | "hidden";
 
 const navItemDefs = [
-  { href: "/mywork", labelKey: "myWork" as const, icon: FolderIcon, redDot: false },
-  { href: "/teams", labelKey: "teams" as const, icon: TeamIcon, redDot: false },
-  { href: "/projects", labelKey: "projects" as const, icon: ProjectIcon, redDot: false },
-  { href: "/notification", labelKey: "notifications" as const, icon: BellIcon, redDot: true },
+  { href: "/mywork", labelKey: "myWork" as const, icon: FolderIcon },
+  { href: "/teams", labelKey: "teams" as const, icon: TeamIcon },
+  { href: "/projects", labelKey: "projects" as const, icon: ProjectIcon },
 ];
 function FolderIcon({ className }: { className?: string }) {
   return (
@@ -55,7 +55,7 @@ interface AppSidebarProps {
   onSizeChange: (s: SidebarSize) => void;
   isSuperAdmin?: boolean;
   workspaces?: ApiWorkspaceListItem[];
-  /** 실시간 읽지 않은 알림 수 (0 이상이면 뱃지 표시) */
+  /** @deprecated Context에서 직접 읽음. 하위 호환용으로만 유지 */
   unreadNotificationCount?: number;
   /** 팀 즐겨찾기 목록 */
   teamFavorites?: ApiTeamFavoriteItem[];
@@ -71,7 +71,6 @@ export function AppSidebar({
   onSizeChange,
   isSuperAdmin = false,
   workspaces = [],
-  unreadNotificationCount = 0,
   teamFavorites = [],
   projectFavorites = [],
 }: AppSidebarProps) {
@@ -82,6 +81,7 @@ export function AppSidebar({
   const showLabels = size === "expanded";
   const showFloatingRestore = size === "hidden";
 
+  const { unreadCount: unreadNotificationCount, openPanel } = useNotificationContext();
   const hasUnreadNotifications = unreadNotificationCount > 0;
 
   return (
@@ -190,10 +190,8 @@ export function AppSidebar({
           }`}
         >
           <ul className="space-y-0.5">
-            {navItemDefs.map(({ href, labelKey, icon: Icon, redDot }) => {
+            {navItemDefs.map(({ href, labelKey, icon: Icon }) => {
               const isActive = pathname === href;
-              const showRedDot =
-                href === "/notification" ? hasUnreadNotifications : redDot;
               return (
                 <li key={href}>
                   <Link
@@ -210,46 +208,52 @@ export function AppSidebar({
                   >
                     <span className="relative shrink-0">
                       <Icon className="h-5 w-5 opacity-80" />
-                      {showRedDot && !showLabels && (
-                        href === "/notification" && unreadNotificationCount > 0 ? (
-                          <span
-                            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white"
-                            aria-hidden
-                          >
-                            {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-                          </span>
-                        ) : (
-                          <span
-                            className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500"
-                            aria-hidden
-                          />
-                        )
-                      )}
                     </span>
                     {showLabels && (
-                      <>
-                        <span className="min-w-0 flex-1 truncate">{tNav(labelKey)}</span>
-                        {showRedDot && (
-                          href === "/notification" && unreadNotificationCount > 0 ? (
-                            <span
-                              className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white"
-                              aria-hidden
-                            >
-                              {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-                            </span>
-                          ) : (
-                            <span
-                              className="ml-auto h-2 w-2 shrink-0 rounded-full bg-red-500"
-                              aria-hidden
-                            />
-                          )
-                        )}
-                      </>
+                      <span className="min-w-0 flex-1 truncate">{tNav(labelKey)}</span>
                     )}
                   </Link>
                 </li>
               );
             })}
+
+            {/* 알림 버튼 — 패널 열기 */}
+            <li>
+              <button
+                type="button"
+                onClick={() => { openPanel(); onClose(); }}
+                className={`
+                  w-full flex items-center rounded-lg text-sm font-medium transition-colors
+                  ${showLabels ? "gap-3 px-3 py-2.5" : "justify-center px-2 py-2.5"}
+                  text-stone-600 hover:bg-stone-100 hover:text-stone-800
+                `}
+              >
+                <span className="relative shrink-0">
+                  <BellIcon className="h-5 w-5 opacity-80" />
+                  {!showLabels && hasUnreadNotifications && (
+                    <span
+                      className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white"
+                      aria-hidden
+                    >
+                      {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                    </span>
+                  )}
+                </span>
+                {showLabels && (
+                  <>
+                    <span className="min-w-0 flex-1 truncate text-left">{tNav("notifications")}</span>
+                    {hasUnreadNotifications && (
+                      <span
+                        className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white"
+                        aria-hidden
+                      >
+                        {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            </li>
           </ul>
 
           {/* 팀 즐겨찾기 섹션 */}

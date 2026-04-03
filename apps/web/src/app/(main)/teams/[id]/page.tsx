@@ -39,6 +39,7 @@ export default async function TeamDetailPage({
             team={result.team}
             isFavorite={isFavorite}
             isSuperAdmin={isSuperAdmin}
+            myUserId={user?.id ?? ""}
         />
     );
 }

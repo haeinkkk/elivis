@@ -529,5 +529,113 @@ export function createProjectController(app: FastifyInstance) {
         return reply.code(201).send(created(member, t(lang, MSG.PROJECT_MEMBER_ADDED)));
     }
 
-    return { createProject, getProject, updateProject, deleteProject, addMember };
+    /** GET /api/projects/:projectId/tasks — 프로젝트 소속 모든 팀원의 업무 목록 */
+    async function getProjectTasks(
+        request: FastifyRequest<{ Params: ProjectParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+
+        const project = await app.prisma.project.findUnique({
+            where: { id: projectId },
+            select: { id: true },
+        });
+        if (!project) {
+            return reply.code(404).send(notFound(t(lang, MSG.PROJECT_NOT_FOUND)));
+        }
+
+        const allowed = await canAccessProject(request.userId, projectId);
+        if (!allowed) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+
+        // 이 프로젝트에 연결된 모든 워크스페이스(소유자 포함)
+        const workspaces = await (app.prisma as any).workspace.findMany({
+            where: { projectId },
+            select: {
+                id: true,
+                user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+            },
+            orderBy: { createdAt: "asc" },
+        });
+
+        const TASK_SELECT = {
+            id: true,
+            title: true,
+            description: true,
+            statusId: true,
+            priorityId: true,
+            order: true,
+            startDate: true,
+            dueDate: true,
+            parentId: true,
+            createdAt: true,
+            updatedAt: true,
+            assignee: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+            },
+        } as const;
+
+        const result = await Promise.all(
+            workspaces.map(async (ws: { id: string; user: { id: string; name: string | null; email: string; avatarUrl: string | null } }) => {
+                const [rawTasks, statuses, priorities] = await Promise.all([
+                    (app.prisma as any).workspaceTask.findMany({
+                        where: { workspaceId: ws.id },
+                        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+                        select: TASK_SELECT,
+                    }),
+                    (app.prisma as any).workspaceStatus.findMany({
+                        where: { workspaceId: ws.id },
+                        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+                        select: { id: true, workspaceId: true, name: true, color: true, order: true, notifyOnChange: true, createdAt: true, updatedAt: true },
+                    }),
+                    (app.prisma as any).workspacePriority.findMany({
+                        where: { workspaceId: ws.id },
+                        orderBy: [{ order: "asc" }],
+                        select: { id: true, workspaceId: true, name: true, color: true, order: true, value: true, createdAt: true, updatedAt: true },
+                    }),
+                ]);
+
+                // status/priority 객체 인라인 resolve
+                const statusIds = [...new Set((rawTasks as { statusId: string }[]).map((t) => t.statusId))];
+                const priorityIds = [...new Set((rawTasks as { priorityId?: string | null }[]).map((t) => t.priorityId).filter(Boolean))] as string[];
+
+                const [statusRows, priorityRows] = await Promise.all([
+                    statusIds.length > 0
+                        ? (app.prisma as any).workspaceStatus.findMany({
+                            where: { id: { in: statusIds } },
+                            select: { id: true, name: true, color: true, order: true },
+                          })
+                        : [],
+                    priorityIds.length > 0
+                        ? (app.prisma as any).workspacePriority.findMany({
+                            where: { id: { in: priorityIds } },
+                            select: { id: true, name: true, color: true, order: true, value: true },
+                          })
+                        : [],
+                ]);
+
+                const statusMap = new Map((statusRows as { id: string }[]).map((s) => [s.id, s]));
+                const priorityMap = new Map((priorityRows as { id: string }[]).map((p) => [p.id, p]));
+
+                const tasks = (rawTasks as Array<{ statusId: string; priorityId?: string | null; [key: string]: unknown }>).map((task) => ({
+                    ...task,
+                    status: statusMap.get(task.statusId) ?? { id: task.statusId, name: "—", color: "gray", order: 0 },
+                    priority: task.priorityId ? (priorityMap.get(task.priorityId as string) ?? null) : null,
+                }));
+
+                return {
+                    workspace: { id: ws.id, user: ws.user },
+                    tasks,
+                    statuses,
+                    priorities,
+                };
+            }),
+        );
+
+        return reply.send(ok(result, t(lang, MSG.WORKSPACE_TASKS_FETCHED)));
+    }
+
+    return { createProject, getProject, updateProject, deleteProject, addMember, getProjectTasks };
 }

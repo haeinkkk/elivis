@@ -8,6 +8,10 @@ interface NotificationContextValue {
     unreadCount: number;
     markAsRead: (id: string) => void;
     markAllAsRead: () => void;
+    /** 알림 패널 열림 여부 */
+    panelOpen: boolean;
+    openPanel: () => void;
+    closePanel: () => void;
 }
 
 export const NotificationContext = createContext<NotificationContextValue>({
@@ -15,6 +19,9 @@ export const NotificationContext = createContext<NotificationContextValue>({
     unreadCount: 0,
     markAsRead: () => {},
     markAllAsRead: () => {},
+    panelOpen: false,
+    openPanel: () => {},
+    closePanel: () => {},
 });
 
 export function useNotificationContext() {
