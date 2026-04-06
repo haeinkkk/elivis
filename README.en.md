@@ -160,6 +160,20 @@ pnpm install
 
 Then run `pnpm run setup:win` or `pnpm run setup` again.
 
+### Prisma P3006: `add_rbac_and_password` — `Project` missing on shadow DB
+
+Migrations apply in **folder name order**. Previously `add_rbac_and_password` ran before `init`, so the shadow DB had no `User`/`Project` tables yet. **`20260330080000_init`** is now ordered before `20260330091122_add_rbac_and_password`.
+
+If your local DB already recorded **`20260330120000_init`** and the schema matches, align the name:
+
+```sql
+UPDATE "_prisma_migrations"
+SET migration_name = '20260330080000_init'
+WHERE migration_name = '20260330120000_init';
+```
+
+(Or reset the DB and run `pnpm --filter @repo/database db:setup` from scratch.)
+
 ---
 
 ## Usage (product view)

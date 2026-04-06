@@ -162,6 +162,20 @@ pnpm install
 
 그다음 `pnpm run setup:win` 또는 `pnpm run setup`을 다시 실행하면 됩니다.
 
+### Prisma P3006: `add_rbac_and_password` — shadow DB에 `Project` 없음
+
+마이그레이션 폴더 이름 **알파벳·시간순**으로 적용되는데, 예전에는 `init`보다 `add_rbac_and_password`가 앞서 있어 빈 DB에서 `User`/`Project`가 없는 상태로 ALTER가 먼저 실행되었습니다. 지금은 **`20260330080000_init`** 이 그보다 앞에 오도록 정리되어 있습니다.
+
+**이미 로컬 DB에 `20260330120000_init`만 기록돼 있고 스키마는 맞는 경우**, 이름만 맞추면 됩니다.
+
+```sql
+UPDATE "_prisma_migrations"
+SET migration_name = '20260330080000_init'
+WHERE migration_name = '20260330120000_init';
+```
+
+(또는 DB를 비우고 `pnpm --filter @repo/database db:setup`을 처음부터 다시.)
+
 ---
 
 ## 사용 방법 (앱 관점)

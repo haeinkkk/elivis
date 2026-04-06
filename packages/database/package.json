@@ -20,6 +20,7 @@
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:setup": "dotenv -e ../../.env -- prisma generate && dotenv -e ../../.env -- prisma migrate dev",
     "db:deploy": "dotenv -e ../../.env -- prisma migrate deploy && prisma generate",
+    "db:resolve": "dotenv -e ../../.env -- prisma migrate resolve",
     "db:studio": "dotenv -e ../../.env -- prisma studio"
   },
   "dependencies": {
