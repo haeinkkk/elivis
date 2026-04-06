@@ -1,8 +1,12 @@
 "use server";
 
-import { apiUrl } from "@/lib/api";
-import { apiFetchHeaders } from "@/lib/fetch-api-headers.server";
-import type { ApiEnvelope } from "@/lib/api-envelope";
+import {
+    actionFail,
+    actionServerError,
+    envelopeMessage,
+    fetchApiEnvelope,
+    requireActionSession,
+} from "@/lib/http/server-action-http";
 
 export type ApiNotification = {
     id: string;
@@ -26,19 +30,18 @@ export async function fetchNotificationsAction(page = 1): Promise<{
     ok: true;
     data: ApiNotificationListData;
 } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/notifications?page=${page}`),
-            {
-                headers: await apiFetchHeaders(),
-                cache: "no-store",
-            },
+        const { res, body } = await fetchApiEnvelope<ApiNotificationListData>(
+            `/api/notifications?page=${page}`,
         );
-        const body = (await res.json()) as ApiEnvelope<ApiNotificationListData>;
-        if (!res.ok) return { ok: false, message: body.message ?? "알림을 불러오지 못했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "알림을 불러오지 못했습니다."));
         return { ok: true, data: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -46,22 +49,23 @@ export async function markNotificationReadAction(notificationId: string): Promis
     ok: boolean;
     message?: string;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/notifications/${encodeURIComponent(notificationId)}/read`),
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/notifications/${encodeURIComponent(notificationId)}/read`,
             {
                 method: "PATCH",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify({}),
             },
         );
         if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message };
+            return { ok: false, message: envelopeMessage(body, "처리에 실패했습니다.") };
         }
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -69,18 +73,19 @@ export async function markAllNotificationsReadAction(): Promise<{
     ok: boolean;
     message?: string;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(apiUrl("/api/notifications/read-all"), {
+        const { res, body } = await fetchApiEnvelope<null>("/api/notifications/read-all", {
             method: "PATCH",
-            headers: await apiFetchHeaders(),
             body: JSON.stringify({}),
         });
         if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message };
+            return { ok: false, message: envelopeMessage(body, "처리에 실패했습니다.") };
         }
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }

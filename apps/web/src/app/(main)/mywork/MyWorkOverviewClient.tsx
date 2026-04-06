@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
 import { updateWorkspaceTaskAction } from "@/app/actions/workspaces";
-import { formatTaskTitleForList } from "@/lib/task-title-display";
-import { workspaceTaskPanelActions } from "@/lib/workspace-task-panel-actions";
+import { formatTaskTitleForList } from "@/lib/display/task-title";
+import { workspaceTaskPanelActions } from "@/lib/ui/workspace-task-panel-actions";
 import type {
     ApiWorkspaceListItem,
     ApiWorkspacePriority,
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
-} from "@/lib/map-api-workspace";
+} from "@/lib/mappers/workspace";
 import { tagColorOf, WorkspaceTaskDetailPanel as TaskDetailPanel } from "@repo/ui";
 
 // ─────────────────────────────────────────────────────────────────────────────

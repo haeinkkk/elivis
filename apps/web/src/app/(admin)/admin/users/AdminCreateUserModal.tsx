@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
 import { createAdminUserAction } from "@/app/actions/admin";
-import type { AdminUserRow } from "@/lib/admin.server";
+import type { AdminUserRow } from "@/lib/server/admin.server";
 
 interface AdminCreateUserModalProps {
     open: boolean;

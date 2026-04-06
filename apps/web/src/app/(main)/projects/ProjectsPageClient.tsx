@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import type { ProjectListItem } from "@/lib/projects.server";
+import type { ProjectListItem } from "@/lib/server/projects.server";
 import { addProjectFavoriteAction, removeProjectFavoriteAction } from "@/app/actions/projects";
 import { ProjectFavoriteButton } from "@repo/ui";
 

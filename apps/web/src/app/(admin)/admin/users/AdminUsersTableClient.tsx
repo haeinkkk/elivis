@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import type { AdminUserRow } from "@/lib/admin.server";
+import type { AdminUserRow } from "@/lib/server/admin.server";
 import { AdminCreateUserModal } from "./AdminCreateUserModal";
 
 const PAGE_SIZE = 10;

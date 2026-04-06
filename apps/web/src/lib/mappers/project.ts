@@ -1,6 +1,6 @@
-import type { Project, ProjectViewerRole } from "@/lib/projects";
+import type { Project, ProjectViewerRole } from "@/lib/types/project";
 
-import type { ApiTeamMemberRow } from "./map-api-team";
+import type { ApiTeamMemberRow } from "./team";
 
 /** GET /api/projects 목록 한 행 */
 export type ApiProjectListItem = {

@@ -2,11 +2,11 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { ApiEnvelope } from "./api-envelope";
-import type { ApiTeamDetail, ApiTeamListItem, ApiTeamsListData } from "./map-api-team";
-import { apiUrl } from "./api";
+import type { ApiEnvelope } from "../http/api-envelope";
+import type { ApiTeamDetail, ApiTeamListItem, ApiTeamsListData } from "../mappers/team";
+import { apiUrl } from "../http/api-base-url";
 import { AT_COOKIE } from "./auth.server";
-import { apiFetchHeaders } from "./fetch-api-headers.server";
+import { apiFetchHeaders } from "../http/api-auth-headers.server";
 
 export type TeamListItem = ApiTeamListItem;
 
@@ -81,7 +81,7 @@ export type {
     ApiTeamDetail as TeamDetail,
     ApiTeamMemberRow as TeamMemberRow,
     ApiTeamProjectRow as TeamProjectRow,
-} from "./map-api-team";
+} from "../mappers/team";
 
 export type FetchTeamByIdResult =
     | { ok: true; team: ApiTeamDetail }

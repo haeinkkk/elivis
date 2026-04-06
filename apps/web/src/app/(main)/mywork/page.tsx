@@ -3,7 +3,7 @@ import {
     fetchWorkspaceTasks,
     fetchWorkspaceStatuses,
     fetchWorkspacePriorities,
-} from "@/lib/workspaces.server";
+} from "@/lib/server/workspaces.server";
 
 import { MyWorkOverviewClient } from "./MyWorkOverviewClient";
 

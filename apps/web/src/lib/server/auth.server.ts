@@ -2,9 +2,9 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { ApiEnvelope } from "./api-envelope";
-import type { ApiAuthLoginData, ApiAuthUser } from "./map-api-auth";
-import { apiUrl } from "./api";
+import type { ApiEnvelope } from "../http/api-envelope";
+import type { ApiAuthLoginData, ApiAuthUser } from "../mappers/auth";
+import { apiUrl } from "../http/api-base-url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 쿠키 키

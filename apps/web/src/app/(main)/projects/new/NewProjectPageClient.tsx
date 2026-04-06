@@ -12,8 +12,8 @@ import {
     type SearchableUser,
 } from "@/app/actions/teams";
 import { createProjectAction } from "@/app/actions/projects";
-import { getApiBaseUrl } from "@/lib/api";
-import type { UserProfile } from "@/lib/user-types";
+import { getApiBaseUrl } from "@/lib/http/api-base-url";
+import type { UserProfile } from "@/lib/user/user-types";
 
 type SelectedParticipant = {
     id: string;

@@ -5,9 +5,9 @@ import { useState, useEffect, useMemo } from "react";
 
 import { addProjectFavoriteAction, removeProjectFavoriteAction } from "@/app/actions/projects";
 import { createTaskRequestAction } from "@/app/actions/taskRequests";
-import { getProject, type Project } from "@/lib/projects";
-import { projectSettingsActions } from "@/lib/project-settings-actions";
-import { workspaceTaskPanelActions } from "@/lib/workspace-task-panel-actions";
+import type { Project } from "@/lib/types/project";
+import { projectSettingsActions } from "@/lib/ui/project-settings-actions";
+import { workspaceTaskPanelActions } from "@/lib/ui/workspace-task-panel-actions";
 import {
     MarkdownContent,
     ProjectCalendarTab,
@@ -22,9 +22,6 @@ import {
     projectDetailRoleLabelKo,
     type ApiProjectTasksItem,
 } from "@repo/ui";
-
-/** 서버에서 API로 받은 데이터는 props로 전달(팀 상세와 동일). Server Action 직렬화 없음 */
-export type ProjectDetailLoadMode = "server_ok" | "client_only";
 
 type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "performance" | "settings";
 
@@ -70,13 +67,11 @@ const DEMO_WIKI_MARKDOWN = `## 가이드라인 (데모)
 
 export function ProjectDetailPageClient({
     initialProject,
-    loadMode,
     isFavorite = false,
     projectTasksData = [],
     currentUserId = "",
 }: {
-    initialProject: Project | null;
-    loadMode: ProjectDetailLoadMode;
+    initialProject: Project;
     isFavorite?: boolean;
     projectTasksData?: ApiProjectTasksItem[];
     currentUserId?: string;
@@ -86,16 +81,10 @@ export function ProjectDetailPageClient({
     const id = typeof params.id === "string" ? params.id : "";
     const [activeTab, setActiveTab] = useState<ProjectTab>("overview");
     const [settingsSubTab, setSettingsSubTab] = useState<ProjectSettingsSubTab>("project");
-    const [project, setProject] = useState<Project | null>(initialProject);
-    const [loadState, setLoadState] = useState<"loading" | "done">(() =>
-        loadMode === "server_ok" ? "done" : "loading",
-    );
+    const [project, setProject] = useState<Project>(initialProject);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
 
     const visibleTabs = useMemo(() => {
-        if (!project) {
-            return TABS.filter((t) => t.id !== "performance" && t.id !== "settings");
-        }
         if (project.projectType === "team" && project.viewerRole !== "LEADER") {
             return TABS.filter((t) => t.id !== "performance" && t.id !== "settings");
         }
@@ -103,7 +92,6 @@ export function ProjectDetailPageClient({
     }, [project]);
 
     useEffect(() => {
-        if (!project) return;
         if (project.projectType === "team" && project.viewerRole !== "LEADER") {
             if (activeTab === "performance" || activeTab === "settings") {
                 setActiveTab("overview");
@@ -112,40 +100,15 @@ export function ProjectDetailPageClient({
     }, [project, activeTab]);
 
     useEffect(() => {
-        if (loadMode === "server_ok") {
-            if (initialProject && initialProject.id === id) {
-                setProject(initialProject);
-                setLoadState("done");
-            } else if (!initialProject) {
-                setProject(null);
-                setLoadState("done");
-            } else {
-                setLoadState("loading");
-            }
-            return;
+        if (initialProject.id === id) {
+            setProject(initialProject);
         }
-        if (!id) {
-            setProject(null);
-            setLoadState("done");
-            return;
-        }
-        setLoadState("loading");
-        setProject(getProject(id));
-        setLoadState("done");
-    }, [id, initialProject, loadMode]);
+    }, [id, initialProject]);
 
     if (!id) {
         return (
             <div className="flex min-h-full items-center justify-center p-8">
                 <p className="text-stone-500">프로젝트 ID가 없습니다.</p>
-            </div>
-        );
-    }
-
-    if (loadState === "done" && !project) {
-        return (
-            <div className="flex min-h-full items-center justify-center p-8">
-                <p className="text-stone-500">프로젝트를 찾을 수 없습니다.</p>
             </div>
         );
     }
@@ -178,24 +141,21 @@ export function ProjectDetailPageClient({
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">
-                                {project?.name ?? "로딩 중…"}
+                                {project.name}
                             </h1>
-                            {project && (
-                                <ProjectFavoriteButton
-                                    projectId={project.id}
-                                    initialIsFavorite={isFavorite}
-                                    size="sm"
-                                    onAdd={() => addProjectFavoriteAction(project.id)}
-                                    onRemove={() => removeProjectFavoriteAction(project.id)}
-                                />
-                            )}
+                            <ProjectFavoriteButton
+                                projectId={project.id}
+                                initialIsFavorite={isFavorite}
+                                size="sm"
+                                onAdd={() => addProjectFavoriteAction(project.id)}
+                                onRemove={() => removeProjectFavoriteAction(project.id)}
+                            />
                         </div>
                         <p className="truncate text-xs text-stone-500 sm:text-sm">
-                            {project?.description || "프로젝트 상세"}
+                            {project.description || "프로젝트 상세"}
                         </p>
                     </div>
-                    {project && (
-                        <>
+                    <>
                             <button
                                 type="button"
                                 onClick={() => setMembersModalOpen(true)}
@@ -274,8 +234,7 @@ export function ProjectDetailPageClient({
                                     </div>
                                 </>
                             )}
-                        </>
-                    )}
+                    </>
                 </div>
             </div>
 
@@ -319,7 +278,6 @@ export function ProjectDetailPageClient({
                 )}
 
                 {activeTab === "performance" &&
-                    project &&
                     project.projectType === "team" &&
                     project.viewerRole === "LEADER" && (
                         <ProjectPerformanceTab
@@ -330,7 +288,7 @@ export function ProjectDetailPageClient({
 
                 {activeTab === "list" && (
                     <ProjectTasksTab
-                        participants={project?.participants ?? []}
+                        participants={project.participants}
                         projectTasksData={projectTasksData}
                         taskPanelActions={workspaceTaskPanelActions}
                         createTaskRequest={createTaskRequestAction}
@@ -364,7 +322,6 @@ export function ProjectDetailPageClient({
                 )}
 
                 {activeTab === "settings" &&
-                    project &&
                     (project.projectType !== "team" || project.viewerRole === "LEADER") && (
                     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                         <nav
@@ -407,9 +364,7 @@ export function ProjectDetailPageClient({
                         </nav>
 
                         <div className="min-w-0 flex-1 rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm sm:p-7">
-                            {!project ? (
-                                <p className="text-sm text-stone-500">불러오는 중…</p>
-                            ) : settingsSubTab === "project" ? (
+                            {settingsSubTab === "project" ? (
                                 <ProjectSettingsProjectTab
                                     project={project}
                                     onUpdated={setProject}

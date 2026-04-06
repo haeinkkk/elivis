@@ -1,4 +1,4 @@
-/** 워크스페이스 업무 UI용 DTO (앱 `map-api-workspace`와 동일 구조) */
+/** 워크스페이스 업무 UI용 DTO (앱 `lib/mappers/workspace`와 동일 구조) */
 
 export type ApiWorkspacePriority = {
     id: string;

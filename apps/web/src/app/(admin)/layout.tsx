@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getMyProfile } from "@/lib/users";
+import { getMyProfile } from "@/lib/server/user-profile.server";
 
 import { AdminLayoutClient } from "./AdminLayoutClient";
 

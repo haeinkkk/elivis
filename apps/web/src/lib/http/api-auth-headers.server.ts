@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { AT_COOKIE } from "./auth.server";
+import { AT_COOKIE } from "../server/auth.server";
 
 /** 인증된 `fetch(apiUrl(...))` 호출용 공통 헤더 */
 export async function apiFetchHeaders(): Promise<Record<string, string>> {

@@ -2,13 +2,13 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { ApiEnvelope } from "./api-envelope";
-import type { ApiProjectDetail, ApiProjectListData, ApiProjectListItem } from "./map-api-project";
-import { mapApiProjectToClient } from "./map-api-project";
-import type { Project } from "./projects";
-import { apiUrl } from "./api";
+import type { ApiEnvelope } from "../http/api-envelope";
+import type { ApiProjectDetail, ApiProjectListData, ApiProjectListItem } from "../mappers/project";
+import { mapApiProjectToClient } from "../mappers/project";
+import type { Project } from "../types/project";
+import { apiUrl } from "../http/api-base-url";
 import { AT_COOKIE } from "./auth.server";
-import { apiFetchHeaders } from "./fetch-api-headers.server";
+import { apiFetchHeaders } from "../http/api-auth-headers.server";
 
 export type ProjectListItem = ApiProjectListItem;
 

@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { updateAdminUserAction } from "@/app/actions/admin";
-import type { AdminUserDetail } from "@/lib/admin.server";
+import type { AdminUserDetail } from "@/lib/server/admin.server";
 
 interface AdminEditUserClientProps {
     user: AdminUserDetail;

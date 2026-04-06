@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { AT_COOKIE } from "@/lib/auth.server";
+import { AT_COOKIE } from "@/lib/server/auth.server";
 
 // 인증 없이 접근 가능한 경로
 const PUBLIC_PATHS = ["/login"];

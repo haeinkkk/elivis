@@ -1,13 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 
-import { apiUrl, getApiBaseUrl } from "@/lib/api";
-import type { ApiEnvelope } from "@/lib/api-envelope";
-import { AT_COOKIE } from "@/lib/auth.server";
-import { apiFetchHeaders } from "@/lib/fetch-api-headers.server";
-import type { ApiIdPayload } from "@/lib/map-api-project";
+import type { ApiEnvelope } from "@/lib/http/api-envelope";
+import { getApiBaseUrl } from "@/lib/http/api-base-url";
+import type { ApiIdPayload } from "@/lib/mappers/project";
 import type {
     ApiTeamBannerData,
     ApiTeamDetail,
@@ -15,9 +12,20 @@ import type {
     ApiTeamFieldsUpdated,
     ApiTeamListItem,
     ApiTeamsListData,
-} from "@/lib/map-api-team";
-import type { ApiUserSearchRow } from "@/lib/map-api-user";
-import type { TeamListItem } from "@/lib/teams.server";
+} from "@/lib/mappers/team";
+import type { ApiUserSearchRow } from "@/lib/mappers/user";
+import type { TeamListItem } from "@/lib/server/teams.server";
+import {
+    actionFail,
+    actionNetworkError,
+    apiFetchAuthenticated,
+    apiFetchHeadersWithoutContentType,
+    envelopeMessage,
+    fetchApiEnvelope,
+    hasActionSession,
+    readApiEnvelope,
+    requireActionSession,
+} from "@/lib/http/server-action-http";
 
 export type SearchableUser = ApiUserSearchRow;
 
@@ -29,15 +37,12 @@ export async function createTeamAction(input: {
     hiddenFromUsers?: boolean;
     memberUserIds?: string[];
 }): Promise<{ ok: true; teamId: string } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl("/api/teams"), {
+        const { res, body } = await fetchApiEnvelope<ApiIdPayload>("/api/teams", {
             method: "POST",
-            headers: await apiFetchHeaders(),
             body: JSON.stringify({
                 name: input.name.trim(),
                 shortDescription: input.shortDescription?.trim() || undefined,
@@ -45,19 +50,16 @@ export async function createTeamAction(input: {
                 hiddenFromUsers: Boolean(input.hiddenFromUsers),
                 memberUserIds: input.memberUserIds?.length ? input.memberUserIds : undefined,
             }),
-            cache: "no-store",
         });
 
-        const body = (await res.json()) as ApiEnvelope<ApiIdPayload>;
-
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀 생성에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "팀 생성에 실패했습니다."));
         }
 
         revalidatePath("/teams");
         return { ok: true, teamId: body.data.id };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -65,30 +67,27 @@ export async function addTeamMemberAction(
     teamId: string,
     userId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/members`), {
-            method: "POST",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ userId: userId.trim() }),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<unknown>;
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId)}/members`,
+            {
+                method: "POST",
+                body: JSON.stringify({ userId: userId.trim() }),
+            },
+        );
 
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀원 추가에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "팀원 추가에 실패했습니다."));
         }
 
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -96,30 +95,27 @@ export async function delegateTeamLeaderAction(
     teamId: string,
     userId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/leader`), {
-            method: "PUT",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ userId: userId.trim() }),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<unknown>;
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId)}/leader`,
+            {
+                method: "PUT",
+                body: JSON.stringify({ userId: userId.trim() }),
+            },
+        );
 
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀장 위임에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "팀장 위임에 실패했습니다."));
         }
 
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -127,63 +123,49 @@ export async function removeTeamMemberAction(
     teamId: string,
     userId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...headersWithoutContentType } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}`),
-            {
-                method: "DELETE",
-                headers: headersWithoutContentType,
-                cache: "no-store",
-            },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}`,
+            { method: "DELETE", headers },
         );
 
-        const body = (await res.json()) as ApiEnvelope<unknown>;
-
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀원 제외에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "팀원 제외에 실패했습니다."));
         }
 
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
 export async function searchUsersForTeamAction(
     q: string,
 ): Promise<{ ok: true; users: ApiUserSearchRow[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
         const params = new URLSearchParams();
         params.set("q", q.trim());
 
-        const res = await fetch(apiUrl(`/api/users/search?${params.toString()}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiUserSearchRow[]>;
+        const { res, body } = await fetchApiEnvelope<ApiUserSearchRow[]>(
+            `/api/users/search?${params.toString()}`,
+        );
 
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "검색에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "검색에 실패했습니다."));
         }
 
         return { ok: true, users: body.data };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -210,10 +192,8 @@ export async function updateTeamFieldsAction(
       }
     | { ok: false; message: string }
 > {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     const body: Record<string, string | null | boolean> = {};
     if (fields.teamName !== undefined) body.name = fields.teamName;
@@ -222,21 +202,20 @@ export async function updateTeamFieldsAction(
     if ("introLayoutJson" in fields) body.introLayoutJson = fields.introLayoutJson ?? null;
     if ("hiddenFromUsers" in fields) body.hiddenFromUsers = fields.hiddenFromUsers ?? false;
     if (Object.keys(body).length === 0) {
-        return { ok: false, message: "수정할 항목이 없습니다." };
+        return actionFail("수정할 항목이 없습니다.");
     }
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}`), {
-            method: "PUT",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify(body),
-            cache: "no-store",
-        });
-
-        const parsed = (await res.json()) as ApiEnvelope<ApiTeamFieldsUpdated>;
+        const { res, body: parsed } = await fetchApiEnvelope<ApiTeamFieldsUpdated>(
+            `/api/teams/${encodeURIComponent(teamId)}`,
+            {
+                method: "PUT",
+                body: JSON.stringify(body),
+            },
+        );
 
         if (!res.ok) {
-            return { ok: false, message: parsed.message ?? "저장에 실패했습니다." };
+            return actionFail(envelopeMessage(parsed, "저장에 실패했습니다."));
         }
 
         revalidatePath("/teams");
@@ -250,7 +229,7 @@ export async function updateTeamFieldsAction(
             hiddenFromUsers: parsed.data.hiddenFromUsers,
         };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -258,30 +237,27 @@ export async function deleteTeamAction(
     teamId: string,
     confirmName: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}`), {
-            method: "DELETE",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ confirmName: confirmName.trim() }),
-            cache: "no-store",
-        });
-
-        const parsed = (await res.json()) as ApiEnvelope<ApiIdPayload>;
+        const { res, body: parsed } = await fetchApiEnvelope<ApiIdPayload>(
+            `/api/teams/${encodeURIComponent(teamId)}`,
+            {
+                method: "DELETE",
+                body: JSON.stringify({ confirmName: confirmName.trim() }),
+            },
+        );
 
         if (!res.ok) {
-            return { ok: false, message: parsed.message ?? "팀 삭제에 실패했습니다." };
+            return actionFail(envelopeMessage(parsed, "팀 삭제에 실패했습니다."));
         }
 
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -295,25 +271,20 @@ export async function uploadTeamBannerAction(
     teamId: string,
     formData: FormData,
 ): Promise<TeamBannerActionResult> {
-    const jar = await cookies();
-    const accessToken = jar.get(AT_COOKIE)?.value ?? "";
-    const lang = jar.get("elivis_lang")?.value ?? "ko";
-
-    if (!accessToken) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return { ok: false, message: denied.message };
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/banner`), {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Accept-Language": lang,
+        const headers = await apiFetchHeadersWithoutContentType();
+        const res = await apiFetchAuthenticated(
+            `/api/teams/${encodeURIComponent(teamId)}/banner`,
+            {
+                method: "POST",
+                headers,
+                body: formData,
             },
-            body: formData,
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiTeamBannerData>;
+        );
+        const body = await readApiEnvelope<ApiTeamBannerData>(res);
 
         if (!res.ok) {
             return { ok: false, message: body.message };
@@ -330,28 +301,23 @@ export async function uploadTeamBannerAction(
         revalidatePath(`/teams/${teamId}`);
         return { ok: true, bannerUrl };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
 export async function deleteTeamBannerAction(teamId: string): Promise<TeamBannerActionResult> {
-    const jar = await cookies();
-    const accessToken = jar.get(AT_COOKIE)?.value ?? "";
-    const lang = jar.get("elivis_lang")?.value ?? "ko";
-
-    if (!accessToken) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return { ok: false, message: denied.message };
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/banner`), {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Accept-Language": lang,
+        const headers = await apiFetchHeadersWithoutContentType();
+        const res = await apiFetchAuthenticated(
+            `/api/teams/${encodeURIComponent(teamId)}/banner`,
+            {
+                method: "DELETE",
+                headers,
             },
-        });
-
+        );
         const body = (await res.json()) as Pick<ApiEnvelope<unknown>, "code" | "message">;
 
         if (!res.ok) {
@@ -362,34 +328,28 @@ export async function deleteTeamBannerAction(teamId: string): Promise<TeamBanner
         revalidatePath(`/teams/${teamId}`);
         return { ok: true, bannerUrl: null };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
 export async function updateMyTeamPinsAction(teamIds: string[]): Promise<
-    | { ok: true }
-    | { ok: false; message: string }
+    { ok: true } | { ok: false; message: string }
 > {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl("/api/teams/pins"), {
+        const { res, body } = await fetchApiEnvelope<unknown>("/api/teams/pins", {
             method: "PUT",
-            headers: await apiFetchHeaders(),
             body: JSON.stringify({ teamIds }),
-            cache: "no-store",
         });
-        const body = (await res.json()) as ApiEnvelope<unknown>;
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "저장에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "저장에 실패했습니다."));
         }
         revalidatePath("/teams");
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -418,10 +378,8 @@ export async function fetchMyTeamsForProjectAction(input?: {
     take?: number;
     skip?: number;
 }): Promise<{ ok: true; teams: ProjectTeamOption[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
         const params = new URLSearchParams();
@@ -432,14 +390,11 @@ export async function fetchMyTeamsForProjectAction(input?: {
         const trimmed = input?.q?.trim();
         if (trimmed) params.set("q", trimmed);
 
-        const res = await fetch(apiUrl(`/api/teams?${params.toString()}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiTeamsListData | Record<string, unknown>>;
+        const { res, body } = await fetchApiEnvelope<ApiTeamsListData | Record<string, unknown>>(
+            `/api/teams?${params.toString()}`,
+        );
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀 목록을 불러오지 못했습니다." };
+            return actionFail(envelopeMessage(body, "팀 목록을 불러오지 못했습니다."));
         }
         const d = body.data;
         const raw =
@@ -450,7 +405,7 @@ export async function fetchMyTeamsForProjectAction(input?: {
                   : [];
         return { ok: true, teams: raw.map(mapTeamListItemToProjectOption) };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -458,26 +413,21 @@ export async function fetchMyTeamsForProjectAction(input?: {
 export async function fetchTeamBriefForProjectAction(
     teamId: string,
 ): Promise<{ ok: true; team: ProjectTeamOption } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     const id = teamId?.trim();
     if (!id) {
-        return { ok: false, message: "팀을 찾을 수 없습니다." };
+        return actionFail("팀을 찾을 수 없습니다.");
     }
 
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(id)}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiTeamDetail>;
+        const { res, body } = await fetchApiEnvelope<ApiTeamDetail>(
+            `/api/teams/${encodeURIComponent(id)}`,
+        );
 
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "팀 정보를 불러오지 못했습니다." };
+            return actionFail(envelopeMessage(body, "팀 정보를 불러오지 못했습니다."));
         }
 
         const d = body.data;
@@ -498,7 +448,7 @@ export async function fetchTeamBriefForProjectAction(
             },
         };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -507,10 +457,8 @@ export async function fetchMorePublicTeamsAction(input: {
     take: number;
     skip: number;
 }): Promise<{ ok: true; publicTeams: TeamListItem[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
         const params = new URLSearchParams();
@@ -520,14 +468,11 @@ export async function fetchMorePublicTeamsAction(input: {
         const trimmed = input.q?.trim();
         if (trimmed) params.set("q", trimmed);
 
-        const res = await fetch(apiUrl(`/api/teams?${params.toString()}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiTeamsListData | Record<string, unknown>>;
+        const { res, body } = await fetchApiEnvelope<ApiTeamsListData | Record<string, unknown>>(
+            `/api/teams?${params.toString()}`,
+        );
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "불러오기에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "불러오기에 실패했습니다."));
         }
         const d = body.data;
         const publicTeams =
@@ -536,7 +481,7 @@ export async function fetchMorePublicTeamsAction(input: {
                 : [];
         return { ok: true, publicTeams };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -548,16 +493,16 @@ export async function fetchTeamFavoritesAction(): Promise<{
     ok: true;
     favorites: ApiTeamFavoriteItem[];
 } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(apiUrl("/api/teams/favorites"), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-        const body = (await res.json()) as ApiEnvelope<ApiTeamFavoriteItem[]>;
-        if (!res.ok) return { ok: false, message: body.message ?? "즐겨찾기를 불러오지 못했습니다." };
+        const { res, body } = await fetchApiEnvelope<ApiTeamFavoriteItem[]>("/api/teams/favorites");
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "즐겨찾기를 불러오지 못했습니다."));
         return { ok: true, favorites: body.data ?? [] };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -566,19 +511,23 @@ export async function addTeamFavoriteAction(teamId: string): Promise<{
     message?: string;
     favorite?: ApiTeamFavoriteItem;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/favorite`), {
-            method: "POST",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({}),
-        });
-        const body = (await res.json()) as ApiEnvelope<ApiTeamFavoriteItem>;
+        const { res, body } = await fetchApiEnvelope<ApiTeamFavoriteItem>(
+            `/api/teams/${encodeURIComponent(teamId)}/favorite`,
+            {
+                method: "POST",
+                body: JSON.stringify({}),
+            },
+        );
         if (!res.ok) return { ok: false, message: body.message };
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true, favorite: body.data };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -586,29 +535,34 @@ export async function removeTeamFavoriteAction(teamId: string): Promise<{
     ok: boolean;
     message?: string;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(apiUrl(`/api/teams/${encodeURIComponent(teamId)}/favorite`), {
-            method: "DELETE",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({}),
-        });
-        const body = (await res.json()) as ApiEnvelope<null>;
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/teams/${encodeURIComponent(teamId)}/favorite`,
+            {
+                method: "DELETE",
+                body: JSON.stringify({}),
+            },
+        );
         if (!res.ok) return { ok: false, message: body.message };
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
 export async function checkTeamFavoriteAction(teamId: string): Promise<boolean> {
+    if (!(await hasActionSession())) return false;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/teams/${encodeURIComponent(teamId)}/favorite/status`),
-            { headers: await apiFetchHeaders(), cache: "no-store" },
+        const { res, body } = await fetchApiEnvelope<{ isFavorite: boolean }>(
+            `/api/teams/${encodeURIComponent(teamId)}/favorite/status`,
         );
-        const body = (await res.json()) as ApiEnvelope<{ isFavorite: boolean }>;
+        if (!res.ok) return false;
         return body.data?.isFavorite ?? false;
     } catch {
         return false;

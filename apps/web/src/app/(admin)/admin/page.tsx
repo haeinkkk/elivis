@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { fetchAdminUsers } from "@/lib/admin.server";
+import { fetchAdminUsers } from "@/lib/server/admin.server";
 
 export default async function AdminDashboardPage() {
     const tRole = await getTranslations("domain.systemRole");

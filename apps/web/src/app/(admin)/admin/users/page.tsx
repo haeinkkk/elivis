@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { fetchAdminUsers } from "@/lib/admin.server";
-import { getMyProfile } from "@/lib/users";
+import { fetchAdminUsers } from "@/lib/server/admin.server";
+import { getMyProfile } from "@/lib/server/user-profile.server";
 
 import { AdminUsersTableClient } from "./AdminUsersTableClient";
 

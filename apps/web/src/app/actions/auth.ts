@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-import { clearSession, getRefreshToken, loginWithCredentials } from "@/lib/auth.server";
+import { clearSession, getRefreshToken, loginWithCredentials } from "@/lib/server/auth.server";
 import { getWebMessages, type Locale, SUPPORTED_LOCALES } from "@repo/i18n";
 
 // ─────────────────────────────────────────────────────────────────────────────

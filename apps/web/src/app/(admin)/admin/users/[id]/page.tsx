@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 
-import type { AdminUserDetail } from "@/lib/admin.server";
-import { fetchAdminUser } from "@/lib/admin.server";
-import { getMyProfile } from "@/lib/users";
+import type { AdminUserDetail } from "@/lib/server/admin.server";
+import { fetchAdminUser } from "@/lib/server/admin.server";
+import { getMyProfile } from "@/lib/server/user-profile.server";
 
 import { AdminEditUserClient } from "./AdminEditUserClient";
 

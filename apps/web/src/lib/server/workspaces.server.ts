@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { ApiEnvelope } from "./api-envelope";
+import type { ApiEnvelope } from "../http/api-envelope";
 import type {
     ApiProjectTasksItem,
     ApiWorkspaceDetail,
@@ -10,10 +10,10 @@ import type {
     ApiWorkspacePriority,
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
-} from "./map-api-workspace";
-import { apiUrl } from "./api";
+} from "../mappers/workspace";
+import { apiUrl } from "../http/api-base-url";
 import { AT_COOKIE } from "./auth.server";
-import { apiFetchHeaders } from "./fetch-api-headers.server";
+import { apiFetchHeaders } from "../http/api-auth-headers.server";
 
 /** GET /api/workspaces — 내 워크스페이스 목록 */
 export async function fetchWorkspaceList(): Promise<ApiWorkspaceListItem[] | null> {

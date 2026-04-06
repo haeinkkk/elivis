@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { logoutAction } from "@/app/actions/auth";
 import { setLanguageAction } from "@/app/actions/language";
 import { updateStatusAction } from "@/app/actions/users";
-import type { UserProfile } from "@/lib/users";
+import type { UserProfile } from "@/lib/server/user-profile.server";
 import { AdminHeader, AdminSidebar, TopLoadingBar, UserStatusProvider, type AdminSidebarSize } from "@repo/ui";
 
 interface AdminLayoutClientProps {

@@ -31,8 +31,8 @@ import {
     teamBannerActionsForUi,
     teamCommunityPostsActionsForUi,
     teamInviteActionsForUi,
-} from "@/lib/team-detail-ui-actions";
-import type { TeamDetail, TeamMemberRow } from "@/lib/teams.server";
+} from "@/lib/ui/team-detail-actions";
+import type { TeamDetail, TeamMemberRow } from "@/lib/server/teams.server";
 
 type TeamTab = "intro" | "projects" | "members" | "community" | "settings";
 

@@ -34,8 +34,8 @@ import type {
     ApiWorkspacePriority,
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
-} from "@/lib/map-api-workspace";
-import { workspaceTaskPanelActions } from "@/lib/workspace-task-panel-actions";
+} from "@/lib/mappers/workspace";
+import { workspaceTaskPanelActions } from "@/lib/ui/workspace-task-panel-actions";
 
 interface WorkspaceDetailClientProps {
     workspace: ApiWorkspaceDetail;

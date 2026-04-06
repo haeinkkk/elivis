@@ -1,12 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 
-import { apiUrl } from "@/lib/api";
-import type { ApiEnvelope } from "@/lib/api-envelope";
-import { AT_COOKIE } from "@/lib/auth.server";
-import { apiFetchHeaders } from "@/lib/fetch-api-headers.server";
 import type {
     ApiWorkspacePriority,
     ApiWorkspaceStatus,
@@ -14,7 +9,17 @@ import type {
     ApiWorkspaceTaskComment,
     ApiWorkspaceTaskAttachment,
     ApiWorkspaceTaskNote,
-} from "@/lib/map-api-workspace";
+} from "@/lib/mappers/workspace";
+import {
+    actionFail,
+    actionServerError,
+    apiFetchAuthenticated,
+    apiFetchHeadersWithoutContentType,
+    envelopeMessage,
+    fetchApiEnvelope,
+    readApiEnvelope,
+    requireActionSession,
+} from "@/lib/http/server-action-http";
 
 // ─── 상태 (WorkspaceStatus) ───────────────────────────────────────────────────
 
@@ -22,24 +27,23 @@ export async function createWorkspaceStatusAction(
     workspaceId: string,
     input: { name: string; color?: string; notifyOnChange?: boolean },
 ): Promise<{ ok: true; status: ApiWorkspaceStatus } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/statuses`),
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceStatus>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/statuses`,
             {
                 method: "POST",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify(input),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceStatus>;
-        if (!res.ok) return { ok: false, message: body.message ?? "상태 추가에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "상태 추가에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, status: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -48,26 +52,23 @@ export async function updateWorkspaceStatusAction(
     statusId: string,
     input: { name?: string; color?: string; notifyOnChange?: boolean },
 ): Promise<{ ok: true; status: ApiWorkspaceStatus } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(
-            apiUrl(
-                `/api/workspaces/${encodeURIComponent(workspaceId)}/statuses/${encodeURIComponent(statusId)}`,
-            ),
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceStatus>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/statuses/${encodeURIComponent(statusId)}`,
             {
                 method: "PATCH",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify(input),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceStatus>;
-        if (!res.ok) return { ok: false, message: body.message ?? "상태 수정에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "상태 수정에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, status: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -75,29 +76,21 @@ export async function deleteWorkspaceStatusAction(
     workspaceId: string,
     statusId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...headersWithoutContentType } = baseHeaders;
-        const res = await fetch(
-            apiUrl(
-                `/api/workspaces/${encodeURIComponent(workspaceId)}/statuses/${encodeURIComponent(statusId)}`,
-            ),
-            {
-                method: "DELETE",
-                headers: headersWithoutContentType,
-            },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/statuses/${encodeURIComponent(statusId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "상태 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "상태 삭제에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -107,18 +100,20 @@ export async function createWorkspacePriorityAction(
     workspaceId: string,
     input: { name: string; color?: string; value?: number },
 ): Promise<{ ok: true; priority: ApiWorkspacePriority } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/priorities`),
-            { method: "POST", headers: await apiFetchHeaders(), body: JSON.stringify(input) },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspacePriority>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/priorities`,
+            { method: "POST", body: JSON.stringify(input) },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspacePriority>;
-        if (!res.ok) return { ok: false, message: body.message ?? "우선순위 추가에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "우선순위 추가에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, priority: body.data };
-    } catch { return { ok: false, message: "서버 오류가 발생했습니다." }; }
+    } catch {
+        return actionServerError();
+    }
 }
 
 export async function updateWorkspacePriorityAction(
@@ -126,40 +121,41 @@ export async function updateWorkspacePriorityAction(
     priorityId: string,
     input: { name?: string; color?: string; value?: number },
 ): Promise<{ ok: true; priority: ApiWorkspacePriority } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/priorities/${encodeURIComponent(priorityId)}`),
-            { method: "PATCH", headers: await apiFetchHeaders(), body: JSON.stringify(input) },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspacePriority>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/priorities/${encodeURIComponent(priorityId)}`,
+            { method: "PATCH", body: JSON.stringify(input) },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspacePriority>;
-        if (!res.ok) return { ok: false, message: body.message ?? "우선순위 수정에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "우선순위 수정에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, priority: body.data };
-    } catch { return { ok: false, message: "서버 오류가 발생했습니다." }; }
+    } catch {
+        return actionServerError();
+    }
 }
 
 export async function deleteWorkspacePriorityAction(
     workspaceId: string,
     priorityId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...h } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/priorities/${encodeURIComponent(priorityId)}`),
-            { method: "DELETE", headers: h },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/priorities/${encodeURIComponent(priorityId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "우선순위 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "우선순위 삭제에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
-    } catch { return { ok: false, message: "서버 오류가 발생했습니다." }; }
+    } catch {
+        return actionServerError();
+    }
 }
 
 // ─── 업무 순서 일괄 변경 ──────────────────────────────────────────────────────
@@ -168,19 +164,19 @@ export async function reorderWorkspaceTasksAction(
     workspaceId: string,
     items: Array<{ id: string; order: number; statusId?: string }>,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/reorder`),
-            { method: "POST", headers: await apiFetchHeaders(), body: JSON.stringify({ items }) },
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/reorder`,
+            { method: "POST", body: JSON.stringify({ items }) },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "순서 변경에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "순서 변경에 실패했습니다."));
         return { ok: true };
-    } catch { return { ok: false, message: "서버 오류가 발생했습니다." }; }
+    } catch {
+        return actionServerError();
+    }
 }
 
 // ─── 업무 (WorkspaceTask) ─────────────────────────────────────────────────────
@@ -197,24 +193,23 @@ export async function createWorkspaceTaskAction(
         parentId?: string;
     },
 ): Promise<{ ok: true; task: ApiWorkspaceTask } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks`),
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTask>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks`,
             {
                 method: "POST",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify(input),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTask>;
-        if (!res.ok) return { ok: false, message: body.message ?? "업무 추가에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "업무 추가에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, task: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -232,26 +227,23 @@ export async function updateWorkspaceTaskAction(
         order?: number;
     },
 ): Promise<{ ok: true; task: ApiWorkspaceTask } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(
-            apiUrl(
-                `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}`,
-            ),
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTask>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}`,
             {
                 method: "PATCH",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify(input),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTask>;
-        if (!res.ok) return { ok: false, message: body.message ?? "업무 수정에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "업무 수정에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true, task: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -259,29 +251,21 @@ export async function deleteWorkspaceTaskAction(
     workspaceId: string,
     taskId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...headersWithoutContentType } = baseHeaders;
-        const res = await fetch(
-            apiUrl(
-                `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}`,
-            ),
-            {
-                method: "DELETE",
-                headers: headersWithoutContentType,
-            },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "업무 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "업무 삭제에 실패했습니다."));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -291,18 +275,17 @@ export async function listTaskCommentsAction(
     workspaceId: string,
     taskId: string,
 ): Promise<{ ok: true; comments: ApiWorkspaceTaskComment[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments`),
-            { headers: await apiFetchHeaders() },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTaskComment[]>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments`,
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskComment[]>;
-        if (!res.ok) return { ok: false, message: body.message ?? "댓글 로드에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "댓글 로드에 실패했습니다."));
         return { ok: true, comments: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -311,18 +294,18 @@ export async function createTaskCommentAction(
     taskId: string,
     content: string,
 ): Promise<{ ok: true; comment: ApiWorkspaceTaskComment } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments`),
-            { method: "POST", headers: await apiFetchHeaders(), body: JSON.stringify({ content }) },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTaskComment>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments`,
+            { method: "POST", body: JSON.stringify({ content }) },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskComment>;
-        if (!res.ok) return { ok: false, message: body.message ?? "댓글 등록에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "댓글 등록에 실패했습니다."));
         return { ok: true, comment: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -331,22 +314,19 @@ export async function deleteTaskCommentAction(
     taskId: string,
     commentId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...h } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments/${encodeURIComponent(commentId)}`),
-            { method: "DELETE", headers: h },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/comments/${encodeURIComponent(commentId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "댓글 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "댓글 삭제에 실패했습니다."));
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -356,18 +336,17 @@ export async function listTaskAttachmentsAction(
     workspaceId: string,
     taskId: string,
 ): Promise<{ ok: true; attachments: ApiWorkspaceTaskAttachment[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments`),
-            { headers: await apiFetchHeaders() },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTaskAttachment[]>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments`,
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskAttachment[]>;
-        if (!res.ok) return { ok: false, message: body.message ?? "첨부파일 로드에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "첨부파일 로드에 실패했습니다."));
         return { ok: true, attachments: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -376,21 +355,20 @@ export async function uploadTaskAttachmentAction(
     taskId: string,
     formData: FormData,
 ): Promise<{ ok: true; attachment: ApiWorkspaceTaskAttachment } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        // multipart → Content-Type 헤더를 fetch가 자동 설정하도록 직접 제거
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...headersWithoutCT } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments`),
-            { method: "POST", headers: headersWithoutCT, body: formData },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const res = await apiFetchAuthenticated(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments`,
+            { method: "POST", headers, body: formData },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskAttachment>;
-        if (!res.ok) return { ok: false, message: body.message ?? "파일 업로드에 실패했습니다." };
+        const body = await readApiEnvelope<ApiWorkspaceTaskAttachment>(res);
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "파일 업로드에 실패했습니다."));
         return { ok: true, attachment: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -399,22 +377,19 @@ export async function deleteTaskAttachmentAction(
     taskId: string,
     attachmentId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...h } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments/${encodeURIComponent(attachmentId)}`),
-            { method: "DELETE", headers: h },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/attachments/${encodeURIComponent(attachmentId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "파일 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "파일 삭제에 실패했습니다."));
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -424,18 +399,18 @@ export async function listTaskNotesAction(
     workspaceId: string,
     taskId: string,
 ): Promise<{ ok: true; notes: ApiWorkspaceTaskNote[] } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`),
-            { headers: await apiFetchHeaders(), cache: "no-store" },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTaskNote[]>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`,
+            { cache: "no-store" },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskNote[]>;
-        if (!res.ok) return { ok: false, message: body.message ?? "노트를 불러오지 못했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "노트를 불러오지 못했습니다."));
         return { ok: true, notes: body.data ?? [] };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -444,18 +419,18 @@ export async function createTaskNoteAction(
     taskId: string,
     content: string,
 ): Promise<{ ok: true; note: ApiWorkspaceTaskNote } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`),
-            { method: "POST", headers: await apiFetchHeaders(), body: JSON.stringify({ content }) },
+        const { res, body } = await fetchApiEnvelope<ApiWorkspaceTaskNote>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes`,
+            { method: "POST", body: JSON.stringify({ content }) },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiWorkspaceTaskNote>;
-        if (!res.ok) return { ok: false, message: body.message ?? "노트 등록에 실패했습니다." };
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "노트 등록에 실패했습니다."));
         return { ok: true, note: body.data };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -464,22 +439,19 @@ export async function deleteTaskNoteAction(
     taskId: string,
     noteId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const baseHeaders = await apiFetchHeaders();
-        const { "Content-Type": _ct, ...h } = baseHeaders;
-        const res = await fetch(
-            apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes/${encodeURIComponent(noteId)}`),
-            { method: "DELETE", headers: h },
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/notes/${encodeURIComponent(noteId)}`,
+            { method: "DELETE", headers },
         );
-        if (!res.ok) {
-            const body = (await res.json()) as ApiEnvelope<null>;
-            return { ok: false, message: body.message ?? "노트 삭제에 실패했습니다." };
-        }
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "노트 삭제에 실패했습니다."));
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }
 
@@ -488,20 +460,22 @@ export async function updateWorkspaceSidebarLabelAction(
     workspaceId: string,
     sidebarLabel: string | null,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    const denied = await requireActionSession();
+    if (denied) return denied;
     try {
-        const res = await fetch(apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}`), {
-            method: "PATCH",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ sidebarLabel }),
-        });
-        const body = (await res.json()) as ApiEnvelope<unknown>;
-        if (!res.ok) return { ok: false, message: body.message ?? "표시 이름을 저장하지 못했습니다." };
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/workspaces/${encodeURIComponent(workspaceId)}`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({ sidebarLabel }),
+            },
+        );
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "표시 이름을 저장하지 못했습니다."));
         revalidatePath("/mywork", "layout");
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "서버 오류가 발생했습니다." };
+        return actionServerError();
     }
 }

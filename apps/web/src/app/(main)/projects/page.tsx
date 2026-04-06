@@ -1,5 +1,5 @@
-import { fetchProjectsList } from "@/lib/projects.server";
-import { getMyProfile } from "@/lib/users";
+import { fetchProjectsList } from "@/lib/server/projects.server";
+import { getMyProfile } from "@/lib/server/user-profile.server";
 import { fetchProjectFavoritesAction } from "@/app/actions/projects";
 
 import { ProjectsPageClient } from "./ProjectsPageClient";

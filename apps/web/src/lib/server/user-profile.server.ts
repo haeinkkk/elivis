@@ -2,16 +2,16 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { ApiEnvelope } from "./api-envelope";
-import type { ApiUserProfile } from "./map-api-user";
-import { apiUrl } from "./api";
+import type { ApiEnvelope } from "../http/api-envelope";
+import type { ApiUserProfile } from "../mappers/user";
+import { apiUrl } from "../http/api-base-url";
 import { AT_COOKIE } from "./auth.server";
-import { apiFetchHeaders } from "./fetch-api-headers.server";
+import { apiFetchHeaders } from "../http/api-auth-headers.server";
 
-export type { UserProfile, UserStatus } from "./user-types";
-export { USER_STATUS_LABEL } from "./user-types";
+export type { UserProfile, UserStatus } from "../user/user-types";
+export { USER_STATUS_LABEL } from "../user/user-types";
 
-import type { UserProfile } from "./user-types";
+import type { UserProfile, UserStatus } from "../user/user-types";
 
 /**
  * 현재 로그인 유저의 프로필을 서버에서 직접 조회합니다.
@@ -42,7 +42,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
 export async function updateMyProfile(data: {
     name?: string;
     bio?: string | null;
-    status?: import("./user-types").UserStatus;
+    status?: UserStatus;
 }): Promise<{ ok: true; user: UserProfile } | { ok: false; message: string }> {
     try {
         const res = await fetch(apiUrl("/api/users/me"), {

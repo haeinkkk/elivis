@@ -5,8 +5,8 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 
-import { getApiBaseUrl } from "@/lib/api";
-import type { TeamListItem } from "@/lib/teams.server";
+import { getApiBaseUrl } from "@/lib/http/api-base-url";
+import type { TeamListItem } from "@/lib/server/teams.server";
 import { fetchMorePublicTeamsAction } from "@/app/actions/teams";
 import { updateMyTeamPinsAction } from "@/app/actions/teams";
 import { addTeamFavoriteAction, removeTeamFavoriteAction } from "@/app/actions/teams";

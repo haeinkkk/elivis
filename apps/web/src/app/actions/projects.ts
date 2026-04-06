@@ -1,28 +1,28 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 
-import { apiUrl } from "@/lib/api";
-import type { ApiEnvelope } from "@/lib/api-envelope";
-import { AT_COOKIE } from "@/lib/auth.server";
-import { apiFetchHeaders } from "@/lib/fetch-api-headers.server";
-import type { ApiIdPayload, ApiProjectDetail, ApiProjectFavoriteItem } from "@/lib/map-api-project";
-import { mapApiProjectToClient } from "@/lib/map-api-project";
-import type { Project } from "@/lib/projects";
+import type { ApiIdPayload, ApiProjectDetail, ApiProjectFavoriteItem } from "@/lib/mappers/project";
+import { mapApiProjectToClient } from "@/lib/mappers/project";
+import type { Project } from "@/lib/types/project";
+import {
+    actionFail,
+    actionNetworkError,
+    envelopeMessage,
+    fetchApiEnvelope,
+    hasActionSession,
+    requireActionSession,
+} from "@/lib/http/server-action-http";
 
 export async function getProjectDetailAction(projectId: string): Promise<Project | null> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) return null;
+    if (!(await hasActionSession())) return null;
 
     try {
-        const res = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
+        const { res, body } = await fetchApiEnvelope<ApiProjectDetail>(
+            `/api/projects/${encodeURIComponent(projectId)}`,
+        );
         if (!res.ok) return null;
 
-        const body = (await res.json()) as ApiEnvelope<ApiProjectDetail>;
         return mapApiProjectToClient(body.data);
     } catch {
         return null;
@@ -39,15 +39,12 @@ export async function createProjectAction(input: {
     isPublic?: boolean;
     participantUserIds?: string[];
 }): Promise<{ ok: true; projectId: string } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl("/api/projects"), {
+        const { res, body } = await fetchApiEnvelope<ApiIdPayload>("/api/projects", {
             method: "POST",
-            headers: await apiFetchHeaders(),
             body: JSON.stringify({
                 name: input.name.trim(),
                 description: input.description?.trim() || undefined,
@@ -59,12 +56,9 @@ export async function createProjectAction(input: {
                 participantUserIds:
                     input.participantUserIds?.length ? input.participantUserIds : undefined,
             }),
-            cache: "no-store",
         });
-
-        const body = (await res.json()) as ApiEnvelope<ApiIdPayload>;
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "프로젝트 생성에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "프로젝트 생성에 실패했습니다."));
         }
 
         const projectId = body.data.id;
@@ -77,7 +71,7 @@ export async function createProjectAction(input: {
 
         return { ok: true, projectId };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -92,22 +86,19 @@ export async function updateProjectAction(
         noEndDate?: boolean;
     },
 ): Promise<{ ok: true; project: Project } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}`), {
-            method: "PATCH",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify(input),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<ApiProjectDetail>;
+        const { res, body } = await fetchApiEnvelope<ApiProjectDetail>(
+            `/api/projects/${encodeURIComponent(projectId)}`,
+            {
+                method: "PATCH",
+                body: JSON.stringify(input),
+            },
+        );
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "프로젝트 수정에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "프로젝트 수정에 실패했습니다."));
         }
 
         const project = mapApiProjectToClient(body.data);
@@ -119,7 +110,7 @@ export async function updateProjectAction(
 
         return { ok: true, project };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -128,39 +119,34 @@ export async function addProjectMemberAction(
     userId: string,
     role: "MEMBER" | "DEPUTY_LEADER" = "MEMBER",
 ): Promise<{ ok: true; project: Project } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     const uid = userId.trim();
     if (!uid) {
-        return { ok: false, message: "사용자를 선택해 주세요." };
+        return actionFail("사용자를 선택해 주세요.");
     }
 
     try {
-        const res = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}/members`), {
-            method: "POST",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ userId: uid, role }),
-            cache: "no-store",
-        });
-
-        const body = (await res.json()) as ApiEnvelope<unknown>;
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/projects/${encodeURIComponent(projectId)}/members`,
+            {
+                method: "POST",
+                body: JSON.stringify({ userId: uid, role }),
+            },
+        );
         if (!res.ok) {
-            return { ok: false, message: body.message ?? "멤버 초대에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "멤버 초대에 실패했습니다."));
         }
 
-        const detailRes = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}`), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-        if (!detailRes.ok) {
-            return { ok: false, message: "초대는 완료됐지만 프로젝트 정보를 불러오지 못했습니다." };
+        const detail = await fetchApiEnvelope<ApiProjectDetail>(
+            `/api/projects/${encodeURIComponent(projectId)}`,
+        );
+        if (!detail.res.ok) {
+            return actionFail("초대는 완료됐지만 프로젝트 정보를 불러오지 못했습니다.");
         }
 
-        const detailBody = (await detailRes.json()) as ApiEnvelope<ApiProjectDetail>;
-        const project = mapApiProjectToClient(detailBody.data);
+        const project = mapApiProjectToClient(detail.body.data);
 
         revalidatePath("/projects");
         revalidatePath(`/projects/${projectId}`);
@@ -170,7 +156,7 @@ export async function addProjectMemberAction(
 
         return { ok: true, project };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -178,30 +164,27 @@ export async function deleteProjectAction(
     projectId: string,
     confirmName: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-    const jar = await cookies();
-    if (!jar.get(AT_COOKIE)?.value) {
-        return { ok: false, message: "로그인이 필요합니다." };
-    }
+    const denied = await requireActionSession();
+    if (denied) return denied;
 
     try {
-        const res = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}`), {
-            method: "DELETE",
-            headers: await apiFetchHeaders(),
-            body: JSON.stringify({ confirmName: confirmName.trim() }),
-            cache: "no-store",
-        });
-
-        const parsed = (await res.json()) as ApiEnvelope<ApiIdPayload>;
+        const { res, body } = await fetchApiEnvelope<ApiIdPayload>(
+            `/api/projects/${encodeURIComponent(projectId)}`,
+            {
+                method: "DELETE",
+                body: JSON.stringify({ confirmName: confirmName.trim() }),
+            },
+        );
 
         if (!res.ok) {
-            return { ok: false, message: parsed.message ?? "프로젝트 삭제에 실패했습니다." };
+            return actionFail(envelopeMessage(body, "프로젝트 삭제에 실패했습니다."));
         }
 
         revalidatePath("/projects");
         revalidatePath(`/projects/${projectId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -213,16 +196,16 @@ export async function fetchProjectFavoritesAction(): Promise<{
     ok: true;
     favorites: ApiProjectFavoriteItem[];
 } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(apiUrl("/api/projects/favorites"), {
-            headers: await apiFetchHeaders(),
-            cache: "no-store",
-        });
-        const body = (await res.json()) as ApiEnvelope<ApiProjectFavoriteItem[]>;
-        if (!res.ok) return { ok: false, message: body.message ?? "즐겨찾기를 불러오지 못했습니다." };
+        const { res, body } = await fetchApiEnvelope<ApiProjectFavoriteItem[]>("/api/projects/favorites");
+        if (!res.ok)
+            return actionFail(envelopeMessage(body, "즐겨찾기를 불러오지 못했습니다."));
         return { ok: true, favorites: body.data ?? [] };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -231,22 +214,23 @@ export async function addProjectFavoriteAction(projectId: string): Promise<{
     message?: string;
     favorite?: ApiProjectFavoriteItem;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/projects/${encodeURIComponent(projectId)}/favorite`),
+        const { res, body } = await fetchApiEnvelope<ApiProjectFavoriteItem>(
+            `/api/projects/${encodeURIComponent(projectId)}/favorite`,
             {
                 method: "POST",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify({}),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<ApiProjectFavoriteItem>;
         if (!res.ok) return { ok: false, message: body.message };
         revalidatePath("/projects");
         revalidatePath(`/projects/${projectId}`);
         return { ok: true, favorite: body.data };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
@@ -254,32 +238,34 @@ export async function removeProjectFavoriteAction(projectId: string): Promise<{
     ok: boolean;
     message?: string;
 }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/projects/${encodeURIComponent(projectId)}/favorite`),
+        const { res, body } = await fetchApiEnvelope<null>(
+            `/api/projects/${encodeURIComponent(projectId)}/favorite`,
             {
                 method: "DELETE",
-                headers: await apiFetchHeaders(),
                 body: JSON.stringify({}),
             },
         );
-        const body = (await res.json()) as ApiEnvelope<null>;
         if (!res.ok) return { ok: false, message: body.message };
         revalidatePath("/projects");
         revalidatePath(`/projects/${projectId}`);
         return { ok: true };
     } catch {
-        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+        return actionNetworkError();
     }
 }
 
 export async function checkProjectFavoriteAction(projectId: string): Promise<boolean> {
+    if (!(await hasActionSession())) return false;
+
     try {
-        const res = await fetch(
-            apiUrl(`/api/projects/${encodeURIComponent(projectId)}/favorite/status`),
-            { headers: await apiFetchHeaders(), cache: "no-store" },
+        const { res, body } = await fetchApiEnvelope<{ isFavorite: boolean }>(
+            `/api/projects/${encodeURIComponent(projectId)}/favorite/status`,
         );
-        const body = (await res.json()) as ApiEnvelope<{ isFavorite: boolean }>;
+        if (!res.ok) return false;
         return body.data?.isFavorite ?? false;
     } catch {
         return false;

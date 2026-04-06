@@ -3,8 +3,8 @@
 import { useActionState, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
-import { getApiBaseUrl } from "@/lib/api";
-import type { UserProfile } from "@/lib/user-types";
+import { getApiBaseUrl } from "@/lib/http/api-base-url";
+import type { UserProfile } from "@/lib/user/user-types";
 import {
     deleteAvatarAction,
     updateProfileAction,

@@ -1,4 +1,4 @@
-import type { UserProfile } from "./user-types";
+import type { UserProfile } from "../user/user-types";
 
 /** GET/PATCH /api/users/me 응답 `data` */
 export type ApiUserProfile = UserProfile;

@@ -1,4 +1,4 @@
-import { fetchTeamsList } from "@/lib/teams.server";
+import { fetchTeamsList } from "@/lib/server/teams.server";
 import { fetchTeamFavoritesAction } from "@/app/actions/teams";
 import { TeamsPageClient } from "./TeamsPageClient";
 

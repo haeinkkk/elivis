@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-import { apiUrl, getApiBaseUrl } from "@/lib/api";
-import { AT_COOKIE } from "@/lib/auth.server";
-import { updateMyProfile } from "@/lib/users";
-import type { UserStatus } from "@/lib/user-types";
+import { apiUrl, getApiBaseUrl } from "@/lib/http/api-base-url";
+import { AT_COOKIE } from "@/lib/server/auth.server";
+import { updateMyProfile } from "@/lib/server/user-profile.server";
+import type { UserStatus } from "@/lib/user/user-types";
 
 export interface UpdateProfileState {
     error?: string;
