@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 
 import { MarkdownContent } from "../MarkdownContent";
 import type { UpdateTeamFieldsFn } from "../types/team-fields-actions";
@@ -25,6 +26,9 @@ export function TeamIntroEditModal({
     updateTeamFields,
     onSaveSuccess,
 }: TeamIntroEditModalProps) {
+    const t = useTranslations("teams.detail.intro.editModal");
+    const tErr = useTranslations("teams.detail.errors");
+    const tCommon = useTranslations("teams.detail.common");
     const [draft, setDraft] = useState("");
     const [editorMode, setEditorMode] = useState<EditorMode>("markdown");
     const [richKey, setRichKey] = useState(0);
@@ -60,7 +64,7 @@ export function TeamIntroEditModal({
                 onSaveSuccess?.();
                 onClose();
             } else {
-                setError(r.message ?? "저장에 실패했습니다.");
+                setError(r.message ?? tErr("saveFailed"));
             }
         });
     }
@@ -89,16 +93,13 @@ export function TeamIntroEditModal({
             >
                 <div className="border-b border-stone-100 px-4 py-3 sm:px-5">
                     <h3 id="team-intro-edit-title" className="text-base font-semibold text-stone-800">
-                        팀 소개 메시지 편집
+                        {t("title")}
                     </h3>
-                    <p className="mt-1 text-xs text-stone-500">
-                        소개 탭에 표시되는 본문입니다. Markdown 또는 게시판형 에디터로 작성할 수
-                        있으며, 저장 시 마크다운으로 통일됩니다. 팀장만 저장할 수 있어요.
-                    </p>
+                    <p className="mt-1 text-xs text-stone-500">{t("desc")}</p>
                     <div
                         className="mt-3 inline-flex rounded-lg border border-stone-200 bg-stone-100/90 p-0.5"
                         role="group"
-                        aria-label="편집기 종류"
+                        aria-label={t("editorModeAria")}
                     >
                         <button
                             type="button"
@@ -109,7 +110,7 @@ export function TeamIntroEditModal({
                                     : "text-stone-600 hover:text-stone-900"
                             }`}
                         >
-                            Markdown
+                            {t("editorLabelMarkdown")}
                         </button>
                         <button
                             type="button"
@@ -120,7 +121,7 @@ export function TeamIntroEditModal({
                                     : "text-stone-600 hover:text-stone-900"
                             }`}
                         >
-                            게시판
+                            {t("modeRich")}
                         </button>
                     </div>
                 </div>
@@ -132,7 +133,7 @@ export function TeamIntroEditModal({
                                 htmlFor="team-intro-markdown"
                                 className="mb-2 text-xs font-medium uppercase tracking-wide text-stone-400"
                             >
-                                {editorMode === "markdown" ? "Markdown" : "게시판 에디터"}
+                                {editorMode === "markdown" ? t("editorLabelMarkdown") : t("editorLabelRich")}
                             </label>
                             {editorMode === "markdown" ? (
                                 <textarea
@@ -142,7 +143,7 @@ export function TeamIntroEditModal({
                                     disabled={isPending}
                                     spellCheck={false}
                                     className="min-h-0 flex-1 resize-none rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2 font-mono text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-60"
-                                    placeholder={"# 우리 팀\n\n- 목표\n- 문화"}
+                                    placeholder={t("placeholder")}
                                 />
                             ) : (
                                 <div className="min-h-0 flex-1">
@@ -157,13 +158,13 @@ export function TeamIntroEditModal({
                         </div>
                         <div className="flex min-h-0 flex-col overflow-hidden p-3 sm:p-4">
                             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-stone-400">
-                                미리보기
+                                {t("preview")}
                             </p>
                             <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone-100 bg-white px-3 py-2 text-sm">
                                 {draft.trim() ? (
                                     <MarkdownContent markdown={draft} />
                                 ) : (
-                                    <p className="text-sm text-stone-400">내용을 입력하면 미리보기가 표시됩니다.</p>
+                                    <p className="text-sm text-stone-400">{t("previewEmpty")}</p>
                                 )}
                             </div>
                         </div>
@@ -183,7 +184,7 @@ export function TeamIntroEditModal({
                         disabled={isPending}
                         className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50"
                     >
-                        취소
+                        {tCommon("cancel")}
                     </button>
                     <button
                         type="button"
@@ -191,7 +192,7 @@ export function TeamIntroEditModal({
                         disabled={isPending}
                         className="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-50"
                     >
-                        {isPending ? "저장 중…" : "저장"}
+                        {isPending ? t("saving") : t("save")}
                     </button>
                 </div>
             </div>

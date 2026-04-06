@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import type { ApiTaskRequest } from "@/lib/mappers/workspace";
 import {
@@ -27,6 +28,8 @@ export async function createTaskRequestAction(
     const denied = await requireActionSession();
     if (denied) return denied;
 
+    const t = await getTranslations("workspace.requests");
+
     try {
         const { res, body } = await fetchApiEnvelope<ApiTaskRequest>(
             `/api/projects/${encodeURIComponent(projectId)}/task-requests`,
@@ -36,7 +39,7 @@ export async function createTaskRequestAction(
             },
         );
         if (!res.ok)
-            return actionFail(envelopeMessage(body, "업무 요청에 실패했습니다."));
+            return actionFail(envelopeMessage(body, t("createFail")));
         return { ok: true, request: body.data };
     } catch {
         return actionServerError();
@@ -53,12 +56,14 @@ export async function listTaskRequestsAction(
     const denied = await requireActionSession();
     if (denied) return denied;
 
+    const t = await getTranslations("workspace.requests");
+
     try {
         const { res, body } = await fetchApiEnvelope<ApiTaskRequest[]>(
             `/api/workspaces/${encodeURIComponent(workspaceId)}/task-requests`,
         );
         if (!res.ok)
-            return actionFail(envelopeMessage(body, "목록을 불러오는데 실패했습니다."));
+            return actionFail(envelopeMessage(body, t("listLoadError")));
         return { ok: true, requests: body.data };
     } catch {
         return actionServerError();
@@ -76,6 +81,8 @@ export async function acceptTaskRequestAction(
     const denied = await requireActionSession();
     if (denied) return denied;
 
+    const t = await getTranslations("workspace.requests");
+
     try {
         const { res, body } = await fetchApiEnvelope<unknown>(
             `/api/task-requests/${encodeURIComponent(requestId)}/accept`,
@@ -84,7 +91,7 @@ export async function acceptTaskRequestAction(
                 body: JSON.stringify({}),
             },
         );
-        if (!res.ok) return actionFail(envelopeMessage(body, "수락에 실패했습니다."));
+        if (!res.ok) return actionFail(envelopeMessage(body, t("acceptFail")));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
     } catch {
@@ -103,6 +110,8 @@ export async function rejectTaskRequestAction(
     const denied = await requireActionSession();
     if (denied) return denied;
 
+    const t = await getTranslations("workspace.requests");
+
     try {
         const { res, body } = await fetchApiEnvelope<unknown>(
             `/api/task-requests/${encodeURIComponent(requestId)}/reject`,
@@ -111,7 +120,7 @@ export async function rejectTaskRequestAction(
                 body: JSON.stringify({}),
             },
         );
-        if (!res.ok) return actionFail(envelopeMessage(body, "거절에 실패했습니다."));
+        if (!res.ok) return actionFail(envelopeMessage(body, t("rejectFail")));
         revalidatePath(`/mywork/${workspaceId}`);
         return { ok: true };
     } catch {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
     TeamActivityLogSection,
@@ -65,10 +65,11 @@ function displayUserName(u: { name: string | null; email: string }): string {
     return u.name?.trim() || u.email.split("@")[0] || u.email;
 }
 
-function formatDateKo(iso: string): string {
+function formatTeamDetailDate(iso: string, locale: string): string {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("ko-KR", {
+    const tag = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US";
+    return d.toLocaleDateString(tag, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -92,6 +93,7 @@ export function TeamDetailPageClient({
 }) {
     const router = useRouter();
     const t = useTranslations("teams.detail");
+    const locale = useLocale();
     const [activeTab, setActiveTab] = useState<TeamTab>("intro");
     const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [memberModalOpen, setMemberModalOpen] = useState(false);
@@ -309,7 +311,7 @@ export function TeamDetailPageClient({
 
             <div className="border-b border-stone-200 bg-white/95">
                 <div className="flex items-end justify-between gap-2 px-4 sm:px-5 md:px-6">
-                    <nav className="flex gap-0 overflow-x-auto" aria-label="팀 서브메뉴">
+                    <nav className="flex gap-0 overflow-x-auto" aria-label={t("aria.subNav")}>
                         {TABS.map((tab) => (
                             <button
                                 key={tab}
@@ -472,7 +474,7 @@ export function TeamDetailPageClient({
                                                     <span className="text-stone-300">|</span>
                                                     <span>
                                                         {t("projects.meta.created")}{" "}
-                                                        {formatDateKo(p.createdAt)}
+                                                        {formatTeamDetailDate(p.createdAt, locale)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -601,7 +603,7 @@ export function TeamDetailPageClient({
                                             </td>
                                             <td className="py-3 pr-4">{m.user.email}</td>
                                             <td className="py-3 pr-4">{t(`roles.${roleLabel(m.role)}` as any)}</td>
-                                            <td className="py-3 pr-4">{formatDateKo(m.joinedAt)}</td>
+                                            <td className="py-3 pr-4">{formatTeamDetailDate(m.joinedAt, locale)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -625,7 +627,7 @@ export function TeamDetailPageClient({
                     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                         <nav
                             className="flex shrink-0 gap-1 overflow-x-auto pb-1 lg:w-44 lg:flex-col lg:overflow-x-visible lg:pb-0"
-                            aria-label="팀 설정 하위 탭"
+                            aria-label={t("aria.settingsSubNav")}
                         >
                             {ALL_SETTINGS_SUB_TABS.map(({ id, icon }) => {
                                 const isActive = settingsSubTab === id;
@@ -700,7 +702,7 @@ export function TeamDetailPageClient({
                                                             );
                                                             if (!r.ok) {
                                                                 setNameError(
-                                                                    r.message ?? "저장에 실패했습니다.",
+                                                                    r.message ?? t("errors.saveFailed"),
                                                                 );
                                                             } else {
                                                                 router.refresh();
@@ -762,8 +764,7 @@ export function TeamDetailPageClient({
                                                             );
                                                             if (!r.ok) {
                                                                 setShortDescError(
-                                                                    r.message ??
-                                                                        "저장에 실패했습니다.",
+                                                                    r.message ?? t("errors.saveFailed"),
                                                                 );
                                                             } else {
                                                                 router.refresh();
@@ -1058,7 +1059,7 @@ export function TeamDetailPageClient({
                             type="button"
                             onClick={() => introRef.current?.openLayoutSettingsPanel()}
                             className="fixed bottom-20 right-6 z-40 inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-lg transition-colors hover:bg-stone-50 sm:hidden"
-                            aria-label="레이아웃 선택"
+                            aria-label={t("intro.layoutEdit.openSettings")}
                         >
                             <svg
                                 className="h-5 w-5"

@@ -50,6 +50,19 @@ const nextIntlTurbopackAlias =
           ? nextIntlRelativeToApp
           : `./${nextIntlRelativeToApp}`;
 
+/**
+ * `@repo/ui`는 기본적으로 `dist`를 가리킴. `src`만 수정하고 tsup을 돌리지 않으면
+ * Next가 예전 번들을 물어 다국어·코드 변경이 브라우저에 반영되지 않음.
+ * 개발·프로덕션 빌드 모두 소스 진입점을 쓰면 `transpilePackages`로 그대로 컴파일됨.
+ */
+const repoUiSrcAbs = path.join(webAppRoot, "../../packages/ui/src/index.tsx");
+const repoUiSrcRelative = path
+    .relative(webAppRoot, repoUiSrcAbs)
+    .replace(/\\/g, "/");
+const repoUiTurbopackAlias = repoUiSrcRelative.startsWith(".")
+    ? repoUiSrcRelative
+    : `./${repoUiSrcRelative}`;
+
 function serverActionBodySizeLimit() {
   const mbRaw =
     process.env.SERVER_ACTIONS_BODY_SIZE_LIMIT_MB ??
@@ -66,6 +79,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       "next-intl": nextIntlTurbopackAlias,
+      "@repo/ui": repoUiTurbopackAlias,
     },
   },
   webpack: (config) => {
@@ -73,6 +87,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias as Record<string, string | false | string[] | undefined>),
       "next-intl": nextIntlWebpackAlias,
+      "@repo/ui": repoUiSrcAbs,
     };
     return config;
   },

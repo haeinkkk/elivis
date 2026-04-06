@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import type {
     ApiProjectTasksItem,
@@ -46,9 +47,10 @@ type EnrichedTask = ApiWorkspaceTask & {
 // 날짜 포맷
 // ─────────────────────────────────────────────────────────────────────────────
 
-function fmtDate(iso: string | null | undefined): string {
+function fmtTaskDate(iso: string | null | undefined, locale: string): string {
     if (!iso) return "—";
-    return new Date(iso).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+    const tag = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US";
+    return new Date(iso).toLocaleDateString(tag, { month: "numeric", day: "numeric" });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,6 +162,7 @@ function TaskRow({
     onRequestTask,
     expandKey = 0,
     defaultExpanded = true,
+    locale,
 }: {
     task: EnrichedTask;
     subTasks: EnrichedTask[];
@@ -171,7 +174,9 @@ function TaskRow({
     /** 부모가 바꿀 때마다 defaultExpanded 값으로 리셋 */
     expandKey?: number;
     defaultExpanded?: boolean;
+    locale: string;
 }) {
+    const tList = useTranslations("projects.detail.tasksList");
     const [expanded, setExpanded] = useState(defaultExpanded);
     const prevKeyRef = useRef(expandKey);
 
@@ -268,9 +273,9 @@ function TaskRow({
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); onRequestTask(task); }}
                                 className="whitespace-nowrap rounded-md border border-stone-200 bg-white px-2 py-0.5 text-[11px] font-medium text-stone-500 transition-colors hover:border-stone-700 hover:bg-stone-700 hover:text-white"
-                                title="이 업무를 팀원에게 요청"
+                                title={tList("requestTaskTitle")}
                             >
-                                요청
+                                {tList("request")}
                             </button>
                         )}
                     </div>
@@ -278,7 +283,7 @@ function TaskRow({
 
                 {/* 시작일 */}
                 <td className="hidden py-2 pr-2 text-xs text-stone-500 md:table-cell">
-                    {fmtDate(task.startDate)}
+                    {fmtTaskDate(task.startDate, locale)}
                 </td>
 
                 {/* 종료일 */}
@@ -298,7 +303,7 @@ function TaskRow({
                                     : diff <= 3
                                     ? "text-yellow-600"
                                     : "text-stone-500";
-                            return <span className={color}>{fmtDate(task.dueDate)}</span>;
+                            return <span className={color}>{fmtTaskDate(task.dueDate, locale)}</span>;
                         })()
                     ) : (
                         <span className="text-stone-300">—</span>
@@ -320,6 +325,7 @@ function TaskRow({
                         onRequestTask={onRequestTask}
                         expandKey={expandKey}
                         defaultExpanded={defaultExpanded}
+                        locale={locale}
                     />
                 ))}
         </>
@@ -331,15 +337,16 @@ function TaskRow({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function TableHead() {
+    const t = useTranslations("projects.detail.tasksList");
     return (
         <thead>
             <tr className="border-b border-stone-200 bg-stone-50/60">
-                <th className="py-2 pl-3 pr-3 text-left text-xs font-medium text-stone-500">업무</th>
-                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">상태</th>
-                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">우선순위</th>
-                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 sm:table-cell">담당자</th>
-                <th className="hidden py-2 pr-2 text-left text-xs font-medium text-stone-500 md:table-cell">시작일</th>
-                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 md:table-cell">종료일</th>
+                <th className="py-2 pl-3 pr-3 text-left text-xs font-medium text-stone-500">{t("colTask")}</th>
+                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">{t("colStatus")}</th>
+                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">{t("colPriority")}</th>
+                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 sm:table-cell">{t("colAssignee")}</th>
+                <th className="hidden py-2 pr-2 text-left text-xs font-medium text-stone-500 md:table-cell">{t("colStart")}</th>
+                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 md:table-cell">{t("colDue")}</th>
             </tr>
         </thead>
     );
@@ -348,12 +355,6 @@ function TableHead() {
 // ─────────────────────────────────────────────────────────────────────────────
 // 팀원 구분 헤더 행
 // ─────────────────────────────────────────────────────────────────────────────
-
-function roleLabelKo(role: ProjectViewerRole | undefined): string {
-    if (role === "LEADER") return "프로젝트 리더";
-    if (role === "DEPUTY_LEADER") return "부리더";
-    return "멤버";
-}
 
 function MemberHeaderRow({
     name,
@@ -372,6 +373,7 @@ function MemberHeaderRow({
     isCollapsed: boolean;
     onToggle: () => void;
 }) {
+    const tDetail = useTranslations("projects.detail");
     return (
         <tbody>
             <tr className={isFirst ? "" : "border-t-4 border-stone-100"}>
@@ -405,7 +407,13 @@ function MemberHeaderRow({
 
                         <span className="text-sm font-semibold text-stone-800">{name}</span>
                         {role && (
-                            <span className="text-xs text-stone-400">{roleLabelKo(role)}</span>
+                            <span className="text-xs text-stone-400">
+                                {role === "LEADER"
+                                    ? tDetail("viewerRoles.LEADER")
+                                    : role === "DEPUTY_LEADER"
+                                      ? tDetail("viewerRoles.DEPUTY_LEADER")
+                                      : tDetail("viewerRoles.MEMBER")}
+                            </span>
                         )}
                         <span className="ml-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500">
                             {taskCount}
@@ -426,6 +434,7 @@ function applySortAndFilter(
     filterStatusName: string,
     filterPriorityName: string,
     sortBy: SortBy,
+    sortLocale: string,
 ): EnrichedTask[] {
     let result = tasks.filter((t) => !t.parentId);
 
@@ -438,7 +447,7 @@ function applySortAndFilter(
 
     if (sortBy !== "default") {
         result = [...result].sort((a, b) => {
-            if (sortBy === "status") return a.status.name.localeCompare(b.status.name, "ko");
+            if (sortBy === "status") return a.status.name.localeCompare(b.status.name, sortLocale);
             if (sortBy === "priority") return (b.priority?.value ?? -1) - (a.priority?.value ?? -1);
             if (sortBy === "startDate") {
                 if (!a.startDate && !b.startDate) return 0;
@@ -478,6 +487,7 @@ function MemberFilterBar({
     selectedId: string | null;
     onSelect: (id: string | null) => void;
 }) {
+    const t = useTranslations("projects.detail.tasksList");
     if (members.length <= 1) return null;
     return (
         <div className="flex items-center gap-1.5 overflow-x-auto border-b border-stone-100 bg-stone-50/40 px-4 py-2 sm:px-5">
@@ -490,7 +500,7 @@ function MemberFilterBar({
                         : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
                 }`}
             >
-                전체
+                {t("chipAll")}
             </button>
             {members.map((m) => {
                 const initial = m.name[0]?.toUpperCase() ?? "?";
@@ -546,6 +556,10 @@ export function ProjectTasksTab({
     currentUserId?: string;
     projectId?: string;
 }) {
+    const tDetail = useTranslations("projects.detail");
+    const tList = useTranslations("projects.detail.tasksList");
+    const locale = useLocale();
+    const sortLocale = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US";
     const [viewMode, setViewMode] = useState<ViewMode>("all");
     const [selectedTask, setSelectedTask] = useState<SelectedTaskInfo | null>(null);
     const [requestModalTask, setRequestModalTask] = useState<EnrichedTask | null>(null);
@@ -611,10 +625,10 @@ export function ProjectTasksTab({
         const names = new Set<string>();
         allEnrichedTasks.forEach((t) => names.add(t.status.name));
         return [
-            { value: "all", label: "모든 상태" },
+            { value: "all", label: tList("filterAllStatuses") },
             ...[...names].sort().map((n) => ({ value: n, label: n })),
         ];
-    }, [allEnrichedTasks]);
+    }, [allEnrichedTasks, tList]);
 
     const priorityOptions = useMemo(() => {
         const seen = new Map<string, number>();
@@ -622,29 +636,38 @@ export function ProjectTasksTab({
             if (t.priority) seen.set(t.priority.name, t.priority.value ?? 0);
         });
         return [
-            { value: "all", label: "모든 우선순위" },
+            { value: "all", label: tList("filterAllPriorities") },
             ...[...seen.entries()]
                 .sort((a, b) => b[1] - a[1])
                 .map(([name]) => ({ value: name, label: name })),
         ];
-    }, [allEnrichedTasks]);
+    }, [allEnrichedTasks, tList]);
 
-    const sortOptions: { value: SortBy; label: string }[] = [
-        { value: "default", label: "기본순" },
-        { value: "status", label: "상태순" },
-        { value: "priority", label: "우선순위순" },
-        { value: "startDate", label: "시작일순" },
-        { value: "dueDate", label: "종료일순" },
-    ];
+    const sortOptions: { value: SortBy; label: string }[] = useMemo(
+        () => [
+            { value: "default", label: tList("sortDefault") },
+            { value: "status", label: tList("sortStatus") },
+            { value: "priority", label: tList("sortPriority") },
+            { value: "startDate", label: tList("sortStartDate") },
+            { value: "dueDate", label: tList("sortDueDate") },
+        ],
+        [tList],
+    );
 
     // 필터/정렬 적용된 전체 top-task 목록
     const displayedTopTasks = useMemo(() => {
-        let tasks = applySortAndFilter(allEnrichedTasks, filterStatusName, filterPriorityName, sortBy);
+        let tasks = applySortAndFilter(
+            allEnrichedTasks,
+            filterStatusName,
+            filterPriorityName,
+            sortBy,
+            sortLocale,
+        );
         if (filterMemberId) {
             tasks = tasks.filter((t) => t._workspaceOwner.id === filterMemberId);
         }
         return tasks;
-    }, [allEnrichedTasks, filterStatusName, filterPriorityName, sortBy, filterMemberId]);
+    }, [allEnrichedTasks, filterStatusName, filterPriorityName, sortBy, filterMemberId, sortLocale]);
 
     // 팀원별 섹션: 워크스페이스 소유자(workspace.user) 기준으로 그룹핑
     const byMemberSections = useMemo(() => {
@@ -660,7 +683,13 @@ export function ProjectTasksTab({
                     _statuses: statuses,
                     _priorities: priorities,
                 }));
-                const filtered = applySortAndFilter(enriched, filterStatusName, filterPriorityName, sortBy);
+                const filtered = applySortAndFilter(
+                    enriched,
+                    filterStatusName,
+                    filterPriorityName,
+                    sortBy,
+                    sortLocale,
+                );
 
                 const participant = participantMap.get(workspace.user.id);
                 const displayName =
@@ -681,7 +710,15 @@ export function ProjectTasksTab({
                 if (filterMemberId && s.userId !== filterMemberId) return false;
                 return s.tasks.length > 0 || s.totalCount > 0;
             });
-    }, [projectTasksData, participants, filterStatusName, filterPriorityName, sortBy, filterMemberId]);
+    }, [
+        projectTasksData,
+        participants,
+        filterStatusName,
+        filterPriorityName,
+        sortBy,
+        filterMemberId,
+        sortLocale,
+    ]);
 
     function handleOpenPanel(task: EnrichedTask) {
         setSelectedTask({
@@ -720,7 +757,7 @@ export function ProjectTasksTab({
                                     : "text-stone-500 hover:text-stone-700"
                             }`}
                         >
-                            {v === "all" ? "전체" : "팀원별"}
+                            {v === "all" ? tList("viewAll") : tList("viewByMember")}
                         </button>
                     ))}
                 </div>
@@ -732,13 +769,13 @@ export function ProjectTasksTab({
                     value={filterStatusName}
                     options={statusOptions}
                     onChange={setFilterStatusName}
-                    label="상태 필터"
+                    label={tList("filterStatus")}
                 />
                 <FilterDropdown
                     value={filterPriorityName}
                     options={priorityOptions}
                     onChange={setFilterPriorityName}
-                    label="우선순위 필터"
+                    label={tList("filterPriority")}
                 />
 
                 <div className="h-4 w-px bg-stone-200" />
@@ -748,7 +785,7 @@ export function ProjectTasksTab({
                     value={sortBy}
                     options={sortOptions}
                     onChange={setSortBy}
-                    label="정렬"
+                    label={tList("sort")}
                 />
 
                 {hasFilter && (
@@ -765,7 +802,7 @@ export function ProjectTasksTab({
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        초기화
+                        {tList("resetFilters")}
                     </button>
                 )}
 
@@ -773,24 +810,24 @@ export function ProjectTasksTab({
                     <button
                         type="button"
                         onClick={handleExpandAll}
-                        title="하위 업무 모두 열기"
+                        title={tList("expandAllTitle")}
                         className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
                     >
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                        모두 열기
+                        {tList("expandAll")}
                     </button>
                     <button
                         type="button"
                         onClick={handleCollapseAll}
-                        title="하위 업무 모두 닫기"
+                        title={tList("collapseAllTitle")}
                         className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
                     >
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                        모두 닫기
+                        {tList("collapseAll")}
                     </button>
                 </div>
             </div>
@@ -808,15 +845,21 @@ export function ProjectTasksTab({
                     <div className="flex items-center justify-center py-20 text-center">
                         <div>
                             <p className="text-4xl">📋</p>
-                            <p className="mt-3 text-sm font-semibold text-stone-700">업무가 없습니다</p>
-                            <p className="mt-1 text-xs text-stone-400">이 프로젝트에 등록된 업무가 없어요.</p>
+                            <p className="mt-3 text-sm font-semibold text-stone-700">
+                                {tDetail("tasksEmptyTitle")}
+                            </p>
+                            <p className="mt-1 text-xs text-stone-400">
+                                {tDetail("tasksEmptySubtitle")}
+                            </p>
                         </div>
                     </div>
                 ) : displayedTopTasks.length === 0 ? (
                     <div className="flex items-center justify-center py-20 text-center">
                         <div>
                             <p className="text-4xl">🔍</p>
-                            <p className="mt-3 text-sm font-semibold text-stone-700">필터 조건에 맞는 업무가 없습니다</p>
+                            <p className="mt-3 text-sm font-semibold text-stone-700">
+                                {tDetail("tasksFilterEmpty")}
+                            </p>
                         </div>
                     </div>
                 ) : viewMode === "all" ? (
@@ -835,6 +878,7 @@ export function ProjectTasksTab({
                                     onRequestTask={setRequestModalTask}
                                     expandKey={expandKey}
                                     defaultExpanded={globalDefaultExpanded}
+                                    locale={locale}
                                 />
                             ))}
                         </tbody>
@@ -871,12 +915,13 @@ export function ProjectTasksTab({
                                                     onRequestTask={setRequestModalTask}
                                                     expandKey={expandKey}
                                                     defaultExpanded={globalDefaultExpanded}
+                                                    locale={locale}
                                                 />
                                             ))}
                                             {section.tasks.length === 0 && (
                                                 <tr>
                                                     <td colSpan={6} className="py-4 text-center text-xs text-stone-400">
-                                                        필터 조건에 맞는 업무가 없습니다
+                                                        {tDetail("tasksFilterEmpty")}
                                                     </td>
                                                 </tr>
                                             )}

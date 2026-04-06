@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { ApiTaskRequest } from "../types/workspace-api";
 import type { WorkspaceTaskRequestsActions } from "../types/workspace-detail-mutations";
@@ -15,6 +16,8 @@ export function RequestsTab({
     onAccepted: () => void;
     taskRequests: WorkspaceTaskRequestsActions;
 }) {
+    const t = useTranslations("workspace.requests");
+    const locale = useLocale();
     const router = useRouter();
     const [requests, setRequests] = useState<ApiTaskRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -24,12 +27,13 @@ export function RequestsTab({
 
     useEffect(() => {
         setLoading(true);
-        taskRequests.listTaskRequests(workspaceId)
+        taskRequests
+            .listTaskRequests(workspaceId)
             .then((res) => {
                 if (res.ok) setRequests(res.requests);
                 else setError(res.message);
             })
-            .catch(() => setError("목록을 불러오는데 실패했습니다."))
+            .catch(() => setError(t("listLoadError")))
             .finally(() => setLoading(false));
     }, [workspaceId]);
 
@@ -61,7 +65,8 @@ export function RequestsTab({
     }
 
     function formatDate(iso: string) {
-        return new Date(iso).toLocaleDateString("ko-KR", {
+        const tag = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US";
+        return new Date(iso).toLocaleDateString(tag, {
             month: "short",
             day: "numeric",
             hour: "2-digit",
@@ -91,11 +96,11 @@ export function RequestsTab({
             <div className="border-b border-stone-200 bg-white px-5 py-3">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-sm font-semibold text-stone-800">요청업무</h2>
-                        <p className="text-xs text-stone-400">팀원에게서 받은 대기 중인 요청이에요</p>
+                        <h2 className="text-sm font-semibold text-stone-800">{t("headerTitle")}</h2>
+                        <p className="text-xs text-stone-400">{t("headerSubtitle")}</p>
                     </div>
                     <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
-                        {requests.length}건
+                        {t("countBadge", { count: requests.length })}
                     </span>
                 </div>
             </div>
@@ -110,15 +115,20 @@ export function RequestsTab({
             {requests.length === 0 ? (
                 <div className="flex flex-1 items-center justify-center py-20 text-center">
                     <div>
-                        <p className="text-3xl" aria-hidden>📬</p>
-                        <p className="mt-3 text-sm font-semibold text-stone-700">받은 요청이 없습니다</p>
-                        <p className="mt-1 text-xs text-stone-400">팀원의 업무 요청이 여기에 표시됩니다</p>
+                        <p className="text-3xl" aria-hidden>
+                            📬
+                        </p>
+                        <p className="mt-3 text-sm font-semibold text-stone-700">
+                            {t("emptyTitle")}
+                        </p>
+                        <p className="mt-1 text-xs text-stone-400">{t("emptyDesc")}</p>
                     </div>
                 </div>
             ) : (
                 <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 pb-5 pt-3">
                     {requests.map((req) => {
-                        const senderName = req.fromUser.name?.trim() || req.fromUser.email.split("@")[0];
+                        const senderName =
+                            req.fromUser.name?.trim() || req.fromUser.email.split("@")[0];
                         const isProcessing = processingId === req.id;
 
                         return (
@@ -130,7 +140,7 @@ export function RequestsTab({
                                     {/* 요청자 */}
                                     <div className="min-w-0 flex-1">
                                         <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
-                                            요청자
+                                            {t("senderLabel")}
                                         </p>
                                         <div className="mt-2 flex items-start gap-2.5">
                                             {req.fromUser.avatarUrl ? (
@@ -173,7 +183,7 @@ export function RequestsTab({
                                             disabled={isProcessing}
                                             className="min-w-[88px] rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-50"
                                         >
-                                            {isProcessing ? "처리 중…" : "수락"}
+                                            {isProcessing ? t("processing") : t("accept")}
                                         </button>
                                         <button
                                             type="button"
@@ -181,19 +191,21 @@ export function RequestsTab({
                                             disabled={isProcessing}
                                             className="min-w-[88px] rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50 disabled:opacity-50"
                                         >
-                                            {isProcessing ? "처리 중…" : "거절"}
+                                            {isProcessing ? t("processing") : t("reject")}
                                         </button>
                                     </div>
                                 </div>
 
                                 <div className="mt-4 border-t border-stone-100 pt-4">
                                     {/* 제목 */}
-                                    <p className="text-sm font-semibold text-stone-800">{req.title}</p>
+                                    <p className="text-sm font-semibold text-stone-800">
+                                        {req.title}
+                                    </p>
 
                                     {/* 긴급 뱃지 */}
                                     {req.isUrgent && (
                                         <span className="mt-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600">
-                                            긴급
+                                            {t("urgent")}
                                         </span>
                                     )}
 

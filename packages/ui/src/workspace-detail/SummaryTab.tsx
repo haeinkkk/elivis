@@ -50,8 +50,8 @@ export function SummaryTab({
                 ))}
             </div>
 
-            {/* 서브탭 콘텐츠 */}
-            <div className="min-h-0 flex-1">
+            {/* 서브탭 콘텐츠 — 빈 상태 세로 가운데 정렬을 위해 flex 컬럼 유지 */}
+            <div className="flex min-h-0 flex-1 flex-col">
                 {subTab === "timeline" && (
                     <TimelineTab
                         tasks={tasks}

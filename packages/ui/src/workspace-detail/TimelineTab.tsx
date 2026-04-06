@@ -8,6 +8,23 @@ import type { WorkspaceDetailMyWorkMutations } from "../types/workspace-detail-m
 import { SummaryTimelineTaskCard } from "./SummaryTimelineTaskCard";
 import { tagColorOf } from "../utils/tag-colors";
 
+function AllClearIllustration() {
+    return (
+        <span
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400"
+            aria-hidden
+        >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+            </svg>
+        </span>
+    );
+}
+
 export function TimelineTab({
     tasks,
     statuses,
@@ -69,11 +86,17 @@ export function TimelineTab({
 
     if (groups.length === 0) {
         return (
-            <div className="flex flex-1 items-center justify-center">
-                <div className="text-center">
-                    <p className="text-3xl">🎉</p>
-                    <p className="mt-3 text-sm font-semibold text-stone-700">{t("timeline.allDone")}</p>
-                    <p className="mt-1 text-xs text-stone-400">{t("timeline.allDoneDesc")}</p>
+            <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-1 items-center justify-center px-4 py-20">
+                    <div className="mx-auto w-full max-w-md text-center">
+                        <div className="flex justify-center" aria-hidden>
+                            <AllClearIllustration />
+                        </div>
+                        <p className="mt-3 text-center text-sm font-semibold text-stone-700">
+                            {t("timeline.allDone")}
+                        </p>
+                        <p className="mt-1 text-center text-xs text-stone-400">{t("timeline.allDoneDesc")}</p>
+                    </div>
                 </div>
             </div>
         );
@@ -97,45 +120,47 @@ export function TimelineTab({
     }
 
     return (
-        <div className="flex h-full min-h-0 overflow-y-auto">
-            <div className="flex w-full flex-col">
-                {groups.map((group, gi) => (
-                    <div key={group.key} className="flex min-h-0">
-                        {/* 라벨 */}
-                        <div className="flex w-36 shrink-0 flex-col items-end pr-5 pt-5">
-                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}>
-                                {group.label}
-                            </span>
-                            <span className="mt-1 text-[10px] text-stone-400">{t("timeline.items", { count: group.items.length })}</span>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex h-full min-h-0 flex-1 overflow-y-auto">
+                <div className="flex w-full flex-col">
+                    {groups.map((group, gi) => (
+                        <div key={group.key} className="flex min-h-0">
+                            {/* 라벨 */}
+                            <div className="flex w-36 shrink-0 flex-col items-end pr-5 pt-5">
+                                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}>
+                                    {group.label}
+                                </span>
+                                <span className="mt-1 text-[10px] text-stone-400">{t("timeline.items", { count: group.items.length })}</span>
+                            </div>
+                            {/* 타임라인 선 */}
+                            <div className="relative flex w-8 shrink-0 flex-col items-center">
+                                <div className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`} />
+                                {gi < groups.length - 1 && <div className="mt-1 w-0.5 flex-1 bg-stone-200" />}
+                            </div>
+                            {/* 업무 카드 */}
+                            <div className="flex-1 space-y-2 pb-6 pl-4 pr-5 pt-4">
+                                {group.items.map((task) => {
+                                    const statusColor = tagColorOf(task.status.color);
+                                    const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
+                                    return (
+                                        <SummaryTimelineTaskCard
+                                            key={task.id}
+                                            task={task}
+                                            workspaceId={workspaceId}
+                                            updateWorkspaceTask={updateWorkspaceTask}
+                                            onTaskUpdate={onTaskUpdate}
+                                            onSelectTask={onSelectTask}
+                                            statusColor={statusColor}
+                                            priorityColor={priorityColor}
+                                            dueLabel={dueDateLabel(task)}
+                                            dueClass={dueDateColor(task)}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
-                        {/* 타임라인 선 */}
-                        <div className="relative flex w-8 shrink-0 flex-col items-center">
-                            <div className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`} />
-                            {gi < groups.length - 1 && <div className="mt-1 w-0.5 flex-1 bg-stone-200" />}
-                        </div>
-                        {/* 업무 카드 */}
-                        <div className="flex-1 space-y-2 pb-6 pl-4 pr-5 pt-4">
-                            {group.items.map((task) => {
-                                const statusColor = tagColorOf(task.status.color);
-                                const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
-                                return (
-                                    <SummaryTimelineTaskCard
-                                        key={task.id}
-                                        task={task}
-                                        workspaceId={workspaceId}
-                                        updateWorkspaceTask={updateWorkspaceTask}
-                                        onTaskUpdate={onTaskUpdate}
-                                        onSelectTask={onSelectTask}
-                                        statusColor={statusColor}
-                                        priorityColor={priorityColor}
-                                        dueLabel={dueDateLabel(task)}
-                                        dueClass={dueDateColor(task)}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

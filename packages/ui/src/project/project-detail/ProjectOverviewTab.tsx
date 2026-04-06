@@ -1,11 +1,11 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import type { ApiProjectTasksItem } from "../../types/workspace-api";
 import type { ProjectDetailModel } from "../../types/project-detail";
 import { formatTaskTitleForList } from "../../utils/task-title-display";
 import { ProjectDonutChart } from "./ProjectDonutChart";
 import {
-    formatProjectDetailDateKo,
     getDaysSinceStart,
     getProgressPercent,
     getRemainingDays,
@@ -13,6 +13,14 @@ import {
     isInProgressStatus,
     statusCssColor,
 } from "./project-detail-helpers";
+
+function formatOverviewDate(iso: string | undefined, locale: string): string {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    const tag = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US";
+    return d.toLocaleDateString(tag, { year: "numeric", month: "long", day: "numeric" });
+}
 
 export function ProjectOverviewTab({
     project,
@@ -23,6 +31,9 @@ export function ProjectOverviewTab({
     projectTasksData: ApiProjectTasksItem[];
     onSeeMoreTasks?: () => void;
 }) {
+    const t = useTranslations("projects.detail");
+    const locale = useLocale();
+
     if (!project) {
         return (
             <div className="flex min-h-[200px] items-center justify-center">
@@ -121,7 +132,7 @@ export function ProjectOverviewTab({
                 {/* 상단 헤더 바 */}
                 <div className="flex items-center justify-between border-b border-stone-100 px-6 py-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
-                        프로젝트 기간
+                        {t("overview.periodHeader")}
                     </span>
                     <span
                         className={`rounded-full px-3 py-0.5 text-xs font-bold tracking-wide ${dDayColor}`}
@@ -136,10 +147,10 @@ export function ProjectOverviewTab({
                         {/* 시작일 */}
                         <div className="min-w-0">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
-                                시작일
+                                {t("overview.startLabel")}
                             </p>
                             <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
-                                {formatProjectDetailDateKo(project.startDate)}
+                                {formatOverviewDate(project.startDate, locale)}
                             </p>
                         </div>
 
@@ -159,7 +170,7 @@ export function ProjectOverviewTab({
                                     </>
                                 ) : (
                                     <span className="text-xl font-semibold text-stone-400">
-                                        종료일 없음
+                                        {t("overview.noEndMiddle")}
                                     </span>
                                 )
                             ) : remainingDays > 0 ? (
@@ -170,13 +181,13 @@ export function ProjectOverviewTab({
                                         {remainingDays}
                                     </span>
                                     <span className="text-sm font-semibold text-stone-500">
-                                        일 남았어요
+                                        {t("overview.daysLeftSuffix")}
                                     </span>
                                 </>
                             ) : remainingDays === 0 ? (
                                 <>
                                     <span className="text-3xl font-black text-red-600 sm:text-4xl">
-                                        오늘 마감
+                                        {t("overview.dueToday")}
                                     </span>
                                 </>
                             ) : (
@@ -187,7 +198,7 @@ export function ProjectOverviewTab({
                                         {Math.abs(remainingDays)}
                                     </span>
                                     <span className="text-sm font-semibold text-red-500">
-                                        일 초과됐어요
+                                        {t("overview.daysOverdueSuffix")}
                                     </span>
                                 </>
                             )}
@@ -196,10 +207,10 @@ export function ProjectOverviewTab({
                         {/* 종료일 */}
                         <div className="min-w-0 text-right">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
-                                종료일
+                                {t("overview.endLabel")}
                             </p>
                             <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
-                                {project.noEndDate ? "∞ 무기한" : formatProjectDetailDateKo(project.endDate)}
+                                {project.noEndDate ? t("overview.noEndDisplay") : formatOverviewDate(project.endDate, locale)}
                             </p>
                         </div>
                     </div>
@@ -227,11 +238,11 @@ export function ProjectOverviewTab({
                                 />
                             </div>
                             <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-400">
-                                <span>시작</span>
+                                <span>{t("overview.timelineStart")}</span>
                                 <span className="font-semibold text-stone-600">
-                                    {progressPercent}% 경과
+                                    {t("overview.progressElapsed", { pct: progressPercent })}
                                 </span>
-                                <span>종료</span>
+                                <span>{t("overview.timelineEnd")}</span>
                             </div>
                         </div>
                     )}
@@ -245,33 +256,33 @@ export function ProjectOverviewTab({
             >
                 {[
                     {
-                        label: "전체 업무",
+                        label: t("overview.statTotal"),
                         value: totalTasks,
-                        unit: "개",
+                        unit: t("overview.unit"),
                         color: "text-stone-800",
                         bg: "bg-stone-50",
                         icon: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2",
                     },
                     {
-                        label: "완료",
+                        label: t("overview.statDone"),
                         value: completedTasks.length,
-                        unit: "개",
+                        unit: t("overview.unit"),
                         color: "text-green-600",
                         bg: "bg-green-50",
                         icon: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     },
                     {
-                        label: "진행중",
+                        label: t("overview.statInProgress"),
                         value: inProgressTasks.length,
-                        unit: "개",
+                        unit: t("overview.unit"),
                         color: "text-blue-600",
                         bg: "bg-blue-50",
                         icon: "M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z",
                     },
                     {
-                        label: "기한 초과",
+                        label: t("overview.statOverdue"),
                         value: overdueTasks.length,
-                        unit: "개",
+                        unit: t("overview.unit"),
                         color: overdueTasks.length > 0 ? "text-red-600" : "text-stone-400",
                         bg: overdueTasks.length > 0 ? "bg-red-50" : "bg-stone-50",
                         icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z",
@@ -312,11 +323,11 @@ export function ProjectOverviewTab({
                     className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.1s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">업무 완료율</h3>
+                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.donutTitle")}</h3>
                     <p className="mt-0.5 text-xs text-stone-400">
                         {totalTasks > 0
-                            ? `전체 ${totalTasks}개 중 ${completedTasks.length}개 완료`
-                            : "등록된 업무가 없어요"}
+                            ? t("overview.donutSubDone", { total: totalTasks, done: completedTasks.length })
+                            : t("overview.donutSubEmpty")}
                     </p>
                     <div className="mt-5 flex items-center gap-6">
                         <div className="relative shrink-0">
@@ -332,14 +343,14 @@ export function ProjectOverviewTab({
                         </div>
                         <div className="min-w-0 flex-1 space-y-2.5">
                             {[
-                                { label: "완료", count: completedTasks.length, color: "#22c55e" },
+                                { label: t("overview.legendDone"), count: completedTasks.length, color: "#22c55e" },
                                 {
-                                    label: "진행중",
+                                    label: t("overview.legendInProgress"),
                                     count: inProgressTasks.length,
                                     color: "#3b82f6",
                                 },
                                 {
-                                    label: "기타",
+                                    label: t("overview.legendOther"),
                                     count:
                                         totalTasks - completedTasks.length - inProgressTasks.length,
                                     color: "#d1d5db",
@@ -367,10 +378,10 @@ export function ProjectOverviewTab({
                     className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.15s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">업무 상태 분포</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">상태별 업무 개수</p>
+                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.statusDistTitle")}</h3>
+                    <p className="mt-0.5 text-xs text-stone-400">{t("overview.statusDistSub")}</p>
                     {statusCounts.length === 0 ? (
-                        <p className="mt-6 text-center text-sm text-stone-400">상태 정보 없음</p>
+                        <p className="mt-6 text-center text-sm text-stone-400">{t("overview.statusEmpty")}</p>
                     ) : (
                         <div className="mt-5 space-y-3">
                             {statusCounts.map(({ id, name, count, color }) => (
@@ -404,11 +415,11 @@ export function ProjectOverviewTab({
                     className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.2s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">진행중인 업무</h3>
+                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.inProgressTitle")}</h3>
                     <p className="mt-0.5 text-xs text-stone-400">
                         {inProgressTasks.length > 0
-                            ? `총 ${inProgressTasks.length}개 진행 중`
-                            : "진행 중인 업무가 없어요"}
+                            ? t("overview.inProgressSub", { count: inProgressTasks.length })
+                            : t("overview.inProgressSubEmpty")}
                     </p>
                     {inProgressTasks.length === 0 ? (
                         <div className="mt-6 flex flex-col items-center justify-center gap-2 py-6 text-stone-300">
@@ -425,7 +436,7 @@ export function ProjectOverviewTab({
                                     d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                                 />
                             </svg>
-                            <span className="text-xs">모두 완료됐어요!</span>
+                            <span className="text-xs">{t("overview.inProgressAllDone")}</span>
                         </div>
                     ) : (
                         <ul className="mt-3 space-y-1.5">
@@ -456,7 +467,7 @@ export function ProjectOverviewTab({
                             onClick={onSeeMoreTasks}
                             className="mt-3 w-full rounded-lg border border-stone-200 bg-white py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-50 hover:text-stone-700"
                         >
-                            +{inProgressTasks.length - 6}개 더보기
+                            {t("overview.seeMore", { count: inProgressTasks.length - 6 })}
                         </button>
                     )}
                 </div>
@@ -469,8 +480,8 @@ export function ProjectOverviewTab({
             >
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm font-semibold text-stone-700">최근 업무</h3>
-                        <p className="mt-0.5 text-xs text-stone-400">최근 수정된 업무 순이에요</p>
+                        <h3 className="text-sm font-semibold text-stone-700">{t("overview.recentTitle")}</h3>
+                        <p className="mt-0.5 text-xs text-stone-400">{t("overview.recentSub")}</p>
                     </div>
                     {onSeeMoreTasks && (
                         <button
@@ -478,14 +489,14 @@ export function ProjectOverviewTab({
                             onClick={onSeeMoreTasks}
                             className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
                         >
-                            전체보기
+                            {t("overview.seeAll")}
                         </button>
                     )}
                 </div>
 
                 {recentTasks.length === 0 ? (
                     <div className="mt-6 py-8 text-center text-sm text-stone-400">
-                        등록된 업무가 없어요
+                        {t("overview.recentEmpty")}
                     </div>
                 ) : (
                     <ul className="mt-4 divide-y divide-stone-50">
@@ -534,10 +545,13 @@ export function ProjectOverviewTab({
                                     {/* 마감일 */}
                                     {task.dueDate && (
                                         <span className="hidden shrink-0 text-xs text-stone-400 md:inline">
-                                            {new Date(task.dueDate).toLocaleDateString("ko-KR", {
-                                                month: "short",
-                                                day: "numeric",
-                                            })}
+                                            {new Date(task.dueDate).toLocaleDateString(
+                                                locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US",
+                                                {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                },
+                                            )}
                                         </span>
                                     )}
                                 </li>

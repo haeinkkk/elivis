@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 import { addProjectFavoriteAction, removeProjectFavoriteAction } from "@/app/actions/projects";
 import { createTaskRequestAction } from "@/app/actions/taskRequests";
@@ -19,51 +20,26 @@ import {
     ProjectSettingsSecurityTab,
     ProjectTasksTab,
     UserAvatar,
-    projectDetailRoleLabelKo,
     type ApiProjectTasksItem,
 } from "@repo/ui";
 
 type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "performance" | "settings";
 
-const TABS: { id: ProjectTab; label: string }[] = [
-    { id: "overview", label: "대시보드" },
-    { id: "list", label: "업무" },
-    { id: "calendar", label: "캘린더" },
-    { id: "wiki", label: "위키" },
-    { id: "performance", label: "실적현황" },
-    { id: "settings", label: "설정" },
-];
-
 /** 팀 상세(Settings)와 동일: 모바일 가로 스크롤 / lg 세로 사이드바 */
 type ProjectSettingsSubTab = "project" | "security";
 
-const PROJECT_SETTINGS_SUB_TABS: { id: ProjectSettingsSubTab; label: string; icon: string }[] = [
-    {
-        id: "project",
-        label: "프로젝트",
-        icon: "M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z",
-    },
-    {
-        id: "security",
-        label: "보안",
-        icon: "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z",
-    },
-];
+const PROJECT_SETTINGS_ICONS: Record<ProjectSettingsSubTab, string> = {
+    project:
+        "M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z",
+    security:
+        "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z",
+};
 
-/** 위키 탭 데모 — 추후 DB 필드로 교체 */
-const DEMO_WIKI_MARKDOWN = `## 가이드라인 (데모)
-
-- 회의록
-- 마크다운 문서
-- 프로젝트 노트
-
-**굵게**, *기울임*, \`코드\`, [예시 링크](https://example.com)
-
-| 항목 | 담당 |
-| --- | --- |
-| API | 백엔드 |
-| UI | 프론트 |
-`;
+function projectViewerRoleLabel(role: string | undefined, tp: (key: string) => string): string {
+    if (role === "LEADER") return tp("viewerRoles.LEADER");
+    if (role === "DEPUTY_LEADER") return tp("viewerRoles.DEPUTY_LEADER");
+    return tp("viewerRoles.MEMBER");
+}
 
 export function ProjectDetailPageClient({
     initialProject,
@@ -76,6 +52,7 @@ export function ProjectDetailPageClient({
     projectTasksData?: ApiProjectTasksItem[];
     currentUserId?: string;
 }) {
+    const tp = useTranslations("projects.detail");
     const params = useParams();
     const router = useRouter();
     const id = typeof params.id === "string" ? params.id : "";
@@ -84,12 +61,35 @@ export function ProjectDetailPageClient({
     const [project, setProject] = useState<Project>(initialProject);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
 
+    const mainTabs = useMemo(
+        () =>
+            [
+                { id: "overview" as const, label: tp("tabs.overview") },
+                { id: "list" as const, label: tp("tabs.list") },
+                { id: "calendar" as const, label: tp("tabs.calendar") },
+                { id: "wiki" as const, label: tp("tabs.wiki") },
+                { id: "performance" as const, label: tp("tabs.performance") },
+                { id: "settings" as const, label: tp("tabs.settings") },
+            ] satisfies { id: ProjectTab; label: string }[],
+        [tp],
+    );
+
     const visibleTabs = useMemo(() => {
         if (project.projectType === "team" && project.viewerRole !== "LEADER") {
-            return TABS.filter((t) => t.id !== "performance" && t.id !== "settings");
+            return mainTabs.filter((t) => t.id !== "performance" && t.id !== "settings");
         }
-        return TABS;
-    }, [project]);
+        return mainTabs;
+    }, [project, mainTabs]);
+
+    const settingsSubTabs = useMemo(
+        () =>
+            (["project", "security"] as const).map((sid) => ({
+                id: sid,
+                label: tp(`settingsSub.${sid}`),
+                icon: PROJECT_SETTINGS_ICONS[sid],
+            })),
+        [tp],
+    );
 
     useEffect(() => {
         if (project.projectType === "team" && project.viewerRole !== "LEADER") {
@@ -108,7 +108,7 @@ export function ProjectDetailPageClient({
     if (!id) {
         return (
             <div className="flex min-h-full items-center justify-center p-8">
-                <p className="text-stone-500">프로젝트 ID가 없습니다.</p>
+                <p className="text-stone-500">{tp("noProjectId")}</p>
             </div>
         );
     }
@@ -122,7 +122,7 @@ export function ProjectDetailPageClient({
                         type="button"
                         onClick={() => router.push("/projects")}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
-                        aria-label="프로젝트 목록으로 돌아가기"
+                        aria-label={tp("backToListAria")}
                     >
                         <svg
                             className="h-5 w-5"
@@ -152,7 +152,7 @@ export function ProjectDetailPageClient({
                             />
                         </div>
                         <p className="truncate text-xs text-stone-500 sm:text-sm">
-                            {project.description || "프로젝트 상세"}
+                            {project.description || tp("defaultDescription")}
                         </p>
                     </div>
                     <>
@@ -164,7 +164,7 @@ export function ProjectDetailPageClient({
                                 aria-expanded={membersModalOpen}
                             >
                                 <span className="whitespace-nowrap text-sm font-medium text-stone-600">
-                                    멤버 총 {project.participants.length}명
+                                    {tp("membersTotal", { count: project.participants.length })}
                                 </span>
                                 {project.participants.length > 0 && (
                                     <ProjectParticipantAvatarStack participants={project.participants} size="md" />
@@ -189,10 +189,10 @@ export function ProjectDetailPageClient({
                                                 id="project-members-modal-title"
                                                 className="text-base font-semibold text-stone-800"
                                             >
-                                                멤버
+                                                {tp("membersModalTitle")}
                                             </h2>
                                             <p className="mt-0.5 text-sm text-stone-500">
-                                                총 {project.participants.length}명
+                                                {tp("membersModalSubtitle", { count: project.participants.length })}
                                             </p>
                                         </div>
                                         <ul className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
@@ -217,7 +217,7 @@ export function ProjectDetailPageClient({
                                                         </p>
                                                     </div>
                                                     <span className="shrink-0 text-xs text-stone-500">
-                                                        {projectDetailRoleLabelKo(user.role)}
+                                                        {projectViewerRoleLabel(user.role, tp)}
                                                     </span>
                                                 </li>
                                             ))}
@@ -228,7 +228,7 @@ export function ProjectDetailPageClient({
                                                 onClick={() => setMembersModalOpen(false)}
                                                 className="w-full rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
                                             >
-                                                닫기
+                                                {tp("membersModalClose")}
                                             </button>
                                         </div>
                                     </div>
@@ -242,7 +242,7 @@ export function ProjectDetailPageClient({
             <div className="border-b border-stone-200 bg-white/95">
                 <nav
                     className="flex gap-0 overflow-x-auto px-4 sm:px-5 md:px-6"
-                    aria-label="프로젝트 서브메뉴"
+                    aria-label={tp("ariaProjectSubNav")}
                 >
                     {visibleTabs.map((tab) => (
                         <button
@@ -307,17 +307,13 @@ export function ProjectDetailPageClient({
                 {activeTab === "wiki" && (
                     <div className="rounded-xl border border-stone-200 bg-white p-6">
                         <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
-                            📓 위키
+                            {tp("wikiDemoTitle")}
                         </h2>
-                        <p className="mt-1 text-sm text-stone-500">
-                            가이드라인·회의록을 마크다운으로 작성합니다. (렌더 데모)
-                        </p>
+                        <p className="mt-1 text-sm text-stone-500">{tp("wikiDemoLead")}</p>
                         <div className="mt-6 rounded-lg border border-stone-100 bg-stone-50/50 p-5 sm:p-6">
-                            <MarkdownContent markdown={DEMO_WIKI_MARKDOWN} />
+                            <MarkdownContent markdown={tp("wikiDemoMarkdown")} />
                         </div>
-                        <p className="mt-4 text-xs text-stone-400">
-                            (데모) 저장·에디터는 추후 API·필드 연동
-                        </p>
+                        <p className="mt-4 text-xs text-stone-400">{tp("wikiDemoFootnote")}</p>
                     </div>
                 )}
 
@@ -326,9 +322,9 @@ export function ProjectDetailPageClient({
                     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                         <nav
                             className="flex shrink-0 gap-1 overflow-x-auto pb-1 lg:w-44 lg:flex-col lg:overflow-x-visible lg:pb-0"
-                            aria-label="프로젝트 설정 하위 탭"
+                            aria-label={tp("ariaSettingsSubNav")}
                         >
-                            {PROJECT_SETTINGS_SUB_TABS.map(({ id, label, icon }) => {
+                            {settingsSubTabs.map(({ id, label, icon }) => {
                                 const isActive = settingsSubTab === id;
                                 return (
                                     <button

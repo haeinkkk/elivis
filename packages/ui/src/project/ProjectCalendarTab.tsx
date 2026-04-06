@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type {
     ApiProjectTasksItem,
     ApiWorkspacePriority,
@@ -211,6 +212,7 @@ function MemberFilterChips({
     selectedId: string | null;
     onSelect: (id: string | null) => void;
 }) {
+    const tCal = useTranslations("projects.detail.calendar");
     return (
         <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-b border-stone-100 bg-stone-50/60 sm:px-5">
             <button
@@ -222,7 +224,7 @@ function MemberFilterChips({
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                 }`}
             >
-                전체
+                {tCal("filterAll")}
             </button>
             {members.map(m => {
                 const initial = (m.name ?? m.email)[0].toUpperCase();
@@ -254,8 +256,11 @@ function MemberFilterChips({
 // ProjectCalendarTab
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DOW_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
-const MONTH_LABELS = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+function calendarLocaleTag(locale: string): string {
+    if (locale === "ko") return "ko-KR";
+    if (locale === "ja") return "ja-JP";
+    return "en-US";
+}
 
 export default function ProjectCalendarTab({
     projectTasksData,
@@ -264,6 +269,18 @@ export default function ProjectCalendarTab({
     projectTasksData: ApiProjectTasksItem[];
     taskPanelActions: WorkspaceTaskDetailActions;
 }) {
+    const locale = useLocale();
+    const tCal = useTranslations("projects.detail.calendar");
+    const localeTag = calendarLocaleTag(locale);
+
+    const dowLabels = useMemo(
+        () =>
+            Array.from({ length: 7 }, (_, i) =>
+                new Date(2024, 0, 7 + i).toLocaleDateString(localeTag, { weekday: "short" }),
+            ),
+        [localeTag],
+    );
+
     // 멤버별 색상 매핑 (고정)
     const memberColors = useMemo<Record<string, string>>(() => {
         const map: Record<string, string> = {};
@@ -316,6 +333,10 @@ export default function ProjectCalendarTab({
 
     const year  = viewDate.getFullYear();
     const month = viewDate.getMonth();
+    const monthYearLabel = useMemo(
+        () => new Intl.DateTimeFormat(localeTag, { year: "numeric", month: "long" }).format(viewDate),
+        [viewDate, localeTag],
+    );
     const weeks = getCalendarWeeks(year, month);
     const events = filteredTasks.map(getEventRange).filter(Boolean) as CalendarEvent[];
 
@@ -338,7 +359,7 @@ export default function ProjectCalendarTab({
                         </svg>
                     </button>
                     <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800">
-                        {year}년 {MONTH_LABELS[month]}
+                        {monthYearLabel}
                     </span>
                     <button
                         type="button"
@@ -354,7 +375,7 @@ export default function ProjectCalendarTab({
                 <div className="flex items-center gap-2">
                     {tasksWithoutDate > 0 && (
                         <span className="hidden text-xs text-stone-400 sm:inline">
-                            날짜 미설정 업무 {tasksWithoutDate}개 (숨겨짐)
+                            {tCal("noDateHidden", { count: tasksWithoutDate })}
                         </span>
                     )}
                     <button
@@ -362,7 +383,7 @@ export default function ProjectCalendarTab({
                         onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
                         className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50"
                     >
-                        오늘
+                        {tCal("today")}
                     </button>
                 </div>
             </div>
@@ -379,9 +400,9 @@ export default function ProjectCalendarTab({
 
             {/* ── 요일 헤더 ─────────────────────────────────────────── */}
             <div className="grid grid-cols-7 border-b border-stone-200 bg-stone-50/60">
-                {DOW_LABELS.map((d, i) => (
+                {dowLabels.map((d, i) => (
                     <div
-                        key={d}
+                        key={i}
                         className={`py-2 text-center text-xs font-medium ${
                             i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-stone-500"
                         }`}

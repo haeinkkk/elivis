@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -49,6 +50,7 @@ export function TeamIntroRichEditor({
     onChangeMarkdown,
     disabled = false,
 }: TeamIntroRichEditorProps) {
+    const t = useTranslations("teams.detail.intro.richEditor");
     const editor = useEditor(
         {
             immediatelyRender: false,
@@ -63,7 +65,7 @@ export function TeamIntroRichEditor({
                     },
                 }),
                 Placeholder.configure({
-                    placeholder: "내용을 입력하세요…",
+                    placeholder: t("placeholder"),
                 }),
             ],
             content: markdownToHtml(initialMarkdown),
@@ -80,7 +82,7 @@ export function TeamIntroRichEditor({
         },
         // 부모에서 `key`로 리셋 — 마운트 시점의 initialMarkdown만 반영
         // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-        [],
+        [t],
     );
 
     if (!editor) {
@@ -96,7 +98,7 @@ export function TeamIntroRichEditor({
 
     function setLink() {
         const prev = (e.getAttributes("link").href as string) ?? "";
-        const url = window.prompt("링크 URL", prev);
+        const url = window.prompt(t("linkPromptTitle"), prev);
         if (url === null) return;
         if (url.trim() === "") {
             e.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -109,7 +111,7 @@ export function TeamIntroRichEditor({
         <div className="flex min-h-0 flex-col gap-2">
             <div className="flex flex-wrap items-center gap-0.5 rounded-lg border border-stone-200 bg-stone-50/90 p-1">
                 <ToolbarBtn
-                    title="굵게"
+                    title={t("boldTitle")}
                     active={e.isActive("bold")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleBold().run()}
@@ -117,7 +119,7 @@ export function TeamIntroRichEditor({
                     <span className="font-bold">B</span>
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="기울임"
+                    title={t("italicTitle")}
                     active={e.isActive("italic")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleItalic().run()}
@@ -125,7 +127,7 @@ export function TeamIntroRichEditor({
                     <span className="italic">I</span>
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="밑줄"
+                    title={t("underlineTitle")}
                     active={e.isActive("underline")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleUnderline().run()}
@@ -134,7 +136,7 @@ export function TeamIntroRichEditor({
                 </ToolbarBtn>
                 <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
                 <ToolbarBtn
-                    title="제목 2"
+                    title={t("h2Title")}
                     active={e.isActive("heading", { level: 2 })}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -142,7 +144,7 @@ export function TeamIntroRichEditor({
                     H2
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="제목 3"
+                    title={t("h3Title")}
                     active={e.isActive("heading", { level: 3 })}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleHeading({ level: 3 }).run()}
@@ -151,35 +153,35 @@ export function TeamIntroRichEditor({
                 </ToolbarBtn>
                 <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
                 <ToolbarBtn
-                    title="글머리 목록"
+                    title={t("bulletListTitle")}
                     active={e.isActive("bulletList")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleBulletList().run()}
                 >
-                    • 목록
+                    {t("bulletListLabel")}
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="번호 목록"
+                    title={t("orderedListTitle")}
                     active={e.isActive("orderedList")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleOrderedList().run()}
                 >
-                    1. 목록
+                    {t("orderedListLabel")}
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="인용"
+                    title={t("blockquoteTitle")}
                     active={e.isActive("blockquote")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().toggleBlockquote().run()}
                 >
-                    인용
+                    {t("blockquoteLabel")}
                 </ToolbarBtn>
                 <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
-                <ToolbarBtn title="링크" active={e.isActive("link")} disabled={disabled} onClick={setLink}>
-                    링크
+                <ToolbarBtn title={t("linkTitle")} active={e.isActive("link")} disabled={disabled} onClick={setLink}>
+                    {t("linkLabel")}
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="가로줄"
+                    title={t("hrTitle")}
                     disabled={disabled}
                     onClick={() => e.chain().focus().setHorizontalRule().run()}
                 >
@@ -187,14 +189,14 @@ export function TeamIntroRichEditor({
                 </ToolbarBtn>
                 <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
                 <ToolbarBtn
-                    title="실행 취소"
+                    title={t("undoTitle")}
                     disabled={disabled || !e.can().undo()}
                     onClick={() => e.chain().focus().undo().run()}
                 >
                     ↺
                 </ToolbarBtn>
                 <ToolbarBtn
-                    title="다시 실행"
+                    title={t("redoTitle")}
                     disabled={disabled || !e.can().redo()}
                     onClick={() => e.chain().focus().redo().run()}
                 >

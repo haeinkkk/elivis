@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { fetchProjectsList } from "@/lib/server/projects.server";
 import { getMyProfile } from "@/lib/server/user-profile.server";
 import { fetchProjectFavoritesAction } from "@/app/actions/projects";
@@ -12,6 +14,8 @@ export default async function ProjectsPage({
     const { q } = await searchParams;
     const searchQuery = (q ?? "").trim();
 
+    const t = await getTranslations("projects.list");
+
     const [user, res, favRes] = await Promise.all([
         getMyProfile(),
         fetchProjectsList({ take: 200, skip: 0, q: searchQuery || undefined }),
@@ -21,7 +25,7 @@ export default async function ProjectsPage({
     if (!res) {
         return (
             <div className="w-full p-6 text-stone-600">
-                프로젝트 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+                {t("loadError")}
             </div>
         );
     }

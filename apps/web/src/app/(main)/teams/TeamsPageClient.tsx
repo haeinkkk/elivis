@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { getApiBaseUrl } from "@/lib/http/api-base-url";
 import type { TeamListItem } from "@/lib/server/teams.server";
@@ -53,6 +53,8 @@ function TeamListCard({
     compact?: boolean;
     isFavorite?: boolean;
 }) {
+    const t = useTranslations("teams");
+    const locale = useLocale();
     const bannerThumb = listBannerSrc(team.bannerUrl);
     const leaderLabel = team.createdBy?.name?.trim() || team.createdBy?.email || null;
     return (
@@ -100,7 +102,7 @@ function TeamListCard({
                                 compact ? "text-sm sm:text-[15px]" : ""
                             }`}
                         >
-                            {team.name || "—"}
+                            {team.name || t("dashPlaceholder")}
                         </h3>
                         <TeamFavoriteButton
                             teamId={team.id}
@@ -111,7 +113,7 @@ function TeamListCard({
                         />
                         {team.hiddenFromUsers ? (
                             <span className="shrink-0 rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-600">
-                                비공개
+                                {t("cardHidden")}
                             </span>
                         ) : null}
                     </div>
@@ -122,7 +124,7 @@ function TeamListCard({
                         >
                             {team.shortDescription
                                 ? truncate(team.shortDescription, 50)
-                                : "—"}
+                                : t("dashPlaceholder")}
                         </p>
                         <div
                             className={`flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-stone-500 sm:gap-x-4 ${
@@ -130,25 +132,25 @@ function TeamListCard({
                             }`}
                         >
                             <span>
-                                인원{" "}
+                                {t("labelMembers")}{" "}
                                 <span className="font-medium text-stone-600">
-                                    {team._count.members}명
+                                    {t("cardMembersCount", { count: team._count.members })}
                                 </span>
                             </span>
                             {leaderLabel ? (
                                 <>
                                     <span className="text-stone-300 sm:inline">|</span>
                                     <span>
-                                        팀장{" "}
+                                        {t("cardLeader")}{" "}
                                         <span className="font-medium text-stone-600">{leaderLabel}</span>
                                     </span>
                                 </>
                             ) : null}
                             <span className="text-stone-300 sm:inline">|</span>
                             <span>
-                                생성{" "}
+                                {t("labelCreated")}{" "}
                                 <span className="font-medium text-stone-600">
-                                    {new Date(team.createdAt).toLocaleDateString("ko-KR")}
+                                    {new Date(team.createdAt).toLocaleDateString(locale)}
                                 </span>
                             </span>
                         </div>
@@ -185,6 +187,7 @@ function SortablePinRow({
     name: string;
     subtitle: string;
 }) {
+    const t = useTranslations("teams");
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id,
     });
@@ -202,7 +205,7 @@ function SortablePinRow({
             <button
                 type="button"
                 className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg border border-dashed border-stone-300 bg-stone-50 text-stone-500 active:cursor-grabbing"
-                aria-label="드래그하여 순서 변경"
+                aria-label={t("pinModal.dragAria")}
                 {...attributes}
                 {...listeners}
             >
@@ -448,7 +451,7 @@ export function TeamsPageClient({
                                         ) : null}
                                     </div>
                                     <p className="mt-1 text-xs text-stone-500">
-                                        최대 {MY_TEAMS_PAGE_SIZE}개만 표기됩니다.
+                                        {t("maxVisibleNote", { max: MY_TEAMS_PAGE_SIZE })}
                                     </p>
                                 </div>
                                 {myTeams.length > MY_TEAMS_PAGE_SIZE ? (
@@ -505,9 +508,7 @@ export function TeamsPageClient({
                             </div>
                             {myTeams.length === 0 ? (
                                 <p className="mt-3 text-sm text-stone-500">
-                                    {searchQuery
-                                        ? "검색 조건에 맞는 소속 팀이 없습니다."
-                                        : "아직 소속된 팀이 없습니다."}
+                                    {searchQuery ? t("myTeamsEmptySearch") : t("myTeamsEmptyNone")}
                                 </p>
                             ) : (
                                 <>
@@ -550,7 +551,7 @@ export function TeamsPageClient({
                                 </ul>
                                 <div ref={publicSentinelRef} className="h-10" aria-hidden />
                                 {publicLoadingMore ? (
-                                    <p className="mt-2 text-xs text-stone-500">불러오는 중…</p>
+                                    <p className="mt-2 text-xs text-stone-500">{t("loadingMorePublic")}</p>
                                 ) : null}
                             </section>
                         ) : null}

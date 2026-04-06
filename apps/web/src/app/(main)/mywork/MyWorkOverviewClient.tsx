@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { updateWorkspaceTaskAction } from "@/app/actions/workspaces";
@@ -13,6 +13,30 @@ import type {
     ApiWorkspaceTask,
 } from "@/lib/mappers/workspace";
 import { tagColorOf, WorkspaceTaskDetailPanel as TaskDetailPanel } from "@repo/ui";
+
+/** 타임라인에 남은 업무가 없을 때 — 이모지 대신 톤다운된 아이콘 */
+function AllDoneIllustration() {
+    return (
+        <span
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400"
+            aria-hidden
+        >
+            <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+            </svg>
+        </span>
+    );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 타입
@@ -42,7 +66,10 @@ function computeStats(list: WorkspaceDataItem[]) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let total = 0, completed = 0, overdue = 0, dueSoon = 0;
+    let total = 0,
+        completed = 0,
+        overdue = 0,
+        dueSoon = 0;
 
     for (const { tasks, statuses } of list) {
         const topTasks = tasks.filter((t) => !t.parentId);
@@ -51,7 +78,10 @@ function computeStats(list: WorkspaceDataItem[]) {
 
         for (const task of topTasks) {
             total++;
-            if (isDone(task)) { completed++; continue; }
+            if (isDone(task)) {
+                completed++;
+                continue;
+            }
             if (task.dueDate) {
                 const due = new Date(task.dueDate);
                 due.setHours(0, 0, 0, 0);
@@ -77,15 +107,27 @@ type EnrichedTask = ApiWorkspaceTask & {
     _priorities: ApiWorkspacePriority[];
 };
 
-function groupByDeadline(tasks: EnrichedTask[], allStatuses: ApiWorkspaceStatus[]) {
+type TimelineGroupLabels = {
+    overdue: string;
+    today: string;
+    soon: string;
+    week: string;
+    later: string;
+    nodate: string;
+};
+
+function groupByDeadline(
+    tasks: EnrichedTask[],
+    allStatuses: ApiWorkspaceStatus[],
+    labels: TimelineGroupLabels,
+) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayMs = today.getTime();
 
     const isDone = (t: EnrichedTask) =>
-        (t._statuses.length > 0 ? t._statuses : allStatuses).find(
-            (s) => s.id === t.statusId,
-        )?.color === "green";
+        (t._statuses.length > 0 ? t._statuses : allStatuses).find((s) => s.id === t.statusId)
+            ?.color === "green";
 
     const topTasks = tasks.filter((t) => !t.parentId && !isDone(t));
 
@@ -108,42 +150,62 @@ function groupByDeadline(tasks: EnrichedTask[], allStatuses: ApiWorkspaceStatus[
     return [
         {
             key: "overdue",
-            label: "기한 초과",
+            label: labels.overdue,
             badge: "bg-red-100 text-red-700",
             dot: "bg-red-500",
-            items: sort(topTasks.filter((t) => { const d = diff(t); return d !== null && d < 0; })),
+            items: sort(
+                topTasks.filter((t) => {
+                    const d = diff(t);
+                    return d !== null && d < 0;
+                }),
+            ),
         },
         {
             key: "today",
-            label: "오늘 마감",
+            label: labels.today,
             badge: "bg-orange-100 text-orange-700",
             dot: "bg-orange-500",
             items: sort(topTasks.filter((t) => diff(t) === 0)),
         },
         {
             key: "soon",
-            label: "3일 이내",
+            label: labels.soon,
             badge: "bg-yellow-100 text-yellow-700",
             dot: "bg-yellow-500",
-            items: sort(topTasks.filter((t) => { const d = diff(t); return d !== null && d >= 1 && d <= 3; })),
+            items: sort(
+                topTasks.filter((t) => {
+                    const d = diff(t);
+                    return d !== null && d >= 1 && d <= 3;
+                }),
+            ),
         },
         {
             key: "week",
-            label: "이번 주",
+            label: labels.week,
             badge: "bg-blue-100 text-blue-700",
             dot: "bg-blue-400",
-            items: sort(topTasks.filter((t) => { const d = diff(t); return d !== null && d >= 4 && d <= 7; })),
+            items: sort(
+                topTasks.filter((t) => {
+                    const d = diff(t);
+                    return d !== null && d >= 4 && d <= 7;
+                }),
+            ),
         },
         {
             key: "later",
-            label: "이후",
+            label: labels.later,
             badge: "bg-stone-100 text-stone-600",
             dot: "bg-stone-400",
-            items: sort(topTasks.filter((t) => { const d = diff(t); return d !== null && d > 7; })),
+            items: sort(
+                topTasks.filter((t) => {
+                    const d = diff(t);
+                    return d !== null && d > 7;
+                }),
+            ),
         },
         {
             key: "nodate",
-            label: "날짜 없음",
+            label: labels.nodate,
             badge: "bg-stone-100 text-stone-500",
             dot: "bg-stone-300",
             items: [...topTasks.filter((t) => !t.dueDate)].sort(
@@ -153,16 +215,19 @@ function groupByDeadline(tasks: EnrichedTask[], allStatuses: ApiWorkspaceStatus[
     ].filter((g) => g.items.length > 0);
 }
 
-function dueDateLabel(task: EnrichedTask): string {
-    if (!task.dueDate) return "날짜 없음";
+function dueDateLabel(
+    task: EnrichedTask,
+    tTimeline: (key: string, values?: Record<string, number>) => string,
+): string {
+    if (!task.dueDate) return tTimeline("timeline.dateNone");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const due = new Date(task.dueDate);
     due.setHours(0, 0, 0, 0);
     const d = Math.round((due.getTime() - today.getTime()) / 86400000);
-    if (d < 0) return `${Math.abs(d)}일 초과`;
-    if (d === 0) return "오늘";
-    return `${d}일 남음`;
+    if (d < 0) return tTimeline("timeline.daysOverdue", { count: Math.abs(d) });
+    if (d === 0) return tTimeline("timeline.todayLabel");
+    return tTimeline("timeline.daysRemaining", { count: d });
 }
 
 function dueDateColor(task: EnrichedTask): string {
@@ -273,8 +338,19 @@ function OverviewTimelineTitleRow({
                 title={t("taskRow.editTitle")}
                 aria-label={t("taskRow.editTitle")}
             >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    aria-hidden
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                    />
                 </svg>
             </button>
         </>
@@ -286,27 +362,36 @@ function TimelineView({
     onSelectTask,
     onTaskUpdated,
     showWorkspaceName = false,
-    emptyIcon = "🎉",
-    emptyTitle = "모든 업무가 완료됐습니다!",
-    emptyDesc = "기한이 남은 업무가 없어요.",
+    emptyVisual,
+    emptyTitle,
+    emptyDesc,
+    groupLabels,
+    tTimeline,
+    tMywork,
 }: {
     tasks: EnrichedTask[];
     onSelectTask: (info: SelectedTaskInfo) => void;
     onTaskUpdated?: (task: ApiWorkspaceTask) => void;
     showWorkspaceName?: boolean;
-    emptyIcon?: string;
-    emptyTitle?: string;
-    emptyDesc?: string;
+    /** 비우면 기본 완료 일러스트 */
+    emptyVisual?: ReactNode;
+    emptyTitle: string;
+    emptyDesc: string;
+    groupLabels: TimelineGroupLabels;
+    tTimeline: (key: string, values?: Record<string, number>) => string;
+    tMywork: (key: string, values?: Record<string, number>) => string;
 }) {
-    const groups = groupByDeadline(tasks, []);
+    const groups = groupByDeadline(tasks, [], groupLabels);
 
     if (groups.length === 0) {
         return (
-            <div className="flex flex-1 items-center justify-center py-20 text-center">
+            <div className="flex w-full flex-1 items-center justify-center py-20 text-center">
                 <div>
-                    <p className="text-4xl">{emptyIcon}</p>
+                    <div className="flex justify-center" aria-hidden>
+                        {emptyVisual ?? <AllDoneIllustration />}
+                    </div>
                     <p className="mt-3 text-sm font-semibold text-stone-700">{emptyTitle}</p>
-                    <p className="mt-1 text-xs text-stone-400">{emptyDesc}</p>
+                    {emptyDesc ? <p className="mt-1 text-xs text-stone-400">{emptyDesc}</p> : null}
                 </div>
             </div>
         );
@@ -318,23 +403,31 @@ function TimelineView({
                 <div key={group.key} className="flex min-h-0">
                     {/* 라벨 */}
                     <div className="flex w-32 shrink-0 flex-col items-end pr-4 pt-5">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}>
+                        <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}
+                        >
                             {group.label}
                         </span>
-                        <span className="mt-1 text-[10px] text-stone-400">{group.items.length}개</span>
+                        <span className="mt-1 text-[10px] text-stone-400">
+                            {tMywork("groupCount", { count: group.items.length })}
+                        </span>
                     </div>
                     {/* 타임라인 선 */}
                     <div className="relative flex w-7 shrink-0 flex-col items-center">
                         <div
                             className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`}
                         />
-                        {gi < groups.length - 1 && <div className="mt-1 w-0.5 flex-1 bg-stone-200" />}
+                        {gi < groups.length - 1 && (
+                            <div className="mt-1 w-0.5 flex-1 bg-stone-200" />
+                        )}
                     </div>
                     {/* 업무 카드 */}
                     <div className="flex-1 space-y-2 pb-6 pl-3 pr-4 pt-4">
                         {group.items.map((task) => {
                             const statusColor = tagColorOf(task.status.color);
-                            const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
+                            const priorityColor = task.priority
+                                ? tagColorOf(task.priority.color)
+                                : null;
                             return (
                                 <div
                                     key={task.id}
@@ -386,7 +479,10 @@ function TimelineView({
                                                     />
                                                 </div>
                                             ) : (
-                                                <p title={task.title} className="truncate text-sm font-medium text-stone-800">
+                                                <p
+                                                    title={task.title}
+                                                    className="truncate text-sm font-medium text-stone-800"
+                                                >
                                                     {formatTaskTitleForList(task.title)}
                                                 </p>
                                             )}
@@ -416,9 +512,9 @@ function TimelineView({
                                                         />
                                                     ) : (
                                                         <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">
-                                                            {(
-                                                                task.assignee.name ?? task.assignee.email
-                                                            )[0].toUpperCase()}
+                                                            {(task.assignee.name ??
+                                                                task.assignee
+                                                                    .email)[0].toUpperCase()}
                                                         </span>
                                                     )}
                                                     {task.assignee.name ?? task.assignee.email}
@@ -427,7 +523,7 @@ function TimelineView({
                                         </div>
                                     </div>
                                     <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>
-                                        {dueDateLabel(task)}
+                                        {dueDateLabel(task, tTimeline)}
                                     </span>
                                 </div>
                             );
@@ -444,32 +540,34 @@ function TimelineView({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType<typeof computeStats>) {
+    const td = useTranslations("workspace.dashboard");
+    const tm = useTranslations("mywork");
     const cards = [
         {
-            label: "전체 업무",
+            label: td("totalTasks"),
             value: total,
-            sub: `완료율 ${pct}%`,
+            sub: tm("statsCompletedRate", { pct }),
             color: "text-stone-900",
             bg: "bg-white border border-stone-100",
         },
         {
-            label: "완료",
+            label: td("completed"),
             value: completed,
-            sub: `전체의 ${pct}%`,
+            sub: tm("statsCompletedShare", { pct }),
             color: "text-green-700",
             bg: "bg-green-50 border border-green-100",
         },
         {
-            label: "기한 초과",
+            label: td("overdue"),
             value: overdue,
-            sub: "즉시 처리 필요",
+            sub: td("overdueNote"),
             color: "text-red-600",
             bg: "bg-red-50 border border-red-100",
         },
         {
-            label: "3일 이내 마감",
+            label: td("dueSoon"),
             value: dueSoon,
-            sub: "곧 마감 예정",
+            sub: tm("statsDueSoonSub"),
             color: "text-orange-600",
             bg: "bg-orange-50 border border-orange-100",
         },
@@ -497,6 +595,20 @@ export function MyWorkOverviewClient({
 }: {
     workspaceDataList: WorkspaceDataItem[];
 }) {
+    const tm = useTranslations("mywork");
+    const tw = useTranslations("workspace");
+    const groupLabels = useMemo<TimelineGroupLabels>(
+        () => ({
+            overdue: tw("timeline.overdue"),
+            today: tw("timeline.today"),
+            soon: tw("timeline.soon"),
+            week: tw("timeline.thisWeek"),
+            later: tw("timeline.later"),
+            nodate: tw("timeline.dateNone"),
+        }),
+        [tw],
+    );
+
     const [viewMode, setViewMode] = useState<ViewMode>("combined");
     const [selectedTask, setSelectedTask] = useState<SelectedTaskInfo | null>(null);
     const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
@@ -547,10 +659,8 @@ export function MyWorkOverviewClient({
         <div className="flex min-h-full w-full flex-col">
             {/* 헤더 */}
             <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-6">
-                <h1 className="text-lg font-bold text-stone-800 sm:text-xl">할 일</h1>
-                <p className="text-xs text-stone-400 sm:text-sm">
-                    모든 워크스페이스의 업무 현황
-                </p>
+                <h1 className="text-lg font-bold text-stone-800 sm:text-xl">{tm("title")}</h1>
+                <p className="text-xs text-stone-400 sm:text-sm">{tm("subtitle")}</p>
             </div>
 
             {/* 상단 통계 */}
@@ -572,41 +682,44 @@ export function MyWorkOverviewClient({
                                     : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
                             }`}
                         >
-                            {mode === "combined" ? "전체 타임라인" : "워크스페이스별"}
+                            {mode === "combined" ? tm("viewCombined") : tm("viewByWorkspace")}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* 타임라인 본문 */}
-            <div className="min-h-0 flex-1 overflow-y-auto bg-stone-50/40 px-4 py-5 sm:px-6">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-stone-50/40 px-4 py-5 sm:px-6">
                 {!hasAnyTask ? (
-                    <div className="flex flex-1 items-center justify-center py-24 text-center">
+                    <div className="flex flex-1 flex-col items-center justify-center py-20 text-center">
                         <div>
-                            <p className="text-4xl">📋</p>
+                            <div className="flex justify-center" aria-hidden>
+                                <AllDoneIllustration />
+                            </div>
                             <p className="mt-3 text-sm font-semibold text-stone-700">
-                                업무가 없습니다
+                                {tm("emptyNoTasks")}
                             </p>
-                            <p className="mt-1 text-xs text-stone-400">
-                                워크스페이스를 선택해 업무를 추가해 보세요.
-                            </p>
+                            <p className="mt-1 text-xs text-stone-400">{tm("emptyNoTasksDesc")}</p>
                         </div>
                     </div>
                 ) : viewMode === "combined" ? (
                     /* ── 전체 타임라인 (좌측 정렬, full width) ── */
                     <div className="w-full">
                         <p className="mb-4 text-xs font-medium text-stone-400">
-                            전체{" "}
-                            <span className="font-semibold text-stone-600">
-                                {allEnrichedTasks.filter((t) => !t.parentId).length}개
-                            </span>
-                            의 업무
+                            {tm("totalTasksLine", {
+                                count: allEnrichedTasks.filter((t) => !t.parentId).length,
+                            })}
                         </p>
                         <TimelineView
                             tasks={allEnrichedTasks}
                             onSelectTask={handleSelectTask}
                             onTaskUpdated={mergeTaskUpdate}
                             showWorkspaceName
+                            emptyTitle={tm("emptyAllDoneTitle")}
+                            emptyDesc={tm("emptyAllDoneDesc")}
+                            groupLabels={groupLabels}
+                            tTimeline={tw}
+                            tMywork={tm}
                         />
                     </div>
                 ) : (
@@ -628,7 +741,7 @@ export function MyWorkOverviewClient({
                             const teamLabel =
                                 allTeams.length > 0
                                     ? allTeams.map((t) => t!.name).join(" · ")
-                                    : "개인 프로젝트";
+                                    : tm("personalProject");
                             const isCollapsed = !!collapsedMap[workspace.id];
 
                             return (
@@ -650,7 +763,11 @@ export function MyWorkOverviewClient({
                                             strokeWidth={2}
                                             stroke="currentColor"
                                         >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M19 9l-7 7-7-7"
+                                            />
                                         </svg>
 
                                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500">
@@ -677,7 +794,7 @@ export function MyWorkOverviewClient({
                                             </span>
                                         </div>
                                         <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
-                                            {topCount}개
+                                            {tm("workspaceTaskCount", { count: topCount })}
                                         </span>
                                     </button>
 
@@ -687,9 +804,11 @@ export function MyWorkOverviewClient({
                                             tasks={enriched}
                                             onSelectTask={handleSelectTask}
                                             onTaskUpdated={mergeTaskUpdate}
-                                            emptyIcon="✅"
-                                            emptyTitle="모두 완료됐습니다!"
+                                            emptyTitle={tm("emptySectionDoneTitle")}
                                             emptyDesc=""
+                                            groupLabels={groupLabels}
+                                            tTimeline={tw}
+                                            tMywork={tm}
                                         />
                                     )}
                                 </div>

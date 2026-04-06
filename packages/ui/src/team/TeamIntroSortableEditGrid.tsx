@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
     DndContext,
     type DragEndEvent,
@@ -34,6 +35,7 @@ export function SortablePreviewBlock({
     label: string;
     children: React.ReactNode;
 }) {
+    const tDrag = useTranslations("teams.detail.intro");
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id,
     });
@@ -54,7 +56,7 @@ export function SortablePreviewBlock({
                     <button
                         type="button"
                         className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg border border-dashed border-amber-300/80 bg-white text-amber-600/80 active:cursor-grabbing"
-                        aria-label="드래그하여 순서 변경"
+                        aria-label={tDrag("sortableDragAria")}
                         {...attributes}
                         {...listeners}
                     >

@@ -46,7 +46,11 @@ interface WorkspaceDetailClientProps {
 }
 
 export default function WorkspaceDetailClient({
-    workspace, initialTasks, initialStatuses, initialPriorities, initialTab,
+    workspace,
+    initialTasks,
+    initialStatuses,
+    initialPriorities,
+    initialTab,
 }: WorkspaceDetailClientProps) {
     const t = useTranslations("workspace");
     const router = useRouter();
@@ -82,15 +86,17 @@ export default function WorkspaceDetailClient({
         [],
     );
 
-    useEffect(() => { setTasks(initialTasks); }, [initialTasks]);
+    useEffect(() => {
+        setTasks(initialTasks);
+    }, [initialTasks]);
 
     const project = workspace.project;
     const allTeams = [project.team, ...project.projectTeams.map((pt) => pt.team)].filter(Boolean);
     const teamNames = [...new Set(allTeams.map((tm) => tm!.name))];
 
     const TABS: { id: WorkspaceTab; label: string }[] = [
-        { id: "mywork",   label: t("tabs.mywork") },
-        { id: "summary",  label: t("tabs.summary") },
+        { id: "mywork", label: t("tabs.mywork") },
+        { id: "summary", label: t("tabs.summary") },
         { id: "requests", label: t("tabs.requests") },
         { id: "calendar", label: t("tabs.calendar") },
     ];
@@ -99,20 +105,40 @@ export default function WorkspaceDetailClient({
         <div className="flex min-h-full w-full flex-col">
             <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => router.back()}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700" aria-label={t("header.backAria")}>
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                        aria-label={t("header.backAria")}
+                    >
+                        <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15 19l-7-7 7-7"
+                            />
                         </svg>
                     </button>
                     <div className="min-w-0 flex-1">
-                        <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">{project.name}</h1>
+                        <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">
+                            {project.name}
+                        </h1>
                         <p className="truncate text-xs text-stone-500 sm:text-sm">
-                            {teamNames.length > 0 ? teamNames.join(" · ") : t("header.personalWorkspace")}
+                            {teamNames.length > 0
+                                ? teamNames.join(" · ")
+                                : t("header.personalWorkspace")}
                         </p>
                     </div>
                     <div className="shrink-0 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600">
-                        {t("header.taskCount", { count: tasks.filter((tk) => !tk.parentId).length })}
+                        {t("header.taskCount", {
+                            count: tasks.filter((tk) => !tk.parentId).length,
+                        })}
                     </div>
                 </div>
             </div>
@@ -120,10 +146,16 @@ export default function WorkspaceDetailClient({
             <div className="border-b border-stone-200 bg-white/95">
                 <nav className="flex gap-0 overflow-x-auto px-4 sm:px-5 md:px-6">
                     {TABS.map((tab) => (
-                        <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
                             className={`shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors sm:px-5 ${
-                                activeTab === tab.id ? "border-stone-800 text-stone-800" : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700"
-                            }`}>
+                                activeTab === tab.id
+                                    ? "border-stone-800 text-stone-800"
+                                    : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700"
+                            }`}
+                        >
                             {tab.label}
                         </button>
                     ))}
@@ -133,11 +165,15 @@ export default function WorkspaceDetailClient({
             <div className="flex min-h-0 flex-1 flex-col">
                 {activeTab === "mywork" && (
                     <MyWorkTab
-                        tasks={tasks} statuses={statuses} priorities={priorities}
+                        tasks={tasks}
+                        statuses={statuses}
+                        priorities={priorities}
                         workspaceId={workspace.id}
                         myWorkMutations={myWorkMutations}
                         taskPanelActions={workspaceTaskPanelActions}
-                        onUpdate={(tk) => setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)))}
+                        onUpdate={(tk) =>
+                            setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)))
+                        }
                         onDelete={(id) => setTasks((prev) => prev.filter((tk) => tk.id !== id))}
                         onAdded={(tk) => setTasks((prev) => [...prev, tk])}
                         onStatusesChange={setStatuses}
@@ -153,7 +189,9 @@ export default function WorkspaceDetailClient({
                             priorities={priorities}
                             workspaceId={workspace.id}
                             updateWorkspaceTask={myWorkMutations.updateWorkspaceTask}
-                            onTaskUpdate={(tk) => setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)))}
+                            onTaskUpdate={(tk) =>
+                                setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)))
+                            }
                             onSelectTask={setSummaryPanelTask}
                         />
                         {summaryPanelTask && (
@@ -196,7 +234,10 @@ export default function WorkspaceDetailClient({
                                 statuses={statuses}
                                 priorities={priorities}
                                 workspaceId={workspace.id}
-                                onUpdate={(tk) => { setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x))); setCalendarPanelTask(tk); }}
+                                onUpdate={(tk) => {
+                                    setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)));
+                                    setCalendarPanelTask(tk);
+                                }}
                                 onClose={() => setCalendarPanelTask(null)}
                             />
                         )}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import {
     fetchMyTeamsForProjectAction,
@@ -21,11 +22,14 @@ type SelectedParticipant = {
     userId: string;
 };
 
-function teamOptionSubtitle(t: ProjectTeamOption): string {
-    const s = t.shortDescription?.trim();
+function teamOptionSubtitle(
+    team: ProjectTeamOption,
+    t: (key: string, values?: Record<string, string | number>) => string,
+): string {
+    const s = team.shortDescription?.trim();
     if (s) return s;
-    if (t.memberCount > 0) return `멤버 ${t.memberCount}명`;
-    return t.id;
+    if (team.memberCount > 0) return t("teamMemberCount", { count: team.memberCount });
+    return team.id;
 }
 
 function creatorAvatarSrc(url: string | null | undefined): string | null {
@@ -55,62 +59,6 @@ function parseDateInputValue(s: string): number | null {
     return Number.isNaN(t) ? null : t;
 }
 
-/** 시작일 필수. 종료일은 `noEnd`가 아니면 필수. */
-function validatePeriodRequired(start: string, end: string, noEnd: boolean): string | undefined {
-    const s = start.trim();
-    if (!s) {
-        return "시작일을 선택해 주세요.";
-    }
-    if (!noEnd) {
-        const e = end.trim();
-        if (!e) {
-            return "종료일을 선택하거나 종료일 미정을 체크해 주세요.";
-        }
-        const ts = parseDateInputValue(s);
-        const te = parseDateInputValue(e);
-        if (ts != null && te != null && te < ts) {
-            return "종료일은 시작일 이후여야 합니다.";
-        }
-    }
-    return undefined;
-}
-
-/** 서버/네트워크 메시지를 필드에 분배 (언어별 문자열 휴리스틱) */
-function mapServerMessageToFields(message: string): FieldErrors {
-    const m = message.trim();
-    if (!m) return { general: "요청을 처리하지 못했습니다." };
-
-    if (/네트워크|network/i.test(m)) {
-        return { general: m };
-    }
-
-    if (/참여자|participant/i.test(m)) {
-        return { participants: m };
-    }
-
-    if (/팀.*멤버|team.*member|해당 팀의 멤버|연결할 수|팀장/i.test(m)) {
-        return { team: m };
-    }
-
-    if (/^name\s*필드|name\s*is\s*required|프로젝트.*명.*필수|Project name is required/i.test(m)) {
-        return { name: m };
-    }
-
-    if (
-        /시작일|종료일|날짜|기간|end date|start date|invalid.*date|date.*invalid|終了日|開始日/i.test(
-            m,
-        )
-    ) {
-        return { period: m };
-    }
-
-    if (/필수|required/i.test(m) && /프로젝트|project|이름|name/i.test(m)) {
-        return { name: m };
-    }
-
-    return { general: m };
-}
-
 const inputErrorClass = "border-red-300 focus:border-red-500 focus:ring-red-500/30";
 const inputNormalClass = "border-stone-200 focus:border-stone-400 focus:ring-stone-400";
 
@@ -127,6 +75,7 @@ function parsePresetTeamIds(searchParams: URLSearchParams): string[] {
 }
 
 export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile }) {
+    const t = useTranslations("projects.new");
     const router = useRouter();
     const searchParams = useSearchParams();
     const presetTeamIds = useMemo(() => parsePresetTeamIds(searchParams), [searchParams]);
@@ -157,6 +106,60 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
             return next;
         });
     };
+
+    function validatePeriodRequired(start: string, end: string, noEnd: boolean): string | undefined {
+        const s = start.trim();
+        if (!s) {
+            return t("validation.startRequired");
+        }
+        if (!noEnd) {
+            const e = end.trim();
+            if (!e) {
+                return t("validation.endOrNoEnd");
+            }
+            const ts = parseDateInputValue(s);
+            const te = parseDateInputValue(e);
+            if (ts != null && te != null && te < ts) {
+                return t("validation.endAfterStart");
+            }
+        }
+        return undefined;
+    }
+
+    function mapServerMessageToFields(message: string): FieldErrors {
+        const m = message.trim();
+        if (!m) return { general: t("errors.genericFail") };
+
+        if (/네트워크|network/i.test(m)) {
+            return { general: m };
+        }
+
+        if (/참여자|participant/i.test(m)) {
+            return { participants: m };
+        }
+
+        if (/팀.*멤버|team.*member|해당 팀의 멤버|연결할 수|팀장/i.test(m)) {
+            return { team: m };
+        }
+
+        if (/^name\s*필드|name\s*is\s*required|프로젝트.*명.*필수|Project name is required/i.test(m)) {
+            return { name: m };
+        }
+
+        if (
+            /시작일|종료일|날짜|기간|end date|start date|invalid.*date|date.*invalid|終了日|開始日/i.test(
+                m,
+            )
+        ) {
+            return { period: m };
+        }
+
+        if (/필수|required/i.test(m) && /프로젝트|project|이름|name/i.test(m)) {
+            return { name: m };
+        }
+
+        return { general: m };
+    }
 
     const creatorName =
         currentUser.name?.trim() || currentUser.email.split("@")[0] || currentUser.email;
@@ -263,7 +266,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
         const nextErrors: FieldErrors = {};
 
         if (!trimmedName) {
-            nextErrors.name = "프로젝트 명을 입력해 주세요.";
+            nextErrors.name = t("validation.nameRequired");
         }
 
         const periodErr = validatePeriodRequired(startDate, endDate, noEndDate);
@@ -272,7 +275,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
         }
 
         if (projectType === "team" && teams.length === 0) {
-            nextErrors.team = "연결할 팀을 한 개 이상 선택해 주세요.";
+            nextErrors.team = t("validation.teamRequired");
         }
 
         if (Object.keys(nextErrors).length > 0) {
@@ -323,19 +326,19 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                     >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
-                    프로젝트 목록
+                    {t("backToList")}
                 </Link>
                 <div className="mt-4">
                     <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">
-                        프로젝트 생성
+                        {t("title")}
                     </h2>
-                    <p className="mt-2 text-stone-600">프로젝트 정보를 입력한 뒤 생성하세요.</p>
+                    <p className="mt-2 text-stone-600">{t("subtitle")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-6 max-w-2xl space-y-6 sm:mt-8">
                     <div>
                         <label className="block text-sm font-medium text-stone-700">
-                            프로젝트 생성자
+                            {t("creatorLabel")}
                         </label>
                         <div
                             className="mt-1.5 flex items-center gap-3 rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-2.5"
@@ -360,7 +363,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             </div>
                         </div>
                         <p className="mt-1 text-xs text-stone-400">
-                            프로젝트 생성자는 로그인한 본인으로 등록됩니다.
+                            {t("creatorNote")}
                         </p>
                     </div>
 
@@ -375,7 +378,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             htmlFor="project-name"
                             className="block text-sm font-medium text-stone-700"
                         >
-                            프로젝트 명{" "}
+                            {t("nameLabel")}{" "}
                             <span className="text-red-600" aria-hidden>
                                 *
                             </span>
@@ -389,7 +392,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 setName(e.target.value);
                                 clearError("name");
                             }}
-                            placeholder="예: Elivis 웹 앱"
+                            placeholder={t("namePlaceholder")}
                             aria-invalid={!!fieldErrors.name}
                             aria-describedby={fieldErrors.name ? "project-name-error" : undefined}
                             className={`mt-1.5 w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-1 ${
@@ -404,13 +407,13 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             htmlFor="project-desc"
                             className="block text-sm font-medium text-stone-700"
                         >
-                            프로젝트 설명
+                            {t("descriptionLabel")}
                         </label>
                         <textarea
                             id="project-desc"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="프로젝트에 대한 간단한 설명을 입력하세요."
+                            placeholder={t("descriptionPlaceholder")}
                             rows={3}
                             className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
@@ -424,13 +427,13 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                         }`}
                     >
                         <p id="project-period-label" className="text-sm font-medium text-stone-700">
-                            프로젝트 기간{" "}
+                            {t("periodLabel")}{" "}
                             <span className="text-red-600" aria-hidden>
                                 *
                             </span>
                         </p>
                         <p className="text-xs text-stone-500">
-                            시작일은 필수입니다. 종료일이 없으면「아직 안정해졌어요」를 선택하세요.
+                            {t("periodHint")}
                         </p>
                         <div
                             className="flex flex-wrap items-center gap-4"
@@ -438,7 +441,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                         >
                             <div className="flex items-center gap-2">
                                 <label htmlFor="start-date" className="text-sm text-stone-600">
-                                    시작:
+                                    {t("startLabel")}
                                 </label>
                                 <input
                                     id="start-date"
@@ -449,7 +452,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         setStartDate(e.target.value);
                                         clearError("period");
                                     }}
-                                    placeholder="연도-월-일"
+                                    placeholder={t("datePlaceholder")}
                                     aria-invalid={!!fieldErrors.period}
                                     aria-describedby={
                                         fieldErrors.period ? "project-period-error" : undefined
@@ -461,7 +464,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             </div>
                             <div className="flex items-center gap-2">
                                 <label htmlFor="end-date" className="text-sm text-stone-600">
-                                    종료:
+                                    {t("endLabel")}
                                 </label>
                                 <input
                                     id="end-date"
@@ -473,7 +476,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     }}
                                     disabled={noEndDate}
                                     aria-required={!noEndDate}
-                                    placeholder="연도-월-일"
+                                    placeholder={t("datePlaceholder")}
                                     aria-invalid={!!fieldErrors.period}
                                     aria-describedby={
                                         fieldErrors.period ? "project-period-error" : undefined
@@ -495,19 +498,19 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     }}
                                     className="h-4 w-4 rounded border-stone-300 text-stone-700 focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-600">아직 안정해졌어요</span>
+                                <span className="text-sm text-stone-600">{t("noEndCheckbox")}</span>
                             </label>
                         </div>
                         <FieldError id="project-period-error" message={fieldErrors.period} />
                         {noEndDate && (
                             <p className="text-xs text-stone-400">
-                                체크 시 프로젝트 종료 기간 없음
+                                {t("noEndNote")}
                             </p>
                         )}
                     </div>
 
                     <div>
-                        <p className="text-sm font-medium text-stone-700">프로젝트 구분</p>
+                        <p className="text-sm font-medium text-stone-700">{t("typeLabel")}</p>
                         <div className="mt-2 flex gap-4">
                             <label className="flex cursor-pointer items-center gap-2">
                                 <input
@@ -522,7 +525,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     }}
                                     className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-700">개인</span>
+                                <span className="text-sm text-stone-700">{t("typePersonal")}</span>
                             </label>
                             <label className="flex cursor-pointer items-center gap-2">
                                 <input
@@ -536,7 +539,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     }}
                                     className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-700">팀</span>
+                                <span className="text-sm text-stone-700">{t("typeTeam")}</span>
                             </label>
                         </div>
                     </div>
@@ -553,38 +556,37 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 id="project-team-label"
                                 className="text-sm font-medium text-stone-700"
                             >
-                                내 팀
+                                {t("myTeamsLabel")}
                             </p>
                             <p className="mt-0.5 text-xs text-stone-400">
-                                본인이 팀장인 팀만 연결 가능합니다. 그 외 팀은 프로젝트 생성 후 초대
-                                기능을 이용해 주세요.
+                                {t("myTeamsHint")}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
-                                {teams.map((t, i) => (
+                                {teams.map((team, i) => (
                                     <span
-                                        key={t.id}
+                                        key={team.id}
                                         className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50/80 py-1.5 pl-1.5 pr-2"
                                     >
                                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-200 text-xs font-medium text-stone-600">
-                                            팀
+                                            {t("teamBadge")}
                                         </span>
                                         <span className="flex flex-col items-start">
                                             <span className="text-sm font-medium text-stone-800 leading-tight">
-                                                {t.name}
+                                                {team.name}
                                             </span>
                                             <span className="text-xs text-stone-500 leading-tight max-w-[220px] truncate">
-                                                {teamOptionSubtitle(t)}
+                                                {teamOptionSubtitle(team, t)}
                                             </span>
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => removeTeam(i)}
-                                            disabled={presetTeamIds.includes(t.id)}
+                                            disabled={presetTeamIds.includes(team.id)}
                                             className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600 disabled:cursor-default disabled:opacity-50"
-                                            aria-label="제거"
+                                            aria-label={t("removeAria")}
                                             title={
-                                                presetTeamIds.includes(t.id)
-                                                    ? "이 페이지에서 지정한 팀은 해제할 수 없습니다"
+                                                presetTeamIds.includes(team.id)
+                                                    ? t("presetTeamLockTitle")
                                                     : undefined
                                             }
                                         >
@@ -626,7 +628,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         d="M12 4.5v15m7.5-7.5h-15"
                                     />
                                 </svg>
-                                {teams.length > 0 ? "내 팀 추가" : "내 팀 선택"}
+                                {teams.length > 0 ? t("addTeam") : t("selectTeam")}
                             </button>
                             <FieldError id="project-team-error" message={fieldErrors.team} />
                         </div>
@@ -639,9 +641,9 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 : ""
                         }
                     >
-                        <p className="text-sm font-medium text-stone-700">추가 참여자</p>
+                        <p className="text-sm font-medium text-stone-700">{t("participantsLabel")}</p>
                         <p className="mt-0.5 text-xs text-stone-400">
-                            추가 버튼으로 사용자를 선택하세요.
+                            {t("participantsHint")}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                             {participants.map((p, i) => (
@@ -662,7 +664,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         type="button"
                                         onClick={() => removeParticipant(i)}
                                         className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600"
-                                        aria-label="제거"
+                                        aria-label={t("removeAria")}
                                     >
                                         <svg
                                             className="h-3.5 w-3.5"
@@ -699,7 +701,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     d="M12 4.5v15m7.5-7.5h-15"
                                 />
                             </svg>
-                            추가
+                            {t("addButton")}
                         </button>
                         <FieldError
                             id="project-participants-error"
@@ -721,7 +723,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
                                 <div className="border-b border-stone-100 px-4 py-3">
                                     <h3 className="text-base font-semibold text-stone-800">
-                                        추가 참여자
+                                        {t("participantModalTitle")}
                                     </h3>
                                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
                                         <svg
@@ -741,7 +743,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             type="search"
                                             value={userSearchQuery}
                                             onChange={(e) => setUserSearchQuery(e.target.value)}
-                                            placeholder="이름 또는 이메일로 검색"
+                                            placeholder={t("userSearchPlaceholder")}
                                             className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
                                             autoFocus
                                         />
@@ -750,15 +752,15 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 <ul className="max-h-64 overflow-y-auto py-2">
                                     {userSearchQuery.trim().length < 1 ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
-                                            검색어를 입력하세요.
+                                            {t("searchMin")}
                                         </li>
                                     ) : searchLoading ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
-                                            검색 중…
+                                            {t("searching")}
                                         </li>
                                     ) : searchResults.length === 0 ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
-                                            검색 결과가 없습니다.
+                                            {t("noSearchResults")}
                                         </li>
                                     ) : (
                                         searchResults.map((user) => {
@@ -794,7 +796,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                                         </div>
                                                         {isAdded && (
                                                             <span className="text-xs text-stone-400">
-                                                                추가됨
+                                                                {t("alreadyAdded")}
                                                             </span>
                                                         )}
                                                     </button>
@@ -813,7 +815,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         }}
                                         className="w-full rounded-lg border border-stone-200 bg-white py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
                                     >
-                                        닫기
+                                        {t("close")}
                                     </button>
                                 </div>
                             </div>
@@ -834,10 +836,10 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
                                 <div className="border-b border-stone-100 px-4 py-3">
                                     <h3 className="text-base font-semibold text-stone-800">
-                                        내 팀 선택
+                                        {t("teamModalTitle")}
                                     </h3>
                                     <p className="mt-1 text-xs text-stone-500">
-                                        내가 팀장으로 있는 팀만 표시됩니다.
+                                        {t("teamModalDesc")}
                                     </p>
                                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
                                         <svg
@@ -857,7 +859,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             type="search"
                                             value={teamSearchQuery}
                                             onChange={(e) => setTeamSearchQuery(e.target.value)}
-                                            placeholder="팀 이름·설명으로 검색"
+                                            placeholder={t("teamSearchPlaceholder")}
                                             className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
                                             autoFocus
                                         />
@@ -866,13 +868,13 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 <ul className="max-h-64 overflow-y-auto py-2">
                                     {teamSearchLoading ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
-                                            불러오는 중…
+                                            {t("loading")}
                                         </li>
                                     ) : teamSearchResults.length === 0 ? (
                                         <li className="px-4 py-6 text-center text-sm text-stone-500">
                                             {teamSearchQuery.trim()
-                                                ? "검색 결과가 없습니다."
-                                                : "팀장으로 있는 팀이 없습니다."}
+                                                ? t("noSearchResults")
+                                                : t("noTeamsAsLeader")}
                                         </li>
                                     ) : (
                                         teamSearchResults.map((team) => {
@@ -885,19 +887,19 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-stone-50"
                                                     >
                                                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-200 text-xs font-medium text-stone-600">
-                                                            팀
+                                                            {t("teamBadge")}
                                                         </span>
                                                         <div className="min-w-0 flex-1">
                                                             <p className="text-sm font-medium text-stone-800">
                                                                 {team.name}
                                                             </p>
                                                             <p className="text-xs text-stone-500 truncate">
-                                                                {teamOptionSubtitle(team)}
+                                                                {teamOptionSubtitle(team, t)}
                                                             </p>
                                                         </div>
                                                         {isCurrent && (
                                                             <span className="text-xs text-stone-400">
-                                                                선택됨
+                                                                {t("selected")}
                                                             </span>
                                                         )}
                                                     </button>
@@ -916,7 +918,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         }}
                                         className="w-full rounded-lg border border-stone-200 bg-white py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
                                     >
-                                        닫기
+                                        {t("close")}
                                     </button>
                                 </div>
                             </div>
@@ -937,14 +939,14 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             href="/projects"
                             className="inline-flex justify-center rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
                         >
-                            취소
+                            {t("cancel")}
                         </Link>
                         <button
                             type="submit"
                             disabled={pending}
                             className="inline-flex justify-center rounded-lg bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2"
                         >
-                            프로젝트 생성
+                            {t("submit")}
                         </button>
                     </div>
                 </form>

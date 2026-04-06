@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import type { ProjectListItem } from "@/lib/server/projects.server";
 import { addProjectFavoriteAction, removeProjectFavoriteAction } from "@/app/actions/projects";
@@ -23,6 +24,7 @@ function ProjectCard({
     compact?: boolean;
     isFavorite?: boolean;
 }) {
+    const t = useTranslations("projects.list");
     const seenTeamIds = new Set<string>();
     const tags = [
         ...(project.team ? [project.team] : []),
@@ -65,7 +67,7 @@ function ProjectCard({
                                 compact ? "text-sm" : ""
                             }`}
                         >
-                            {project.name || "이름 없음"}
+                            {project.name || t("noName")}
                         </h3>
                         <ProjectFavoriteButton
                             projectId={project.id}
@@ -76,7 +78,7 @@ function ProjectCard({
                         />
                         {isPersonal ? (
                             <span className="shrink-0 rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600">
-                                개인 프로젝트
+                                {t("personalBadge")}
                             </span>
                         ) : (
                             <span className="flex min-w-0 flex-wrap items-center gap-1">
@@ -90,7 +92,7 @@ function ProjectCard({
                                 ))}
                                 {tags.length > 3 && (
                                     <span className="shrink-0 text-[11px] text-stone-500">
-                                        +{tags.length - 3}
+                                        {t("moreTeams", { count: tags.length - 3 })}
                                     </span>
                                 )}
                             </span>
@@ -101,20 +103,20 @@ function ProjectCard({
                             className={`text-stone-500 line-clamp-1 ${compact ? "text-xs" : "text-sm"}`}
                             title={project.description ?? undefined}
                         >
-                            {project.description ? truncate(project.description, 50) : "설명 없음"}
+                            {project.description ? truncate(project.description, 50) : t("noDesc")}
                         </p>
                         <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 sm:gap-x-4">
                             <span>
-                                멤버{" "}
+                                {t("membersLabel")}{" "}
                                 <span className="font-medium text-stone-600">
-                                    {project._count.members}명
+                                    {t("membersCount", { count: project._count.members })}
                                 </span>
                             </span>
                             <span className="text-stone-300">|</span>
                             <span>
-                                업무{" "}
+                                {t("tasksLabel")}{" "}
                                 <span className="font-medium text-stone-600">
-                                    {project._count.tasks}개
+                                    {t("tasksCount", { count: project._count.tasks })}
                                 </span>
                             </span>
                         </div>
@@ -147,6 +149,7 @@ export function ProjectsPageClient({
     searchQuery: string;
     favoriteProjectIds?: Set<string>;
 }) {
+    const t = useTranslations("projects.list");
     const favoriteProjectIds = favoriteProjectIdsProp ?? new Set<string>();
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -168,9 +171,9 @@ export function ProjectsPageClient({
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">
-                            프로젝트
+                            {t("title")}
                         </h2>
-                        <p className="mt-2 text-stone-600">프로젝트 목록을 확인하고 관리하세요.</p>
+                        <p className="mt-2 text-stone-600">{t("subtitle")}</p>
                     </div>
                     <Link
                         href="/projects/new"
@@ -187,7 +190,7 @@ export function ProjectsPageClient({
                         >
                             <path d="M12 5v14M5 12h14" />
                         </svg>
-                        프로젝트 생성
+                        {t("create")}
                     </Link>
                 </div>
 
@@ -206,14 +209,14 @@ export function ProjectsPageClient({
                             </svg>
                         </span>
                         <p className="mt-4 text-xl font-medium text-stone-800 sm:text-2xl">
-                            {searchQuery ? "검색 결과가 없습니다." : "현재 프로젝트가 없어요"}
+                            {searchQuery ? t("emptySearch") : t("emptyNone")}
                         </p>
                         {!searchQuery && (
                             <Link
                                 href="/projects/new"
                                 className="mt-5 inline-flex items-center gap-2 rounded-xl bg-stone-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
                             >
-                                프로젝트 생성하기
+                                {t("createCta")}
                             </Link>
                         )}
                     </div>
@@ -227,10 +230,10 @@ export function ProjectsPageClient({
                                         id="projects-mine-heading"
                                         className="text-base font-semibold text-stone-900 sm:text-lg"
                                     >
-                                        내 프로젝트
+                                        {t("myTitle")}
                                     </h3>
                                     <p className="mt-1 text-xs text-stone-500">
-                                        내가 생성했거나 직접 참여 중인 프로젝트입니다.
+                                        {t("myDesc")}
                                     </p>
                                 </div>
                                 {myProjects.length > MY_PAGE_SIZE && (
@@ -243,7 +246,7 @@ export function ProjectsPageClient({
                                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                             disabled={safePage <= 1}
                                             className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
-                                            aria-label="이전 페이지"
+                                            aria-label={t("pagePrev")}
                                         >
                                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -254,7 +257,7 @@ export function ProjectsPageClient({
                                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                             disabled={safePage >= totalPages}
                                             className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
-                                            aria-label="다음 페이지"
+                                            aria-label={t("pageNext")}
                                         >
                                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
@@ -266,9 +269,7 @@ export function ProjectsPageClient({
 
                             {myProjects.length === 0 ? (
                                 <p className="mt-3 text-sm text-stone-500">
-                                    {searchQuery
-                                        ? "검색 조건에 맞는 내 프로젝트가 없습니다."
-                                        : "아직 참여 중인 프로젝트가 없습니다."}
+                                    {searchQuery ? t("myEmptySearch") : t("myEmptyNone")}
                                 </p>
                             ) : (
                                 <ul className="mt-4 space-y-3">
@@ -293,10 +294,10 @@ export function ProjectsPageClient({
                                     id="projects-team-heading"
                                     className="text-base font-semibold text-stone-900 sm:text-lg"
                                 >
-                                    내가 참여하고 있는 프로젝트
+                                    {t("otherTitle")}
                                 </h3>
                                 <p className="mt-1 text-xs text-stone-500">
-                                    소속된 팀을 통해 참여 중인 공개 프로젝트입니다.
+                                    {t("otherDesc")}
                                 </p>
                                 <ul className="mt-3 space-y-2">
                                     {otherProjects.map((project) => (
@@ -322,14 +323,14 @@ export function ProjectsPageClient({
                                         id="projects-admin-heading"
                                         className="text-base font-semibold text-stone-900 sm:text-lg"
                                     >
-                                        다른 사용자 프로젝트
+                                        {t("adminTitle")}
                                     </h3>
                                     <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                        관리자
+                                        {t("adminBadge")}
                                     </span>
                                 </div>
                                 <p className="mt-1 text-xs text-stone-500">
-                                    관리자 권한으로 조회 가능한 모든 프로젝트입니다.
+                                    {t("adminDesc")}
                                 </p>
                                 <ul className="mt-3 space-y-2">
                                     {adminOnlyProjects.map((project) => (
