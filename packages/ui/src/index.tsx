@@ -123,6 +123,19 @@ export {
     ProjectSettingsProjectTab,
     ProjectSettingsSecurityTab,
 } from "./project/ProjectSettingsPanels";
+export {
+    ProjectDonutChart,
+    ProjectOverviewTab,
+    ProjectParticipantAvatarStack,
+    ProjectPerformanceTab,
+    projectDetailRoleLabelKo,
+} from "./project/project-detail";
+export type {
+    ProjectDetailModel,
+    ProjectDetailParticipant,
+    ProjectDetailTeam,
+    ProjectDetailViewerRole,
+} from "./types/project-detail";
 
 export { StatusModal } from "./workspace/StatusModal";
 export type { StatusModalValue } from "./workspace/StatusModal";
@@ -130,7 +143,18 @@ export { default as WorkspaceCalendarTab } from "./workspace/CalendarTab";
 export { default as WorkspaceTaskDetailPanel } from "./workspace/TaskDetailPanel";
 
 export { TeamAddMemberModal } from "./team/TeamAddMemberModal";
-export { TeamCommunityTab } from "./team/TeamCommunityTab";
+export { TeamCommunityTab, type PostCategory } from "./team/TeamCommunityTab";
+export {
+    TeamDetailAvatarStack,
+    TeamPublicDetailView,
+    TeamSecuritySection,
+    TeamActivityLogSection,
+    truncateTeamText,
+    displayTeamMemberName,
+    formatTeamDateIso,
+    teamMemberRoleKey,
+    type TeamDeleteFn,
+} from "./team/team-detail";
 export { TeamDetailLoadError } from "./team/TeamDetailLoadError";
 export { TeamIntroBannerBlock } from "./team/TeamIntroBannerBlock";
 export { TeamIntroEditModal } from "./team/TeamIntroEditModal";

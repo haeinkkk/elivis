@@ -6,13 +6,17 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
 import {
+    TeamActivityLogSection,
     TeamAddMemberModal,
     TeamCommunityTab,
+    TeamDetailAvatarStack,
     TeamIntroBannerBlock,
     TeamIntroEditModal,
     TeamIntroPageContent,
     type TeamIntroPageContentHandle,
     TeamFavoriteButton,
+    TeamPublicDetailView,
+    TeamSecuritySection,
     UserAvatar,
 } from "@repo/ui";
 import {
@@ -52,445 +56,10 @@ const ALL_SETTINGS_SUB_TABS: { id: TeamSettingsSubTab; icon: string }[] = [
     },
 ];
 
-/** 비멤버: 공개 팀만 조회 가능(멤버 전용 탭 없음) */
-function TeamPublicDetail({ team, isFavorite }: { team: TeamDetail; isFavorite: boolean }) {
-    const router = useRouter();
-    const t = useTranslations("teams.detail");
-    const memberCount = team._count?.members ?? team.members.length;
-
-    return (
-        <div className="flex min-h-full w-full flex-col">
-            <TeamIntroBannerBlock
-                teamId={team.id}
-                bannerUrl={team.bannerUrl}
-                canEdit={false}
-                variant="pageTop"
-                bannerActions={teamBannerActionsForUi}
-            />
-            <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
-                <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => router.push("/teams")}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
-                        aria-label={t("aria.backToTeams")}
-                    >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15 19l-7-7 7-7"
-                            />
-                        </svg>
-                    </button>
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                            <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">
-                                {team.name}
-                            </h1>
-                            <TeamFavoriteButton
-                                teamId={team.id}
-                                initialIsFavorite={isFavorite}
-                                size="sm"
-                                onAdd={() => addTeamFavoriteAction(team.id)}
-                                onRemove={() => removeTeamFavoriteAction(team.id)}
-                            />
-                        </div>
-                        <p className="truncate text-xs text-stone-500 sm:text-sm">
-                            {team.shortDescription?.trim() || t("public.shortDescriptionFallback")}
-                        </p>
-                    </div>
-                    <span className="shrink-0 whitespace-nowrap text-sm font-medium text-stone-600">
-                        {t("labels.membersCount", { count: memberCount })}
-                    </span>
-                </div>
-            </div>
-
-            <div className="border-b border-stone-200 bg-amber-50/60 px-4 py-2.5 text-sm text-stone-700 sm:px-5 md:px-6">
-                {t("public.notMemberNotice")}
-            </div>
-
-            <div className="min-h-0 flex-1 p-4 sm:p-5 md:p-6">
-                <TeamIntroPageContent
-                    team={team}
-                    updateTeamFields={updateTeamFieldsAction}
-                    onAfterTeamFieldsMutation={() => router.refresh()}
-                />
-            </div>
-        </div>
-    );
-}
-
-function TeamSecuritySection({ team }: { team: TeamDetail }) {
-    const router = useRouter();
-    const t = useTranslations("teams.detail");
-    const isLeader = team.viewerRole === "LEADER";
-    const [hiddenFromUsers, setHiddenFromUsers] = useState(team.hiddenFromUsers);
-    const [hiddenError, setHiddenError] = useState<string | null>(null);
-    const [hiddenPending, startHiddenSave] = useTransition();
-
-    const [deleteNameModalOpen, setDeleteNameModalOpen] = useState(false);
-    const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
-    const [deleteNameInput, setDeleteNameInput] = useState("");
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [deletePending, startDelete] = useTransition();
-
-    useEffect(() => {
-        setHiddenFromUsers(team.hiddenFromUsers);
-    }, [team.id, team.hiddenFromUsers]);
-
-    const closeDeleteModals = () => {
-        setDeleteNameModalOpen(false);
-        setDeleteConfirmModalOpen(false);
-        setDeleteNameInput("");
-        setDeleteError(null);
-    };
-
-    const openDeleteNameModal = () => {
-        setDeleteError(null);
-        setDeleteNameInput("");
-        setDeleteNameModalOpen(true);
-    };
-
-    const proceedToDeleteConfirm = () => {
-        const trimmed = deleteNameInput.trim();
-        if (trimmed !== team.name) {
-            setDeleteError(t("errors.teamNameMismatch"));
-            return;
-        }
-        setDeleteError(null);
-        setDeleteNameModalOpen(false);
-        setDeleteConfirmModalOpen(true);
-    };
-
-    return (
-        <div className="space-y-10">
-            <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">{t("security.hideTeam.title")}</h2>
-                <p className="text-sm text-stone-500">
-                    {t("security.hideTeam.desc")}
-                </p>
-                {isLeader ? (
-                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3">
-                        <input
-                            type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-stone-800 focus:ring-stone-400"
-                            checked={hiddenFromUsers}
-                            disabled={hiddenPending}
-                            onChange={(e) => {
-                                const next = e.target.checked;
-                                setHiddenError(null);
-                                setHiddenFromUsers(next);
-                                startHiddenSave(async () => {
-                                    const r = await updateTeamFieldsAction(team.id, {
-                                        hiddenFromUsers: next,
-                                    });
-                                    if (!r.ok) {
-                                        setHiddenFromUsers(!next);
-                                        setHiddenError(r.message ?? t("errors.saveFailed"));
-                                    } else {
-                                        setHiddenFromUsers(r.hiddenFromUsers);
-                                        router.refresh();
-                                    }
-                                });
-                            }}
-                        />
-                        <span className="text-sm text-stone-800">
-                            {t("security.hideTeam.toggleLabel")}
-                        </span>
-                    </label>
-                ) : (
-                    <p className="mt-4 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-600">
-                        {hiddenFromUsers
-                            ? t("security.hideTeam.stateHidden")
-                            : t("security.hideTeam.stateVisible")}
-                        <span className="block text-stone-400">{t("security.hideTeam.leaderOnlyNote")}</span>
-                    </p>
-                )}
-                {hiddenError ? <p className="mt-2 text-sm text-red-600">{hiddenError}</p> : null}
-            </div>
-
-            <div className="h-px bg-stone-100" />
-
-            <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">{t("security.deleteTeam.title")}</h2>
-                <p className="text-sm text-stone-500">
-                    {t("security.deleteTeam.desc")}
-                </p>
-                {isLeader ? (
-                    <button
-                        type="button"
-                        onClick={openDeleteNameModal}
-                        className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
-                    >
-                        {t("security.deleteTeam.button")}
-                    </button>
-                ) : (
-                    <p className="mt-4 text-sm text-stone-400">{t("security.deleteTeam.leaderOnlyNote")}</p>
-                )}
-            </div>
-
-            {deleteNameModalOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-40 bg-stone-900/40"
-                        aria-hidden
-                        onClick={() => !deletePending && closeDeleteModals()}
-                    />
-                    <div
-                        className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
-                        role="dialog"
-                        aria-modal
-                        aria-labelledby="team-delete-name-title"
-                    >
-                        <h3
-                            id="team-delete-name-title"
-                            className="text-base font-semibold text-stone-800"
-                        >
-                            {t("security.deleteTeam.modalName.title")}
-                        </h3>
-                        <p className="mt-2 text-sm text-stone-600">
-                            {t("security.deleteTeam.modalName.desc")}
-                        </p>
-                        <p className="mt-1 font-mono text-sm font-medium text-stone-800">{team.name}</p>
-                        <input
-                            type="text"
-                            value={deleteNameInput}
-                            onChange={(e) => {
-                                setDeleteNameInput(e.target.value);
-                                setDeleteError(null);
-                            }}
-                            disabled={deletePending}
-                            autoComplete="off"
-                            placeholder={t("security.deleteTeam.modalName.placeholder")}
-                            className="mt-4 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
-                        />
-                        {deleteError ? (
-                            <p className="mt-2 text-sm text-red-600">{deleteError}</p>
-                        ) : null}
-                        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={closeDeleteModals}
-                                disabled={deletePending}
-                                className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
-                            >
-                                {t("common.cancel")}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={proceedToDeleteConfirm}
-                                disabled={deletePending}
-                                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-                            >
-                                {t("common.delete")}
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {deleteConfirmModalOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-[45] bg-stone-900/50"
-                        aria-hidden
-                        onClick={() => !deletePending && setDeleteConfirmModalOpen(false)}
-                    />
-                    <div
-                        className="fixed left-1/2 top-1/2 z-[55] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
-                        role="dialog"
-                        aria-modal
-                        aria-labelledby="team-delete-confirm-title"
-                    >
-                        <h3
-                            id="team-delete-confirm-title"
-                            className="text-base font-semibold text-stone-800"
-                        >
-                            {t("security.deleteTeam.modalConfirm.title")}
-                        </h3>
-                        <p className="mt-2 text-sm text-stone-600">
-                            {t("security.deleteTeam.modalConfirm.desc")}
-                        </p>
-                        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDeleteConfirmModalOpen(false);
-                                    setDeleteNameModalOpen(true);
-                                }}
-                                disabled={deletePending}
-                                className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
-                            >
-                                {t("common.back")}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDeleteError(null);
-                                    startDelete(async () => {
-                                        const r = await deleteTeamAction(team.id, team.name);
-                                        if (!r.ok) {
-                                            setDeleteError(r.message ?? t("errors.deleteFailed"));
-                                            setDeleteConfirmModalOpen(false);
-                                            setDeleteNameModalOpen(true);
-                                        } else {
-                                            closeDeleteModals();
-                                            router.push("/teams");
-                                        }
-                                    });
-                                }}
-                                disabled={deletePending}
-                                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-                            >
-                                {deletePending ? t("common.deleting") : t("common.delete")}
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
-
-// ── 활동 로그 (설정 서브탭) ────────────────────────────────────────────────
-type ActivityEvent = {
-    id: string;
-    kind: "team_created" | "member_joined" | "member_leader" | "project_linked";
-    actorName: string;
-    targetName?: string;
-    date: string;
-};
-
-function buildActivityLog(team: TeamDetail): ActivityEvent[] {
-    const events: ActivityEvent[] = [];
-
-    // 팀 생성
-    events.push({
-        id: `created-${team.id}`,
-        kind: "team_created",
-        actorName: team.createdBy.name?.trim() || team.createdBy.email,
-        date: team.createdAt,
-    });
-
-    // 팀원 참여
-    for (const m of team.members) {
-        events.push({
-            id: `joined-${m.user.id}`,
-            kind: m.role === "LEADER" ? "member_leader" : "member_joined",
-            actorName: m.user.name?.trim() || m.user.email,
-            date: m.joinedAt,
-        });
-    }
-
-    // 프로젝트 연결
-    for (const p of team.projects ?? []) {
-        events.push({
-            id: `project-${p.id}`,
-            kind: "project_linked",
-            actorName: "",
-            targetName: p.name,
-            date: p.createdAt,
-        });
-    }
-
-    // 최신순 정렬
-    return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-const ACTIVITY_ICON: Record<ActivityEvent["kind"], { path: string; color: string }> = {
-    team_created: {
-        path: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-        color: "bg-sky-50 text-sky-500",
-    },
-    member_joined: {
-        path: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
-        color: "bg-emerald-50 text-emerald-500",
-    },
-    member_leader: {
-        path: "M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z",
-        color: "bg-amber-50 text-amber-500",
-    },
-    project_linked: {
-        path: "M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z",
-        color: "bg-violet-50 text-violet-500",
-    },
-};
-
-function TeamActivityLogSection({ team }: { team: TeamDetail }) {
-    const events = buildActivityLog(team);
-
-    function eventLabel(ev: ActivityEvent): string {
-        switch (ev.kind) {
-            case "team_created":
-                return `${ev.actorName}님이 팀을 생성했습니다.`;
-            case "member_joined":
-                return `${ev.actorName}님이 팀에 참여했습니다.`;
-            case "member_leader":
-                return `${ev.actorName}님이 팀장으로 지정됐습니다.`;
-            case "project_linked":
-                return `프로젝트 "${ev.targetName}"가 팀에 연결됐습니다.`;
-        }
-    }
-
-    return (
-        <div>
-            <h2 className="mb-1 text-base font-semibold text-stone-800">활동 로그</h2>
-            <p className="mb-5 text-sm text-stone-500">
-                팀의 주요 변경 이력입니다. 리더와 관리자만 확인할 수 있습니다.
-            </p>
-            {events.length === 0 ? (
-                <p className="text-sm text-stone-400">기록된 활동이 없습니다.</p>
-            ) : (
-                <ol className="relative border-l border-stone-200">
-                    {events.map((ev) => {
-                        const icon = ACTIVITY_ICON[ev.kind];
-                        return (
-                            <li key={ev.id} className="mb-6 ml-6 last:mb-0">
-                                <span
-                                    className={`absolute -left-3.5 flex h-7 w-7 items-center justify-center rounded-full ring-4 ring-white ${icon.color}`}
-                                >
-                                    <svg
-                                        className="h-3.5 w-3.5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.8}
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d={icon.path}
-                                        />
-                                    </svg>
-                                </span>
-                                <p className="text-sm font-medium text-stone-800">
-                                    {eventLabel(ev)}
-                                </p>
-                                <time className="mt-0.5 block text-xs text-stone-400">
-                                    {formatDateKo(ev.date)}
-                                </time>
-                            </li>
-                        );
-                    })}
-                </ol>
-            )}
-        </div>
-    );
-}
-
 function truncateText(str: string, maxLen: number): string {
     if (str.length <= maxLen) return str;
     return str.slice(0, maxLen) + "…";
 }
-
-const AVATAR_STACK_MAX = 4;
 
 function displayUserName(u: { name: string | null; email: string }): string {
     return u.name?.trim() || u.email.split("@")[0] || u.email;
@@ -508,40 +77,6 @@ function formatDateKo(iso: string): string {
 
 function roleLabel(role: TeamMemberRow["role"]): string {
     return role === "LEADER" ? "LEADER" : "MEMBER";
-}
-
-function AvatarStack({
-    members,
-    size = "md",
-}: {
-    members: { id: string; label: string; avatarUrl: string | null }[];
-    size?: "sm" | "md";
-}) {
-    const displayCount = Math.min(members.length, AVATAR_STACK_MAX);
-    const overflow = members.length - displayCount;
-    const sizeClass = size === "sm" ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm";
-
-    return (
-        <div className="flex items-center -space-x-2" aria-label={`팀원 ${members.length}명`}>
-            {members.slice(0, displayCount).map((m) => (
-                <UserAvatar
-                    key={m.id}
-                    userId={m.id}
-                    label={m.label}
-                    avatarUrl={m.avatarUrl}
-                    sizeClass={sizeClass}
-                />
-            ))}
-            {overflow > 0 && (
-                <div
-                    className={`${sizeClass} shrink-0 rounded-full ring-2 ring-white bg-stone-600 flex items-center justify-center font-medium text-white shadow-sm`}
-                    title={`외 ${overflow}명`}
-                >
-                    +{overflow}
-                </div>
-            )}
-        </div>
-    );
 }
 
 export function TeamDetailPageClient({
@@ -603,7 +138,18 @@ export function TeamDetailPageClient({
     const projects = team.projects ?? [];
 
     if (team.viewerRole === null) {
-        return <TeamPublicDetail team={team} isFavorite={isFavorite} />;
+        return (
+            <TeamPublicDetailView
+                team={team}
+                isFavorite={isFavorite}
+                onBackToTeams={() => router.push("/teams")}
+                bannerActions={teamBannerActionsForUi}
+                updateTeamFields={updateTeamFieldsAction}
+                onAfterTeamFieldsMutation={() => router.refresh()}
+                onAddFavorite={() => addTeamFavoriteAction(team.id)}
+                onRemoveFavorite={() => removeTeamFavoriteAction(team.id)}
+            />
+        );
     }
 
     const isLeader = team.viewerRole === "LEADER";
@@ -690,7 +236,7 @@ export function TeamDetailPageClient({
                                 {t("labels.membersTotal", { count: team.members.length })}
                             </span>
                             {stackMembers.length > 0 && (
-                                <AvatarStack members={stackMembers} size="md" />
+                                <TeamDetailAvatarStack members={stackMembers} size="md" />
                             )}
                         </button>
 
@@ -1241,7 +787,15 @@ export function TeamDetailPageClient({
                                 </div>
                             )}
 
-                            {settingsSubTab === "security" && <TeamSecuritySection team={team} />}
+                            {settingsSubTab === "security" && (
+                                <TeamSecuritySection
+                                    team={team}
+                                    updateTeamFields={updateTeamFieldsAction}
+                                    deleteTeam={deleteTeamAction}
+                                    onRefresh={() => router.refresh()}
+                                    navigateAfterDelete={() => router.push("/teams")}
+                                />
+                            )}
 
                             {settingsSubTab === "activityLog" && (
                                 <TeamActivityLogSection team={team} />
