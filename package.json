@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "setup": "node scripts/setup.mjs",
+    "setup:mac": "bash scripts/setup-mac.sh",
+    "setup:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-windows.ps1",
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter web dev",
     "dev:server": "pnpm --filter @repo/api-server dev",

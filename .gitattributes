@@ -1,0 +1,2 @@
+# 셸 스크립트는 LF 고정 (shebang·macOS/Linux 실행)
+*.sh text eol=lf

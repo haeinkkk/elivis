@@ -85,17 +85,28 @@ pnpm --filter @repo/database db:setup
 
 `db:setup` runs `prisma generate` then `prisma migrate dev`. Then start the app with **`5. Development`** → `pnpm dev`.
 
-**3. One-shot setup (from scratch)**
+**3. One-shot setup (packages + Postgres/Redis + Prisma migrations)**
 
-Plain `pnpm setup` runs pnpm’s built-in command (global pnpm install, etc.). Run the repo script with **`run`**:
+Installs dependencies, starts Postgres and Redis in Docker, then runs `prisma generate` and `migrate dev`.  
+**Start Docker Desktop (or the Docker engine) before running.**
 
-```bash
-pnpm run setup
-```
+| OS | Command |
+|----|---------|
+| **macOS / Linux** | `pnpm run setup:mac` |
+| **Windows** | `pnpm run setup:win` |
+| **Any** | `pnpm run setup` |
 
-- `pnpm install`
-- `docker compose up -d --wait` → PostgreSQL + Redis
-- `prisma generate` + `prisma migrate dev` via `@repo/database` `db:setup`
+- macOS shell only: `chmod +x scripts/setup-mac.sh` then `./scripts/setup-mac.sh`
+- Windows script only: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1`
+
+Plain `pnpm setup` is pnpm’s built-in command — use **`pnpm run setup`** or the OS-specific commands above.
+
+What `scripts/setup.mjs` does:
+
+- Preflight: `pnpm`, Docker daemon, `docker compose` (falls back to `docker-compose`) — platform-specific hints on failure
+- Copy `env.example` → `.env` if missing
+- `pnpm install` → `docker compose up -d --wait` (or legacy `docker-compose up -d` + wait for Postgres)
+- `pnpm --filter @repo/database db:setup`
 
 Same outcome as the manual steps in **2**.
 
@@ -154,7 +165,9 @@ pnpm dev
 
 | Command | Description |
 |---------|-------------|
-| `pnpm run setup` | Install + Docker + DB migrations |
+| `pnpm run setup` | Install + Docker (DB/Redis) + Prisma migrations |
+| `pnpm run setup:mac` | Same (macOS/Linux; needs `bash`) |
+| `pnpm run setup:win` | Same (Windows PowerShell) |
 | `pnpm --filter @repo/database db:setup` | DB only: Prisma generate + migrate dev |
 | `pnpm --filter @repo/database db:migrate` | migrate dev only (interactive) |
 | `pnpm db:deploy` | migrate deploy + generate (deploy) |

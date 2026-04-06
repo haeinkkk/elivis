@@ -85,19 +85,30 @@ pnpm --filter @repo/database db:setup
 
 `db:setup`은 `prisma generate` 후 `prisma migrate dev`와 같습니다. 그다음 **5. 개발 서버**의 `pnpm dev`를 실행하면 됩니다.
 
-**3. 한 번에 셋업 (처음부터 끝까지)**
+**3. 한 번에 셋업 (패키지 + Postgres·Redis + Prisma 마이그레이션)**
 
-`pnpm setup`만 입력하면 pnpm 전역 설치용 내장 명령이 실행됩니다. 이 저장소 셋업은 **`run`을 붙여** 스크립트를 실행하세요.
+의존성 설치, Docker로 DB·Redis 기동, `prisma generate` + `migrate dev`까지 **한 번에** 합니다.  
+실행 전에 **Docker Desktop(또는 Docker Engine)이 켜져 있어야** 합니다.
 
-```bash
-pnpm run setup
-```
+| OS | 권장 명령 |
+|----|-----------|
+| **macOS / Linux** | `pnpm run setup:mac` |
+| **Windows** | `pnpm run setup:win` |
+| **공통** | `pnpm run setup` |
 
-- `pnpm install`
-- `docker compose up -d --wait` → PostgreSQL + Redis 기동
-- `prisma generate` 및 `prisma migrate dev` (`@repo/database`의 `db:setup`)
+- macOS에서 직접 셸만 쓸 때: `chmod +x scripts/setup-mac.sh` 후 `./scripts/setup-mac.sh`
+- Windows에서 스크립트만 실행할 때: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1`
 
-위 스크립트는 **2번에서 수동으로 하던 것과 동일한 결과**를 한 번에 냅니다.
+`pnpm setup`만 입력하면 pnpm 전역 설치용 내장 명령이 실행되므로, 이 저장소 셋업에는 반드시 **`pnpm run setup`** 또는 위 OS별 명령을 쓰세요.
+
+`scripts/setup.mjs`가 하는 일:
+
+- 사전 점검: `pnpm`, Docker 데몬, `docker compose`(없으면 `docker-compose`) 확인 — 실패 시 macOS·Windows 안내
+- `.env` 없으면 `env.example` 복사
+- `pnpm install` → `docker compose up -d --wait`(또는 구형 `docker-compose up -d` + Postgres 준비 대기)
+- `pnpm --filter @repo/database db:setup`
+
+위는 **2번에서 수동으로 하던 것과 같은 결과**입니다.
 
 **4. 데이터베이스 셋업 (상세·반복 시)**
 
@@ -161,7 +172,9 @@ pnpm dev
 
 | 명령 | 설명 |
 |------|------|
-| `pnpm run setup` | 설치 + Docker + DB 마이그레이션 |
+| `pnpm run setup` | 설치 + Docker(DB·Redis) + Prisma 마이그레이션 |
+| `pnpm run setup:mac` | 위와 동일 (macOS·Linux, `bash` 필요) |
+| `pnpm run setup:win` | 위와 동일 (Windows PowerShell) |
 | `pnpm --filter @repo/database db:setup` | (DB만) Prisma generate + migrate dev |
 | `pnpm --filter @repo/database db:migrate` | migrate dev만 (대화형) |
 | `pnpm db:deploy` | migrate deploy + generate (배포용) |
