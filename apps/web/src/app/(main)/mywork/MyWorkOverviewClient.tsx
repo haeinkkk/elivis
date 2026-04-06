@@ -58,6 +58,12 @@ type SelectedTaskInfo = {
 
 type ViewMode = "combined" | "by-workspace";
 
+/** 상태 의미(semantic)가 DONE인 경우만 완료로 집계 */
+function isTaskDoneBySemantic(statuses: ApiWorkspaceStatus[], statusId: string): boolean {
+    const s = statuses.find((x) => x.id === statusId);
+    return s?.semantic === "DONE";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 통계 계산
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,8 +79,7 @@ function computeStats(list: WorkspaceDataItem[]) {
 
     for (const { tasks, statuses } of list) {
         const topTasks = tasks.filter((t) => !t.parentId);
-        const isDone = (t: ApiWorkspaceTask) =>
-            statuses.find((s) => s.id === t.statusId)?.color === "green";
+        const isDone = (t: ApiWorkspaceTask) => isTaskDoneBySemantic(statuses, t.statusId);
 
         for (const task of topTasks) {
             total++;
@@ -125,9 +130,10 @@ function groupByDeadline(
     today.setHours(0, 0, 0, 0);
     const todayMs = today.getTime();
 
-    const isDone = (t: EnrichedTask) =>
-        (t._statuses.length > 0 ? t._statuses : allStatuses).find((s) => s.id === t.statusId)
-            ?.color === "green";
+    const isDone = (t: EnrichedTask) => {
+        const statuses = t._statuses.length > 0 ? t._statuses : allStatuses;
+        return isTaskDoneBySemantic(statuses, t.statusId);
+    };
 
     const topTasks = tasks.filter((t) => !t.parentId && !isDone(t));
 
@@ -357,11 +363,127 @@ function OverviewTimelineTitleRow({
     );
 }
 
+function TimelineTaskCard({
+    task,
+    showWorkspaceName,
+    onSelectTask,
+    onTaskUpdated,
+    tTimeline,
+}: {
+    task: EnrichedTask;
+    showWorkspaceName: boolean;
+    onSelectTask: (info: SelectedTaskInfo) => void;
+    onTaskUpdated?: (task: ApiWorkspaceTask) => void;
+    tTimeline: (key: string, values?: Record<string, number>) => string;
+}) {
+    const statusColor = tagColorOf(task.status.color);
+    const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
+
+    return (
+        <div
+            role="button"
+            tabIndex={0}
+            onClick={() =>
+                onSelectTask({
+                    task,
+                    workspaceId: task._workspaceId,
+                    statuses: task._statuses,
+                    priorities: task._priorities,
+                })
+            }
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                    onSelectTask({
+                        task,
+                        workspaceId: task._workspaceId,
+                        statuses: task._statuses,
+                        priorities: task._priorities,
+                    });
+            }}
+            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md"
+        >
+            <span
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`}
+                style={statusColor.dotStyle}
+            />
+            <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-1.5">
+                    {showWorkspaceName && (
+                        <span className="max-w-[120px] shrink-0 truncate rounded-md bg-stone-100 px-1.5 py-px text-[11px] font-medium text-stone-500">
+                            {task._workspaceName}
+                        </span>
+                    )}
+                    {onTaskUpdated ? (
+                        <div className="flex min-w-0 flex-1 items-center gap-1">
+                            <OverviewTimelineTitleRow
+                                task={task}
+                                onUpdated={onTaskUpdated}
+                                onOpenDetail={() =>
+                                    onSelectTask({
+                                        task,
+                                        workspaceId: task._workspaceId,
+                                        statuses: task._statuses,
+                                        priorities: task._priorities,
+                                    })
+                                }
+                            />
+                        </div>
+                    ) : (
+                        <p title={task.title} className="truncate text-sm font-medium text-stone-800">
+                            {formatTaskTitleForList(task.title)}
+                        </p>
+                    )}
+                </div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                    <span
+                        className={`rounded-full px-1.5 py-px text-[11px] ${statusColor.badge}`}
+                        style={statusColor.badgeStyle}
+                    >
+                        {task.status.name}
+                    </span>
+                    {priorityColor && task.priority && (
+                        <span
+                            className={`rounded-full px-1.5 py-px text-[11px] ${priorityColor.badge}`}
+                            style={priorityColor.badgeStyle}
+                        >
+                            {task.priority.name}
+                        </span>
+                    )}
+                    {task.assignee && (
+                        <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                            {task.assignee.avatarUrl ? (
+                                <img
+                                    src={task.assignee.avatarUrl}
+                                    className="h-3.5 w-3.5 rounded-full"
+                                    alt=""
+                                />
+                            ) : (
+                                <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">
+                                    {(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}
+                                </span>
+                            )}
+                            {task.assignee.name ?? task.assignee.email}
+                        </span>
+                    )}
+                </div>
+            </div>
+            <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>{dueDateLabel(task, tTimeline)}</span>
+        </div>
+    );
+}
+
+function completedTopTasksForView(tasks: EnrichedTask[]): EnrichedTask[] {
+    return tasks
+        .filter((t) => !t.parentId && isTaskDoneBySemantic(t._statuses, t.statusId))
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+}
+
 function TimelineView({
     tasks,
     onSelectTask,
     onTaskUpdated,
     showWorkspaceName = false,
+    showCompleted = false,
     emptyVisual,
     emptyTitle,
     emptyDesc,
@@ -373,7 +495,7 @@ function TimelineView({
     onSelectTask: (info: SelectedTaskInfo) => void;
     onTaskUpdated?: (task: ApiWorkspaceTask) => void;
     showWorkspaceName?: boolean;
-    /** 비우면 기본 완료 일러스트 */
+    showCompleted?: boolean;
     emptyVisual?: ReactNode;
     emptyTitle: string;
     emptyDesc: string;
@@ -382,8 +504,15 @@ function TimelineView({
     tMywork: (key: string, values?: Record<string, number>) => string;
 }) {
     const groups = groupByDeadline(tasks, [], groupLabels);
+    const completedTasks = useMemo(
+        () => (showCompleted ? completedTopTasksForView(tasks) : []),
+        [tasks, showCompleted],
+    );
 
-    if (groups.length === 0) {
+    const hasIncompleteGroups = groups.length > 0;
+    const hasCompletedList = completedTasks.length > 0;
+
+    if (!hasIncompleteGroups && !(showCompleted && hasCompletedList)) {
         return (
             <div className="flex w-full flex-1 items-center justify-center py-20 text-center">
                 <div>
@@ -401,7 +530,6 @@ function TimelineView({
         <div className="flex w-full flex-col">
             {groups.map((group, gi) => (
                 <div key={group.key} className="flex min-h-0">
-                    {/* 라벨 */}
                     <div className="flex w-32 shrink-0 flex-col items-end pr-4 pt-5">
                         <span
                             className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}
@@ -412,7 +540,6 @@ function TimelineView({
                             {tMywork("groupCount", { count: group.items.length })}
                         </span>
                     </div>
-                    {/* 타임라인 선 */}
                     <div className="relative flex w-7 shrink-0 flex-col items-center">
                         <div
                             className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`}
@@ -421,116 +548,48 @@ function TimelineView({
                             <div className="mt-1 w-0.5 flex-1 bg-stone-200" />
                         )}
                     </div>
-                    {/* 업무 카드 */}
                     <div className="flex-1 space-y-2 pb-6 pl-3 pr-4 pt-4">
-                        {group.items.map((task) => {
-                            const statusColor = tagColorOf(task.status.color);
-                            const priorityColor = task.priority
-                                ? tagColorOf(task.priority.color)
-                                : null;
-                            return (
-                                <div
-                                    key={task.id}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() =>
-                                        onSelectTask({
-                                            task,
-                                            workspaceId: task._workspaceId,
-                                            statuses: task._statuses,
-                                            priorities: task._priorities,
-                                        })
-                                    }
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ")
-                                            onSelectTask({
-                                                task,
-                                                workspaceId: task._workspaceId,
-                                                statuses: task._statuses,
-                                                priorities: task._priorities,
-                                            });
-                                    }}
-                                    className="group flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md"
-                                >
-                                    <span
-                                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`}
-                                        style={statusColor.dotStyle}
-                                    />
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex min-w-0 items-center gap-1.5">
-                                            {showWorkspaceName && (
-                                                <span className="shrink-0 rounded-md bg-stone-100 px-1.5 py-px text-[11px] font-medium text-stone-500 max-w-[120px] truncate">
-                                                    {task._workspaceName}
-                                                </span>
-                                            )}
-                                            {onTaskUpdated ? (
-                                                <div className="flex min-w-0 flex-1 items-center gap-1">
-                                                    <OverviewTimelineTitleRow
-                                                        task={task}
-                                                        onUpdated={onTaskUpdated}
-                                                        onOpenDetail={() =>
-                                                            onSelectTask({
-                                                                task,
-                                                                workspaceId: task._workspaceId,
-                                                                statuses: task._statuses,
-                                                                priorities: task._priorities,
-                                                            })
-                                                        }
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <p
-                                                    title={task.title}
-                                                    className="truncate text-sm font-medium text-stone-800"
-                                                >
-                                                    {formatTaskTitleForList(task.title)}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                                            <span
-                                                className={`rounded-full px-1.5 py-px text-[11px] ${statusColor.badge}`}
-                                                style={statusColor.badgeStyle}
-                                            >
-                                                {task.status.name}
-                                            </span>
-                                            {priorityColor && task.priority && (
-                                                <span
-                                                    className={`rounded-full px-1.5 py-px text-[11px] ${priorityColor.badge}`}
-                                                    style={priorityColor.badgeStyle}
-                                                >
-                                                    {task.priority.name}
-                                                </span>
-                                            )}
-                                            {task.assignee && (
-                                                <span className="flex items-center gap-1 text-[11px] text-stone-400">
-                                                    {task.assignee.avatarUrl ? (
-                                                        <img
-                                                            src={task.assignee.avatarUrl}
-                                                            className="h-3.5 w-3.5 rounded-full"
-                                                            alt=""
-                                                        />
-                                                    ) : (
-                                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">
-                                                            {(task.assignee.name ??
-                                                                task.assignee
-                                                                    .email)[0].toUpperCase()}
-                                                        </span>
-                                                    )}
-                                                    {task.assignee.name ?? task.assignee.email}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>
-                                        {dueDateLabel(task, tTimeline)}
-                                    </span>
-                                </div>
-                            );
-                        })}
+                        {group.items.map((task) => (
+                            <TimelineTaskCard
+                                key={task.id}
+                                task={task}
+                                showWorkspaceName={showWorkspaceName}
+                                onSelectTask={onSelectTask}
+                                onTaskUpdated={onTaskUpdated}
+                                tTimeline={tTimeline}
+                            />
+                        ))}
                     </div>
                 </div>
             ))}
+
+            {showCompleted && hasCompletedList && (
+                <div className="flex min-h-0">
+                    <div className="flex w-32 shrink-0 flex-col items-end pr-4 pt-5">
+                        <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+                            {tMywork("completedSectionTitle")}
+                        </span>
+                        <span className="mt-1 text-[10px] text-stone-400">
+                            {tMywork("groupCount", { count: completedTasks.length })}
+                        </span>
+                    </div>
+                    <div className="relative flex w-7 shrink-0 flex-col items-center">
+                        <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white bg-green-500 ring-2 ring-green-200 ring-offset-1" />
+                    </div>
+                    <div className="flex-1 space-y-2 pb-6 pl-3 pr-4 pt-4">
+                        {completedTasks.map((task) => (
+                            <TimelineTaskCard
+                                key={task.id}
+                                task={task}
+                                showWorkspaceName={showWorkspaceName}
+                                onSelectTask={onSelectTask}
+                                onTaskUpdated={onTaskUpdated}
+                                tTimeline={tTimeline}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -610,6 +669,7 @@ export function MyWorkOverviewClient({
     );
 
     const [viewMode, setViewMode] = useState<ViewMode>("combined");
+    const [showCompleted, setShowCompleted] = useState(false);
     const [selectedTask, setSelectedTask] = useState<SelectedTaskInfo | null>(null);
     const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
     const [workspaceData, setWorkspaceData] = useState(workspaceDataList);
@@ -670,21 +730,32 @@ export function MyWorkOverviewClient({
 
             {/* 뷰 모드 토글 */}
             <div className="border-b border-stone-200 bg-white/95 px-4 py-2 sm:px-6">
-                <div className="flex items-center gap-1">
-                    {(["combined", "by-workspace"] as const).map((mode) => (
-                        <button
-                            key={mode}
-                            type="button"
-                            onClick={() => setViewMode(mode)}
-                            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                                viewMode === mode
-                                    ? "bg-stone-100 text-stone-900"
-                                    : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
-                            }`}
-                        >
-                            {mode === "combined" ? tm("viewCombined") : tm("viewByWorkspace")}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1">
+                        {(["combined", "by-workspace"] as const).map((mode) => (
+                            <button
+                                key={mode}
+                                type="button"
+                                onClick={() => setViewMode(mode)}
+                                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                                    viewMode === mode
+                                        ? "bg-stone-100 text-stone-900"
+                                        : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
+                                }`}
+                            >
+                                {mode === "combined" ? tm("viewCombined") : tm("viewByWorkspace")}
+                            </button>
+                        ))}
+                    </div>
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-50">
+                        <input
+                            type="checkbox"
+                            className="h-3.5 w-3.5 rounded border-stone-300 accent-amber-500"
+                            checked={showCompleted}
+                            onChange={(e) => setShowCompleted(e.target.checked)}
+                        />
+                        <span>{tm("showCompletedTasks")}</span>
+                    </label>
                 </div>
             </div>
 
@@ -715,6 +786,7 @@ export function MyWorkOverviewClient({
                             onSelectTask={handleSelectTask}
                             onTaskUpdated={mergeTaskUpdate}
                             showWorkspaceName
+                            showCompleted={showCompleted}
                             emptyTitle={tm("emptyAllDoneTitle")}
                             emptyDesc={tm("emptyAllDoneDesc")}
                             groupLabels={groupLabels}
@@ -804,6 +876,7 @@ export function MyWorkOverviewClient({
                                             tasks={enriched}
                                             onSelectTask={handleSelectTask}
                                             onTaskUpdated={mergeTaskUpdate}
+                                            showCompleted={showCompleted}
                                             emptyTitle={tm("emptySectionDoneTitle")}
                                             emptyDesc=""
                                             groupLabels={groupLabels}

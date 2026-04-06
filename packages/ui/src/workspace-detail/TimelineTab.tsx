@@ -1,12 +1,30 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import type { ApiWorkspaceStatus, ApiWorkspaceTask } from "../types/workspace-api";
 import type { WorkspaceDetailMyWorkMutations } from "../types/workspace-detail-mutations";
+import { resolveTaskSemanticBucket } from "../project/project-detail/project-detail-helpers";
 
 import { SummaryTimelineTaskCard } from "./SummaryTimelineTaskCard";
 import { tagColorOf } from "../utils/tag-colors";
+
+function taskIsSemanticDone(
+    task: ApiWorkspaceTask,
+    statusById: Map<string, ApiWorkspaceStatus>,
+): boolean {
+    const s = statusById.get(task.statusId);
+    return (
+        resolveTaskSemanticBucket(
+            s ?? {
+                semantic: task.status.semantic,
+                color: task.status.color,
+                name: task.status.name,
+            },
+        ) === "DONE"
+    );
+}
 
 function AllClearIllustration() {
     return (
@@ -32,6 +50,7 @@ export function TimelineTab({
     updateWorkspaceTask,
     onTaskUpdate,
     onSelectTask,
+    showCompleted = false,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
@@ -39,16 +58,25 @@ export function TimelineTab({
     updateWorkspaceTask: WorkspaceDetailMyWorkMutations["updateWorkspaceTask"];
     onTaskUpdate: (t: ApiWorkspaceTask) => void;
     onSelectTask?: (task: ApiWorkspaceTask) => void;
+    /** 켜면 하단에 완료된 상위 업무 섹션 표시 */
+    showCompleted?: boolean;
 }) {
     const t = useTranslations("workspace");
+    const tm = useTranslations("mywork");
     const todayRaw = new Date();
     todayRaw.setHours(0, 0, 0, 0);
     const today = todayRaw.getTime();
 
-    const isCompleted = (t: ApiWorkspaceTask) =>
-        statuses.find((s) => s.id === t.statusId)?.color === "green";
+    const statusById = useMemo(() => new Map(statuses.map((s) => [s.id, s])), [statuses]);
 
-    const topTasks = tasks.filter((t) => !t.parentId && !isCompleted(t));
+    const topTasks = tasks.filter((t) => !t.parentId && !taskIsSemanticDone(t, statusById));
+
+    const completedTopTasks = useMemo(() => {
+        const map = new Map(statuses.map((s) => [s.id, s]));
+        return tasks
+            .filter((task) => !task.parentId && taskIsSemanticDone(task, map))
+            .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    }, [tasks, statuses]);
 
     function diffDays(t: ApiWorkspaceTask) {
         if (!t.dueDate) return null;
@@ -84,7 +112,9 @@ export function TimelineTab({
         { key: "nodate",   label: t("timeline.noDate"),    badge: "bg-stone-100 text-stone-500",   dot: "bg-stone-300",  items: noDate },
     ].filter((g) => g.items.length > 0);
 
-    if (groups.length === 0) {
+    const hasCompletedList = completedTopTasks.length > 0;
+
+    if (groups.length === 0 && !(showCompleted && hasCompletedList)) {
         return (
             <div className="flex min-h-0 flex-1 flex-col">
                 <div className="flex flex-1 items-center justify-center px-4 py-20">
@@ -135,7 +165,9 @@ export function TimelineTab({
                             {/* 타임라인 선 */}
                             <div className="relative flex w-8 shrink-0 flex-col items-center">
                                 <div className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`} />
-                                {gi < groups.length - 1 && <div className="mt-1 w-0.5 flex-1 bg-stone-200" />}
+                                {(gi < groups.length - 1 || (showCompleted && hasCompletedList)) && (
+                                    <div className="mt-1 w-0.5 flex-1 bg-stone-200" />
+                                )}
                             </div>
                             {/* 업무 카드 */}
                             <div className="flex-1 space-y-2 pb-6 pl-4 pr-5 pt-4">
@@ -160,6 +192,42 @@ export function TimelineTab({
                             </div>
                         </div>
                     ))}
+
+                    {showCompleted && hasCompletedList && (
+                        <div className="flex min-h-0">
+                            <div className="flex w-36 shrink-0 flex-col items-end pr-5 pt-5">
+                                <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+                                    {tm("completedSectionTitle")}
+                                </span>
+                                <span className="mt-1 text-[10px] text-stone-400">
+                                    {t("timeline.items", { count: completedTopTasks.length })}
+                                </span>
+                            </div>
+                            <div className="relative flex w-8 shrink-0 flex-col items-center">
+                                <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white bg-green-500 ring-2 ring-green-200 ring-offset-1" />
+                            </div>
+                            <div className="flex-1 space-y-2 pb-6 pl-4 pr-5 pt-4">
+                                {completedTopTasks.map((task) => {
+                                    const statusColor = tagColorOf(task.status.color);
+                                    const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
+                                    return (
+                                        <SummaryTimelineTaskCard
+                                            key={task.id}
+                                            task={task}
+                                            workspaceId={workspaceId}
+                                            updateWorkspaceTask={updateWorkspaceTask}
+                                            onTaskUpdate={onTaskUpdate}
+                                            onSelectTask={onSelectTask}
+                                            statusColor={statusColor}
+                                            priorityColor={priorityColor}
+                                            dueLabel={dueDateLabel(task)}
+                                            dueClass={dueDateColor(task)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

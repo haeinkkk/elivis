@@ -283,6 +283,8 @@ export function ProjectDetailPageClient({
                         <ProjectPerformanceTab
                             project={project}
                             projectTasksData={projectTasksData}
+                            taskPanelActions={workspaceTaskPanelActions}
+                            currentUserId={currentUserId}
                         />
                     )}
 

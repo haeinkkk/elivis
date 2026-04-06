@@ -1,3 +1,4 @@
+import type { ApiWorkspaceStatusSemantic } from "../../types/workspace-api";
 import type { ProjectDetailModel, ProjectDetailViewerRole } from "../../types/project-detail";
 
 export const PROJECT_DETAIL_STATUS_COLOR_MAP: Record<string, string> = {
@@ -40,6 +41,25 @@ export function isInProgressStatus(s: StatusSemanticInput): boolean {
     return (
         s.color === "blue" || s.name.includes("진행") || s.name.toLowerCase().includes("progress")
     );
+}
+
+/** 집계·대시보드용 — 태스크 상태를 semantic 한 줄로 귀속 (워크스페이스별 동일 이름 중복 제거용) */
+export function resolveTaskSemanticBucket(
+    s: StatusSemanticInput | undefined,
+): ApiWorkspaceStatusSemantic {
+    if (!s) return "WAITING";
+    if (s.semantic) return s.semantic as ApiWorkspaceStatusSemantic;
+    if (isCompletedStatus(s)) return "DONE";
+    if (s.name.includes("검토") || s.name.toLowerCase().includes("review")) return "REVIEW";
+    if (s.name.includes("보류") || s.name.toLowerCase().includes("hold")) return "ON_HOLD";
+    if (
+        s.color === "blue" ||
+        s.name.includes("진행") ||
+        s.name.toLowerCase().includes("progress")
+    ) {
+        return "IN_PROGRESS";
+    }
+    return "WAITING";
 }
 
 export function formatProjectDetailDateKo(dateStr: string): string {
