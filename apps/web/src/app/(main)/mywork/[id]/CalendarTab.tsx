@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { ApiWorkspaceStatus, ApiWorkspaceTask } from "@/lib/map-api-workspace";
+import { formatTaskTitleForList } from "@/lib/task-title-display";
 import { createWorkspaceTaskAction } from "@/app/actions/workspaces";
 import { TAG_COLORS } from "./WorkspaceDetailClient";
 
@@ -155,7 +156,7 @@ function EventBar({
                         aria-hidden
                     />
                 )}
-                <span className="truncate">{event.task.title}</span>
+                <span className="truncate">{formatTaskTitleForList(event.task.title)}</span>
                 {toRight && (
                     <svg className="ml-0.5 h-2.5 w-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />

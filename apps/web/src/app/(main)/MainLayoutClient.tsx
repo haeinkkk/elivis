@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -8,7 +8,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TopLoadingBar } from "@/components/TopLoadingBar";
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
-import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationToastStack, useNotificationToastQueue } from "@/components/notifications/NotificationToast";
+import { requestDesktopNotificationPermission, useNotifications } from "@/hooks/useNotifications";
 import type { UserProfile } from "@/lib/users";
 import type { ApiWorkspaceListItem } from "@/lib/map-api-workspace";
 import type { ApiTeamFavoriteItem } from "@/lib/map-api-team";
@@ -65,9 +66,18 @@ export function MainLayoutClient({
   const pathname = usePathname();
   const title = getPageTitle(pathname, tNav);
 
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(accessToken);
+  const { items: toastItems, push: pushToast, dismiss: dismissToast } = useNotificationToastQueue();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(accessToken, {
+    onNotificationNew: pushToast,
+  });
 
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+
+  /** 알림 패널을 여는 모든 경로에서 호출 — 브라우저는 클릭 등 제스처가 있을 때만 알림 권한 프롬프트를 허용하는 경우가 많음 */
+  const openNotificationPanel = useCallback(() => {
+    void requestDesktopNotificationPermission();
+    setNotifPanelOpen(true);
+  }, []);
 
   return (
     <NotificationContext.Provider
@@ -77,7 +87,7 @@ export function MainLayoutClient({
         markAsRead,
         markAllAsRead,
         panelOpen: notifPanelOpen,
-        openPanel: () => setNotifPanelOpen(true),
+        openPanel: openNotificationPanel,
         closePanel: () => setNotifPanelOpen(false),
       }}
     >
@@ -100,6 +110,7 @@ export function MainLayoutClient({
           </div>
 
           <NotificationPanel />
+          <NotificationToastStack items={toastItems} onDismiss={dismissToast} />
         </div>
       </UserStatusProvider>
     </NotificationContext.Provider>

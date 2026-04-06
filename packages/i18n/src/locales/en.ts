@@ -78,6 +78,8 @@ export const en = {
     workspace: {
       listFetched:    "Workspaces loaded successfully.",
       fetched:        "Workspace retrieved successfully.",
+      updated:        "Workspace updated successfully.",
+      patchBodyInvalid: "Request body must include sidebarLabel.",
       notFound:       "Workspace not found.",
       forbidden:      "You do not have access to this workspace.",
       taskCreated:    "Task has been added.",
@@ -490,6 +492,14 @@ export const en = {
       restore:         "Reopen sidebar",
       favoriteTeams:    "Favorite Teams",
       favoriteProjects: "Favorite Projects",
+      workspaceDisplayNameTitle: "Sidebar display name",
+      workspaceDisplayNameHint: "Leave empty to use the project name.",
+      workspaceDisplayNameLabel: "Display name",
+      workspaceDisplayNamePlaceholder: "e.g. Design work",
+      workspaceRenameSave: "Save",
+      workspaceRenameCancel: "Cancel",
+      workspaceRenameSaving: "Saving…",
+      editWorkspaceDisplayName: "Change display name",
     },
     settings: {
       title: "My Settings",
@@ -625,7 +635,12 @@ export const en = {
         task: "Task", status: "Status", priority: "Priority",
         assignee: "Assignee", startDate: "Start date", dueDate: "Due date",
       },
-      taskRow: { addSubtask: "Add subtask", dragAria: "Drag to reorder" },
+      taskRow: {
+          addSubtask: "Add subtask",
+          dragAria: "Drag to reorder",
+          openDetail: "Open details",
+          editTitle: "Edit title",
+      },
       empty: {
         noTasks: "No tasks. Click \"Add task\" to get started.",
         noTasksFilter: "No tasks match the current filters.",

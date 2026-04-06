@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 
+import { updateWorkspaceTaskAction } from "@/app/actions/workspaces";
+import { formatTaskTitleForList } from "@/lib/task-title-display";
 import type {
     ApiWorkspaceListItem,
     ApiWorkspacePriority,
@@ -217,9 +220,109 @@ function dueDateColor(task: EnrichedTask): string {
 // 타임라인 뷰 (공용)
 // ─────────────────────────────────────────────────────────────────────────────
 
+function OverviewTimelineTitleRow({
+    task,
+    onUpdated,
+    onOpenDetail,
+}: {
+    task: EnrichedTask;
+    onUpdated: (t: ApiWorkspaceTask) => void;
+    onOpenDetail: () => void;
+}) {
+    const t = useTranslations("workspace");
+    const [draft, setDraft] = useState(task.title);
+    const [isPending, startTransition] = useTransition();
+    const [editingTitle, setEditingTitle] = useState(false);
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setDraft(task.title);
+    }, [task.id, task.title]);
+
+    useEffect(() => {
+        if (editingTitle) {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+        }
+    }, [editingTitle]);
+
+    function commit() {
+        const v = draft.trim();
+        if (!v) {
+            setDraft(task.title);
+            return;
+        }
+        if (v === task.title) return;
+        startTransition(async () => {
+            const res = await updateWorkspaceTaskAction(task._workspaceId, task.id, { title: v });
+            if (res.ok) onUpdated(res.task);
+        });
+    }
+
+    function finishEdit() {
+        commit();
+        setEditingTitle(false);
+    }
+
+    if (editingTitle) {
+        return (
+            <input
+                ref={titleInputRef}
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={finishEdit}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                    if (e.key === "Escape") {
+                        setDraft(task.title);
+                        setEditingTitle(false);
+                    }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                disabled={isPending}
+                className="min-w-0 flex-1 truncate rounded border border-stone-200 bg-white px-1 py-0 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+            />
+        );
+    }
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenDetail();
+                }}
+                title={task.title}
+                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+            >
+                {formatTaskTitleForList(task.title)}
+            </button>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setDraft(task.title);
+                    setEditingTitle(true);
+                }}
+                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover:opacity-100"
+                title={t("taskRow.editTitle")}
+                aria-label={t("taskRow.editTitle")}
+            >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+            </button>
+        </>
+    );
+}
+
 function TimelineView({
     tasks,
     onSelectTask,
+    onTaskUpdated,
     showWorkspaceName = false,
     emptyIcon = "🎉",
     emptyTitle = "모든 업무가 완료됐습니다!",
@@ -227,6 +330,7 @@ function TimelineView({
 }: {
     tasks: EnrichedTask[];
     onSelectTask: (info: SelectedTaskInfo) => void;
+    onTaskUpdated?: (task: ApiWorkspaceTask) => void;
     showWorkspaceName?: boolean;
     emptyIcon?: string;
     emptyTitle?: string;
@@ -291,7 +395,7 @@ function TimelineView({
                                                 priorities: task._priorities,
                                             });
                                     }}
-                                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md"
+                                    className="group flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md"
                                 >
                                     <span
                                         className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`}
@@ -304,9 +408,26 @@ function TimelineView({
                                                     {task._workspaceName}
                                                 </span>
                                             )}
-                                            <p className="truncate text-sm font-medium text-stone-800">
-                                                {task.title}
-                                            </p>
+                                            {onTaskUpdated ? (
+                                                <div className="flex min-w-0 flex-1 items-center gap-1">
+                                                    <OverviewTimelineTitleRow
+                                                        task={task}
+                                                        onUpdated={onTaskUpdated}
+                                                        onOpenDetail={() =>
+                                                            onSelectTask({
+                                                                task,
+                                                                workspaceId: task._workspaceId,
+                                                                statuses: task._statuses,
+                                                                priorities: task._priorities,
+                                                            })
+                                                        }
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <p title={task.title} className="truncate text-sm font-medium text-stone-800">
+                                                    {formatTaskTitleForList(task.title)}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="mt-0.5 flex flex-wrap items-center gap-2">
                                             <span
@@ -417,15 +538,30 @@ export function MyWorkOverviewClient({
     const [viewMode, setViewMode] = useState<ViewMode>("combined");
     const [selectedTask, setSelectedTask] = useState<SelectedTaskInfo | null>(null);
     const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
+    const [workspaceData, setWorkspaceData] = useState(workspaceDataList);
+
+    useEffect(() => {
+        setWorkspaceData(workspaceDataList);
+    }, [workspaceDataList]);
 
     function toggleCollapse(wsId: string) {
         setCollapsedMap((prev) => ({ ...prev, [wsId]: !prev[wsId] }));
     }
 
+    function mergeTaskUpdate(updated: ApiWorkspaceTask) {
+        setWorkspaceData((prev) =>
+            prev.map((w) => ({
+                ...w,
+                tasks: w.tasks.map((t) => (t.id === updated.id ? updated : t)),
+            })),
+        );
+        setSelectedTask((p) => (p && p.task.id === updated.id ? { ...p, task: updated } : p));
+    }
+
     // 모든 워크스페이스의 task에 컨텍스트 정보 부착
     const allEnrichedTasks = useMemo<EnrichedTask[]>(
         () =>
-            workspaceDataList.flatMap(({ workspace, tasks, statuses, priorities }) =>
+            workspaceData.flatMap(({ workspace, tasks, statuses, priorities }) =>
                 tasks.map((t) => ({
                     ...t,
                     _workspaceId: workspace.id,
@@ -434,19 +570,15 @@ export function MyWorkOverviewClient({
                     _priorities: priorities,
                 })),
             ),
-        [workspaceDataList],
+        [workspaceData],
     );
 
-    const stats = useMemo(() => computeStats(workspaceDataList), [workspaceDataList]);
+    const stats = useMemo(() => computeStats(workspaceData), [workspaceData]);
 
     const hasAnyTask = allEnrichedTasks.length > 0;
 
     function handleSelectTask(info: SelectedTaskInfo) {
         setSelectedTask(info);
-    }
-
-    function handleUpdateTask(updated: ApiWorkspaceTask) {
-        setSelectedTask((prev) => (prev ? { ...prev, task: updated } : null));
     }
 
     return (
@@ -508,12 +640,17 @@ export function MyWorkOverviewClient({
                             </span>
                             의 업무
                         </p>
-                        <TimelineView tasks={allEnrichedTasks} onSelectTask={handleSelectTask} showWorkspaceName />
+                        <TimelineView
+                            tasks={allEnrichedTasks}
+                            onSelectTask={handleSelectTask}
+                            onTaskUpdated={mergeTaskUpdate}
+                            showWorkspaceName
+                        />
                     </div>
                 ) : (
                     /* ── 워크스페이스별 타임라인 (섹션 구분, full width) ── */
                     <div className="w-full">
-                        {workspaceDataList.map(({ workspace, tasks, statuses, priorities }, idx) => {
+                        {workspaceData.map(({ workspace, tasks, statuses, priorities }, idx) => {
                             const enriched: EnrichedTask[] = tasks.map((t) => ({
                                 ...t,
                                 _workspaceId: workspace.id,
@@ -587,6 +724,7 @@ export function MyWorkOverviewClient({
                                         <TimelineView
                                             tasks={enriched}
                                             onSelectTask={handleSelectTask}
+                                            onTaskUpdated={mergeTaskUpdate}
                                             emptyIcon="✅"
                                             emptyTitle="모두 완료됐습니다!"
                                             emptyDesc=""
@@ -606,7 +744,7 @@ export function MyWorkOverviewClient({
                     statuses={selectedTask.statuses}
                     priorities={selectedTask.priorities}
                     workspaceId={selectedTask.workspaceId}
-                    onUpdate={handleUpdateTask}
+                    onUpdate={mergeTaskUpdate}
                     onClose={() => setSelectedTask(null)}
                 />
             )}

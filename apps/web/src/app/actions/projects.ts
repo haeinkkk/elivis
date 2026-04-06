@@ -123,6 +123,57 @@ export async function updateProjectAction(
     }
 }
 
+export async function addProjectMemberAction(
+    projectId: string,
+    userId: string,
+    role: "MEMBER" | "DEPUTY_LEADER" = "MEMBER",
+): Promise<{ ok: true; project: Project } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) {
+        return { ok: false, message: "로그인이 필요합니다." };
+    }
+
+    const uid = userId.trim();
+    if (!uid) {
+        return { ok: false, message: "사용자를 선택해 주세요." };
+    }
+
+    try {
+        const res = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}/members`), {
+            method: "POST",
+            headers: await apiFetchHeaders(),
+            body: JSON.stringify({ userId: uid, role }),
+            cache: "no-store",
+        });
+
+        const body = (await res.json()) as ApiEnvelope<unknown>;
+        if (!res.ok) {
+            return { ok: false, message: body.message ?? "멤버 초대에 실패했습니다." };
+        }
+
+        const detailRes = await fetch(apiUrl(`/api/projects/${encodeURIComponent(projectId)}`), {
+            headers: await apiFetchHeaders(),
+            cache: "no-store",
+        });
+        if (!detailRes.ok) {
+            return { ok: false, message: "초대는 완료됐지만 프로젝트 정보를 불러오지 못했습니다." };
+        }
+
+        const detailBody = (await detailRes.json()) as ApiEnvelope<ApiProjectDetail>;
+        const project = mapApiProjectToClient(detailBody.data);
+
+        revalidatePath("/projects");
+        revalidatePath(`/projects/${projectId}`);
+        for (const t of project.teams) {
+            revalidatePath(`/teams/${t.teamId}`);
+        }
+
+        return { ok: true, project };
+    } catch {
+        return { ok: false, message: "네트워크 오류가 발생했습니다." };
+    }
+}
+
 export async function deleteProjectAction(
     projectId: string,
     confirmName: string,

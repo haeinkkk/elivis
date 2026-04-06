@@ -204,9 +204,7 @@ export function createProjectController(app: FastifyInstance) {
                 select: { id: true },
             });
             if (found.length !== participantIds.length) {
-                return reply
-                    .code(400)
-                    .send(badRequest(t(lang, MSG.PROJECT_PARTICIPANTS_INVALID)));
+                return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_PARTICIPANTS_INVALID)));
             }
         }
 
@@ -231,6 +229,11 @@ export function createProjectController(app: FastifyInstance) {
                 select: { userId: true },
             });
             for (const m of teamMembers) linkedTeamMemberIds.add(m.userId);
+        }
+
+        // 개인 프로젝트 등에서 직접 초대한 참여자 — 팀 연결 없이도 멤버이므로 워크스페이스 생성 대상에 포함
+        for (const uid of participantIds) {
+            linkedTeamMemberIds.add(uid);
         }
 
         const project = await app.prisma.$transaction(async (tx) => {
@@ -264,7 +267,7 @@ export function createProjectController(app: FastifyInstance) {
                 },
             });
 
-            // 프로젝트 생성자 + 연결 팀 전원 워크스페이스 자동 생성
+            // 프로젝트 생성자 + 연결 팀 전원 + 직접 초대 참여자 워크스페이스 자동 생성
             await tx.workspace.createMany({
                 data: [...linkedTeamMemberIds].map((userId) => ({
                     id: generateWorkspaceId(),
@@ -280,9 +283,27 @@ export function createProjectController(app: FastifyInstance) {
                 select: { id: true },
             });
             const defaultStatuses = newWorkspaces.flatMap((ws) => [
-                { id: generatePublicId(), workspaceId: ws.id, name: "할 일",   color: "gray",  order: 0 },
-                { id: generatePublicId(), workspaceId: ws.id, name: "진행 중", color: "blue",  order: 1 },
-                { id: generatePublicId(), workspaceId: ws.id, name: "완료",    color: "green", order: 2 },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "할 일",
+                    color: "gray",
+                    order: 0,
+                },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "진행 중",
+                    color: "blue",
+                    order: 1,
+                },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "완료",
+                    color: "green",
+                    order: 2,
+                },
             ]);
             await (tx as any).workspaceStatus.createMany({
                 data: defaultStatuses,
@@ -290,10 +311,34 @@ export function createProjectController(app: FastifyInstance) {
             });
 
             const defaultPriorities = newWorkspaces.flatMap((ws) => [
-                { id: generatePublicId(), workspaceId: ws.id, name: "긴급", color: "red",    order: 0 },
-                { id: generatePublicId(), workspaceId: ws.id, name: "높음", color: "orange", order: 1 },
-                { id: generatePublicId(), workspaceId: ws.id, name: "보통", color: "blue",   order: 2 },
-                { id: generatePublicId(), workspaceId: ws.id, name: "낮음", color: "gray",   order: 3 },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "긴급",
+                    color: "red",
+                    order: 0,
+                },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "높음",
+                    color: "orange",
+                    order: 1,
+                },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "보통",
+                    color: "blue",
+                    order: 2,
+                },
+                {
+                    id: generatePublicId(),
+                    workspaceId: ws.id,
+                    name: "낮음",
+                    color: "gray",
+                    order: 3,
+                },
             ]);
             await (tx as any).workspacePriority.createMany({
                 data: defaultPriorities,
@@ -329,8 +374,7 @@ export function createProjectController(app: FastifyInstance) {
 
         const memberRow = project.members.find((m) => m.userId === request.userId);
         const viewerRole =
-            memberRow?.role ??
-            ((await isSuperAdmin(request.userId)) ? null : "MEMBER");
+            memberRow?.role ?? ((await isSuperAdmin(request.userId)) ? null : "MEMBER");
 
         const linkedTeamMembers = await linkedTeamMembersForProject(
             app,
@@ -366,8 +410,7 @@ export function createProjectController(app: FastifyInstance) {
             return reply.code(403).send(forbidden(t(lang, MSG.PROJECT_LEADER_ONLY)));
         }
 
-        const nextName =
-            body.name !== undefined ? String(body.name).trim() : existing.name;
+        const nextName = body.name !== undefined ? String(body.name).trim() : existing.name;
         if (!nextName) {
             return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_NAME_REQUIRED)));
         }
@@ -430,8 +473,7 @@ export function createProjectController(app: FastifyInstance) {
             include: PROJECT_DETAIL_INCLUDE,
         });
 
-        const viewerRole =
-            updated.members.find((m) => m.userId === request.userId)?.role ?? null;
+        const viewerRole = updated.members.find((m) => m.userId === request.userId)?.role ?? null;
 
         const linkedTeamMembers = await linkedTeamMembersForProject(
             app,
@@ -505,19 +547,61 @@ export function createProjectController(app: FastifyInstance) {
 
                 await (tx as any).workspaceStatus.createMany({
                     data: [
-                        { id: generatePublicId(), workspaceId: wsId, name: "할 일",   color: "gray",  order: 0 },
-                        { id: generatePublicId(), workspaceId: wsId, name: "진행 중", color: "blue",  order: 1 },
-                        { id: generatePublicId(), workspaceId: wsId, name: "완료",    color: "green", order: 2 },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "할 일",
+                            color: "gray",
+                            order: 0,
+                        },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "진행 중",
+                            color: "blue",
+                            order: 1,
+                        },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "완료",
+                            color: "green",
+                            order: 2,
+                        },
                     ],
                     skipDuplicates: true,
                 });
 
                 await (tx as any).workspacePriority.createMany({
                     data: [
-                        { id: generatePublicId(), workspaceId: wsId, name: "긴급", color: "red",    order: 0 },
-                        { id: generatePublicId(), workspaceId: wsId, name: "높음", color: "orange", order: 1 },
-                        { id: generatePublicId(), workspaceId: wsId, name: "보통", color: "blue",   order: 2 },
-                        { id: generatePublicId(), workspaceId: wsId, name: "낮음", color: "gray",   order: 3 },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "긴급",
+                            color: "red",
+                            order: 0,
+                        },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "높음",
+                            color: "orange",
+                            order: 1,
+                        },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "보통",
+                            color: "blue",
+                            order: 2,
+                        },
+                        {
+                            id: generatePublicId(),
+                            workspaceId: wsId,
+                            name: "낮음",
+                            color: "gray",
+                            order: 3,
+                        },
                     ],
                     skipDuplicates: true,
                 });
@@ -578,60 +662,119 @@ export function createProjectController(app: FastifyInstance) {
         } as const;
 
         const result = await Promise.all(
-            workspaces.map(async (ws: { id: string; user: { id: string; name: string | null; email: string; avatarUrl: string | null } }) => {
-                const [rawTasks, statuses, priorities] = await Promise.all([
-                    (app.prisma as any).workspaceTask.findMany({
-                        where: { workspaceId: ws.id },
-                        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-                        select: TASK_SELECT,
-                    }),
-                    (app.prisma as any).workspaceStatus.findMany({
-                        where: { workspaceId: ws.id },
-                        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-                        select: { id: true, workspaceId: true, name: true, color: true, order: true, notifyOnChange: true, createdAt: true, updatedAt: true },
-                    }),
-                    (app.prisma as any).workspacePriority.findMany({
-                        where: { workspaceId: ws.id },
-                        orderBy: [{ order: "asc" }],
-                        select: { id: true, workspaceId: true, name: true, color: true, order: true, value: true, createdAt: true, updatedAt: true },
-                    }),
-                ]);
+            workspaces.map(
+                async (ws: {
+                    id: string;
+                    user: {
+                        id: string;
+                        name: string | null;
+                        email: string;
+                        avatarUrl: string | null;
+                    };
+                }) => {
+                    const [rawTasks, statuses, priorities] = await Promise.all([
+                        (app.prisma as any).workspaceTask.findMany({
+                            where: { workspaceId: ws.id },
+                            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+                            select: TASK_SELECT,
+                        }),
+                        (app.prisma as any).workspaceStatus.findMany({
+                            where: { workspaceId: ws.id },
+                            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+                            select: {
+                                id: true,
+                                workspaceId: true,
+                                name: true,
+                                color: true,
+                                order: true,
+                                notifyOnChange: true,
+                                createdAt: true,
+                                updatedAt: true,
+                            },
+                        }),
+                        (app.prisma as any).workspacePriority.findMany({
+                            where: { workspaceId: ws.id },
+                            orderBy: [{ order: "asc" }],
+                            select: {
+                                id: true,
+                                workspaceId: true,
+                                name: true,
+                                color: true,
+                                order: true,
+                                value: true,
+                                createdAt: true,
+                                updatedAt: true,
+                            },
+                        }),
+                    ]);
 
-                // status/priority 객체 인라인 resolve
-                const statusIds = [...new Set((rawTasks as { statusId: string }[]).map((t) => t.statusId))];
-                const priorityIds = [...new Set((rawTasks as { priorityId?: string | null }[]).map((t) => t.priorityId).filter(Boolean))] as string[];
+                    // status/priority 객체 인라인 resolve
+                    const statusIds = [
+                        ...new Set((rawTasks as { statusId: string }[]).map((t) => t.statusId)),
+                    ];
+                    const priorityIds = [
+                        ...new Set(
+                            (rawTasks as { priorityId?: string | null }[])
+                                .map((t) => t.priorityId)
+                                .filter(Boolean),
+                        ),
+                    ] as string[];
 
-                const [statusRows, priorityRows] = await Promise.all([
-                    statusIds.length > 0
-                        ? (app.prisma as any).workspaceStatus.findMany({
-                            where: { id: { in: statusIds } },
-                            select: { id: true, name: true, color: true, order: true },
-                          })
-                        : [],
-                    priorityIds.length > 0
-                        ? (app.prisma as any).workspacePriority.findMany({
-                            where: { id: { in: priorityIds } },
-                            select: { id: true, name: true, color: true, order: true, value: true },
-                          })
-                        : [],
-                ]);
+                    const [statusRows, priorityRows] = await Promise.all([
+                        statusIds.length > 0
+                            ? (app.prisma as any).workspaceStatus.findMany({
+                                  where: { id: { in: statusIds } },
+                                  select: { id: true, name: true, color: true, order: true },
+                              })
+                            : [],
+                        priorityIds.length > 0
+                            ? (app.prisma as any).workspacePriority.findMany({
+                                  where: { id: { in: priorityIds } },
+                                  select: {
+                                      id: true,
+                                      name: true,
+                                      color: true,
+                                      order: true,
+                                      value: true,
+                                  },
+                              })
+                            : [],
+                    ]);
 
-                const statusMap = new Map((statusRows as { id: string }[]).map((s) => [s.id, s]));
-                const priorityMap = new Map((priorityRows as { id: string }[]).map((p) => [p.id, p]));
+                    const statusMap = new Map(
+                        (statusRows as { id: string }[]).map((s) => [s.id, s]),
+                    );
+                    const priorityMap = new Map(
+                        (priorityRows as { id: string }[]).map((p) => [p.id, p]),
+                    );
 
-                const tasks = (rawTasks as Array<{ statusId: string; priorityId?: string | null; [key: string]: unknown }>).map((task) => ({
-                    ...task,
-                    status: statusMap.get(task.statusId) ?? { id: task.statusId, name: "—", color: "gray", order: 0 },
-                    priority: task.priorityId ? (priorityMap.get(task.priorityId as string) ?? null) : null,
-                }));
+                    const tasks = (
+                        rawTasks as Array<{
+                            statusId: string;
+                            priorityId?: string | null;
+                            [key: string]: unknown;
+                        }>
+                    ).map((task) => ({
+                        ...task,
+                        status: statusMap.get(task.statusId) ?? {
+                            id: task.statusId,
+                            name: "—",
+                            color: "gray",
+                            order: 0,
+                        },
+                        priority: task.priorityId
+                            ? (priorityMap.get(task.priorityId as string) ?? null)
+                            : null,
+                    }));
 
-                return {
-                    workspace: { id: ws.id, user: ws.user },
-                    tasks,
-                    statuses,
-                    priorities,
-                };
-            }),
+                    return {
+                        workspace: { id: ws.id, user: ws.user },
+                        tasks,
+                        statuses,
+                        priorities,
+                    };
+                },
+            ),
         );
 
         return reply.send(ok(result, t(lang, MSG.WORKSPACE_TASKS_FETCHED)));

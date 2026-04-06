@@ -6,6 +6,8 @@ import { useEffect, useState, useTransition } from "react";
 import { deleteProjectAction, updateProjectAction } from "@/app/actions/projects";
 import type { Project } from "@/lib/projects";
 
+import { ProjectAddMemberModal } from "./ProjectAddMemberModal";
+
 function parseDateInputValue(s: string): number | null {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
     if (!m) return null;
@@ -51,6 +53,7 @@ export function ProjectSettingsProjectTab({
     const [noEndDate, setNoEndDate] = useState(project.noEndDate);
     const [error, setError] = useState<string | null>(null);
     const [pending, startSave] = useTransition();
+    const [inviteOpen, setInviteOpen] = useState(false);
 
     useEffect(() => {
         setName(project.name);
@@ -142,12 +145,9 @@ export function ProjectSettingsProjectTab({
 
                 <div>
                     <h2 className="mb-1 text-base font-semibold text-stone-800">멤버</h2>
-                    <p className="text-sm text-stone-500">참여자를 초대하거나 역할을 변경합니다.</p>
-                    <div className="mt-4">
-                        <div className="flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm text-stone-600">
-                            멤버 초대 (데모)
-                        </div>
-                    </div>
+                    <p className="text-sm text-stone-500">
+                        프로젝트 리더만 새 멤버를 초대할 수 있습니다.
+                    </p>
                 </div>
             </div>
         );
@@ -260,12 +260,30 @@ export function ProjectSettingsProjectTab({
 
             <div>
                 <h2 className="mb-1 text-base font-semibold text-stone-800">멤버</h2>
-                <p className="text-sm text-stone-500">참여자를 초대하거나 역할을 변경합니다.</p>
+                <p className="text-sm text-stone-500">
+                    사용자를 검색해 프로젝트에 초대합니다. 초대된 사용자는 멤버로 등록되고 개인
+                    워크스페이스가 생성됩니다.
+                </p>
+                <p className="mt-2 text-sm text-stone-600">
+                    현재 <span className="font-semibold text-stone-800">{project.participants.length}</span>
+                    명 참여 중
+                </p>
                 <div className="mt-4">
-                    <div className="flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm text-stone-600">
-                        멤버 초대 (데모)
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setInviteOpen(true)}
+                        className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+                    >
+                        멤버 초대
+                    </button>
                 </div>
+                <ProjectAddMemberModal
+                    open={inviteOpen}
+                    onClose={() => setInviteOpen(false)}
+                    projectId={project.id}
+                    existingUserIds={project.participants.map((p) => p.id)}
+                    onSuccess={onUpdated}
+                />
             </div>
         </div>
     );

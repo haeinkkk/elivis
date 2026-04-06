@@ -798,11 +798,18 @@ export default function TaskDetailPanel({
     const locale = useLocale();
     const [isPending, startTransition] = useTransition();
     const [title, setTitle] = useState(task.title);
-    const titleRef = useRef<HTMLInputElement>(null);
+    const titleRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         setTitle(task.title);
-    }, [task.id]);
+    }, [task.id, task.title]);
+
+    useEffect(() => {
+        const el = titleRef.current;
+        if (!el) return;
+        el.style.height = "auto";
+        el.style.height = `${Math.max(el.scrollHeight, 40)}px`;
+    }, [title, task.id]);
 
     function update(patch: Parameters<typeof updateWorkspaceTaskAction>[2]) {
         if (readOnly) return;
@@ -872,19 +879,21 @@ export default function TaskDetailPanel({
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
                     {/* 제목 + 담당자 */}
                     <div className="flex items-start gap-3">
-                        <input
+                        <textarea
                             ref={titleRef}
                             value={title}
+                            rows={1}
                             onChange={(e) => !readOnly && setTitle(e.target.value)}
                             onBlur={saveTitle}
                             onKeyDown={(e) => {
-                                if (e.key === "Enter") {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
                                     e.currentTarget.blur();
                                 }
                             }}
                             disabled={isPending}
                             readOnly={readOnly}
-                            className={`min-w-0 flex-1 rounded-lg border-0 bg-transparent px-0 text-lg font-bold text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 ${readOnly ? "cursor-default select-text" : ""}`}
+                            className={`min-h-[2.5rem] min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-0 bg-transparent px-0 py-0.5 text-lg font-bold leading-snug text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 whitespace-pre-wrap break-words ${readOnly ? "cursor-default select-text" : ""}`}
                             placeholder={t("taskDetail.taskTitlePlaceholder")}
                         />
                         {task.assignee && (

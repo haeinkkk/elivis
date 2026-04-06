@@ -482,3 +482,26 @@ export async function deleteTaskNoteAction(
         return { ok: false, message: "서버 오류가 발생했습니다." };
     }
 }
+
+/** PATCH /api/workspaces/:workspaceId — 사이드바 표시 이름 (sidebarLabel) */
+export async function updateWorkspaceSidebarLabelAction(
+    workspaceId: string,
+    sidebarLabel: string | null,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const jar = await cookies();
+    if (!jar.get(AT_COOKIE)?.value) return { ok: false, message: "로그인이 필요합니다." };
+    try {
+        const res = await fetch(apiUrl(`/api/workspaces/${encodeURIComponent(workspaceId)}`), {
+            method: "PATCH",
+            headers: await apiFetchHeaders(),
+            body: JSON.stringify({ sidebarLabel }),
+        });
+        const body = (await res.json()) as ApiEnvelope<unknown>;
+        if (!res.ok) return { ok: false, message: body.message ?? "표시 이름을 저장하지 못했습니다." };
+        revalidatePath("/mywork", "layout");
+        revalidatePath(`/mywork/${workspaceId}`);
+        return { ok: true };
+    } catch {
+        return { ok: false, message: "서버 오류가 발생했습니다." };
+    }
+}

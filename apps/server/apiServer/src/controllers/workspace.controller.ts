@@ -15,6 +15,12 @@ export interface WorkspaceParams {
     workspaceId: string;
 }
 
+/** PATCH /api/workspaces/:workspaceId — 본인 워크스페이스 메타 */
+export interface UpdateWorkspaceBody {
+    /** null이면 프로젝트명으로 되돌림(저장 값 삭제) */
+    sidebarLabel: string | null;
+}
+
 export interface WorkspaceTaskParams extends WorkspaceParams {
     taskId: string;
 }
@@ -284,6 +290,7 @@ export function createWorkspaceController(app: FastifyInstance) {
             orderBy: { createdAt: "desc" },
             select: {
                 id: true,
+                sidebarLabel: true,
                 createdAt: true,
                 updatedAt: true,
                 project: {
@@ -321,6 +328,7 @@ export function createWorkspaceController(app: FastifyInstance) {
             where: { id: workspaceId },
             select: {
                 id: true,
+                sidebarLabel: true,
                 userId: true,
                 createdAt: true,
                 updatedAt: true,
@@ -362,6 +370,46 @@ export function createWorkspaceController(app: FastifyInstance) {
         }
 
         return reply.send(ok(workspace, t(lang, MSG.WORKSPACE_FETCHED)));
+    }
+
+    /** PATCH /api/workspaces/:workspaceId — 사이드바 표시 이름 등 */
+    async function updateWorkspace(
+        request: FastifyRequest<{ Params: WorkspaceParams; Body: UpdateWorkspaceBody }>,
+        reply: FastifyReply,
+    ) {
+        const { workspaceId } = request.params;
+        const lang = request.lang;
+        const body = request.body;
+
+        if (body == null || typeof body !== "object" || !("sidebarLabel" in body)) {
+            return reply.code(400).send(badRequest(t(lang, MSG.WORKSPACE_PATCH_BODY_INVALID)));
+        }
+
+        const ws = await findOwnWorkspace(app, workspaceId, request.userId);
+        if (!ws) return rejectNoWorkspace(app, workspaceId, lang, reply);
+
+        let sidebarLabel: string | null;
+        if (body.sidebarLabel === null) {
+            sidebarLabel = null;
+        } else if (typeof body.sidebarLabel === "string") {
+            const trimmed = body.sidebarLabel.trim();
+            sidebarLabel = trimmed.length === 0 ? null : trimmed.slice(0, 128);
+        } else {
+            return reply.code(400).send(badRequest(t(lang, MSG.WORKSPACE_PATCH_BODY_INVALID)));
+        }
+
+        const updated = await app.prisma.workspace.update({
+            where: { id: workspaceId },
+            data: { sidebarLabel },
+            select: {
+                id: true,
+                sidebarLabel: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+
+        return reply.send(ok(updated, t(lang, MSG.WORKSPACE_UPDATED)));
     }
 
     // ─── 상태 (WorkspaceStatus) CRUD ─────────────────────────────────────────
@@ -1367,6 +1415,7 @@ export function createWorkspaceController(app: FastifyInstance) {
     return {
         listWorkspaces,
         getWorkspace,
+        updateWorkspace,
         listWorkspaceStatuses,
         createWorkspaceStatus,
         updateWorkspaceStatus,

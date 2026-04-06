@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect, useCallback } from "react";
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import CalendarTab from "./CalendarTab";
@@ -32,6 +32,7 @@ import type {
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
 } from "@/lib/map-api-workspace";
+import { formatTaskTitleForList } from "@/lib/task-title-display";
 import {
     listTaskRequestsAction,
     acceptTaskRequestAction,
@@ -755,6 +756,18 @@ function InlineAddForm({
 // 리스트 뷰 업무 행
 // ─────────────────────────────────────────────────────────────────────────────
 
+function sortTasksByOrder(a: ApiWorkspaceTask, b: ApiWorkspaceTask) {
+    if (a.order !== b.order) return a.order - b.order;
+    return a.createdAt.localeCompare(b.createdAt);
+}
+
+/** 같은 parentId 를 가진 형제만, order 순 */
+function siblingTasksForParent(tasks: ApiWorkspaceTask[], parentId: string | null): ApiWorkspaceTask[] {
+    return tasks
+        .filter((t) => (t.parentId ?? null) === (parentId ?? null))
+        .sort(sortTasksByOrder);
+}
+
 interface TaskRowProps {
     task: ApiWorkspaceTask;
     subTasks: ApiWorkspaceTask[];
@@ -765,6 +778,8 @@ interface TaskRowProps {
     depth: number;
     isDragging?: boolean;
     dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
+    rowRef?: React.Ref<HTMLTableRowElement>;
+    rowStyle?: React.CSSProperties;
     onUpdate: (t: ApiWorkspaceTask) => void;
     onDelete: (id: string) => void;
     onAdded: (t: ApiWorkspaceTask) => void;
@@ -775,23 +790,53 @@ interface TaskRowProps {
 
 const TaskRow = ({
     task, subTasks, allTasks, statuses, priorities, workspaceId, depth,
-    isDragging, dragHandleProps,
+    isDragging, dragHandleProps, rowRef, rowStyle,
     onUpdate, onDelete, onAdded, onStatusesChange, onPrioritiesChange, onOpenPanel,
 }: TaskRowProps) => {
     const t = useTranslations("workspace");
     const [isPending, startTransition] = useTransition();
     const [addingSub, setAddingSub] = useState(false);
     const [expanded, setExpanded] = useState(true);
+    const [titleDraft, setTitleDraft] = useState(task.title);
+    const [editingTitle, setEditingTitle] = useState(false);
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setTitleDraft(task.title);
+    }, [task.id, task.title]);
+
+    useEffect(() => {
+        if (editingTitle) {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+        }
+    }, [editingTitle]);
 
     const isTop = depth === 0;
     const indentPx = depth * 20;
-    const hasChildren = subTasks.length > 0;
+    const sortedSubTasks = useMemo(() => [...subTasks].sort(sortTasksByOrder), [subTasks]);
+    const hasChildren = sortedSubTasks.length > 0;
 
     function updateField(input: Parameters<typeof updateWorkspaceTaskAction>[2]) {
         startTransition(async () => {
             const res = await updateWorkspaceTaskAction(workspaceId, task.id, input);
             if (res.ok) onUpdate(res.task);
         });
+    }
+
+    function commitTitle() {
+        const v = titleDraft.trim();
+        if (!v) {
+            setTitleDraft(task.title);
+            return;
+        }
+        if (v === task.title) return;
+        updateField({ title: v });
+    }
+
+    function finishTitleEdit() {
+        commitTitle();
+        setEditingTitle(false);
     }
 
     // ── 상태 모달 ─────────────────────────────────────────────────────────────
@@ -846,15 +891,17 @@ const TaskRow = ({
                 />
             )}
             <tr
+                ref={rowRef}
+                style={rowStyle}
                 className={`group border-b transition-opacity ${isPending ? "opacity-50" : ""} ${isDragging ? "opacity-30" : ""} ${
                     isTop
                         ? "border-stone-200 bg-white hover:bg-stone-50/60"
                         : "border-stone-100 bg-stone-50/20 hover:bg-stone-50/40"
                 }`}
             >
-                {/* 드래그 핸들 (최상위만) */}
+                {/* 드래그 핸들 (형제 그룹 내 순서 변경) */}
                 <td className="w-6 py-2 pl-2">
-                    {isTop ? (
+                    {dragHandleProps ? (
                         <button
                             type="button"
                             className="cursor-grab touch-none text-stone-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
@@ -881,10 +928,50 @@ const TaskRow = ({
                                 </svg>
                             </button>
                         ) : <span className="h-4 w-4 shrink-0" />}
-                        <button type="button" onClick={() => onOpenPanel(task)}
-                            className={`flex-1 text-left hover:underline ${isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"}`}>
-                            {task.title}
-                        </button>
+                        {editingTitle ? (
+                            <input
+                                ref={titleInputRef}
+                                type="text"
+                                value={titleDraft}
+                                onChange={(e) => setTitleDraft(e.target.value)}
+                                onBlur={finishTitleEdit}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") e.currentTarget.blur();
+                                    if (e.key === "Escape") {
+                                        setTitleDraft(task.title);
+                                        setEditingTitle(false);
+                                    }
+                                }}
+                                disabled={isPending}
+                                className={`min-w-0 flex-1 rounded border border-stone-200 bg-white px-1 py-0.5 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60 ${isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"}`}
+                            />
+                        ) : (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => onOpenPanel(task)}
+                                    title={task.title}
+                                    className={`min-w-0 flex-1 truncate text-left hover:underline ${isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"}`}
+                                >
+                                    {formatTaskTitleForList(task.title)}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTitleDraft(task.title);
+                                        setEditingTitle(true);
+                                    }}
+                                    className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover:opacity-100"
+                                    title={t("taskRow.editTitle")}
+                                    aria-label={t("taskRow.editTitle")}
+                                >
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </td>
 
@@ -983,22 +1070,34 @@ const TaskRow = ({
                 </tr>
             )}
 
-            {expanded && subTasks.map((sub) => (
-                <TaskRow key={sub.id} task={sub}
-                    subTasks={allTasks.filter((t) => t.parentId === sub.id)}
-                    allTasks={allTasks} statuses={statuses} priorities={priorities}
-                    workspaceId={workspaceId} depth={depth + 1}
-                    onUpdate={onUpdate} onDelete={onDelete} onAdded={onAdded}
-                    onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
-                    onOpenPanel={onOpenPanel}
-                />
-            ))}
+            {expanded && sortedSubTasks.length > 0 && (
+                <SortableContext items={sortedSubTasks.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                    {sortedSubTasks.map((sub) => (
+                        <SortableTaskRow
+                            key={sub.id}
+                            task={sub}
+                            subTasks={allTasks.filter((t) => t.parentId === sub.id)}
+                            allTasks={allTasks}
+                            statuses={statuses}
+                            priorities={priorities}
+                            workspaceId={workspaceId}
+                            depth={depth + 1}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                            onAdded={onAdded}
+                            onStatusesChange={onStatusesChange}
+                            onPrioritiesChange={onPrioritiesChange}
+                            onOpenPanel={onOpenPanel}
+                        />
+                    ))}
+                </SortableContext>
+            )}
         </>
     );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 리스트 뷰 — 드래그 가능 행 래퍼
+// 리스트 뷰 — 드래그 가능 행 래퍼 (형제 그룹마다 SortableContext 안에서 사용)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SortableTaskRow(props: TaskRowProps) {
@@ -1009,9 +1108,13 @@ function SortableTaskRow(props: TaskRowProps) {
         zIndex: isDragging ? 10 : undefined,
     };
     return (
-        <tbody ref={setNodeRef} style={style}>
-            <TaskRow {...props} isDragging={isDragging} dragHandleProps={{ ...attributes, ...listeners }} />
-        </tbody>
+        <TaskRow
+            {...props}
+            isDragging={isDragging}
+            rowRef={setNodeRef}
+            rowStyle={style}
+            dragHandleProps={{ ...attributes, ...listeners }}
+        />
     );
 }
 
@@ -1020,7 +1123,7 @@ function SortableTaskRow(props: TaskRowProps) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function DraggableTaskCard({
-    task, statuses, priorities, workspaceId, onUpdate, onDelete, onStatusesChange, onPrioritiesChange,
+    task, statuses, priorities, workspaceId, onUpdate, onDelete, onStatusesChange, onPrioritiesChange, onOpenPanel,
 }: {
     task: ApiWorkspaceTask;
     statuses: ApiWorkspaceStatus[];
@@ -1030,9 +1133,25 @@ function DraggableTaskCard({
     onDelete: (id: string) => void;
     onStatusesChange: (s: ApiWorkspaceStatus[]) => void;
     onPrioritiesChange: (p: ApiWorkspacePriority[]) => void;
+    onOpenPanel?: (t: ApiWorkspaceTask) => void;
 }) {
+    const t = useTranslations("workspace");
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id, data: { task } });
     const [isPending, startTransition] = useTransition();
+    const [titleDraft, setTitleDraft] = useState(task.title);
+    const [editingTitle, setEditingTitle] = useState(false);
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setTitleDraft(task.title);
+    }, [task.id, task.title]);
+
+    useEffect(() => {
+        if (editingTitle) {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+        }
+    }, [editingTitle]);
 
     const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), opacity: isDragging ? 0.3 : 1 };
 
@@ -1071,6 +1190,24 @@ function DraggableTaskCard({
         setStatusModal(null);
     }
 
+    function commitTitle() {
+        const v = titleDraft.trim();
+        if (!v) {
+            setTitleDraft(task.title);
+            return;
+        }
+        if (v === task.title) return;
+        startTransition(async () => {
+            const res = await updateWorkspaceTaskAction(workspaceId, task.id, { title: v });
+            if (res.ok) onUpdate(res.task);
+        });
+    }
+
+    function finishTitleEdit() {
+        commitTitle();
+        setEditingTitle(false);
+    }
+
     return (
         <>
         {statusModal && (
@@ -1098,7 +1235,55 @@ function DraggableTaskCard({
                     </svg>
                 </button>
             </div>
-            <p className="mb-2 text-sm font-medium text-stone-800">{task.title}</p>
+            <div className="group/title mb-2 flex min-w-0 items-center gap-1">
+                {editingTitle ? (
+                    <input
+                        ref={titleInputRef}
+                        type="text"
+                        value={titleDraft}
+                        onChange={(e) => setTitleDraft(e.target.value)}
+                        onBlur={finishTitleEdit}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") e.currentTarget.blur();
+                            if (e.key === "Escape") {
+                                setTitleDraft(task.title);
+                                setEditingTitle(false);
+                            }
+                        }}
+                        disabled={isPending}
+                        className="w-full rounded border border-stone-200 bg-white px-1 py-0.5 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+                    />
+                ) : (
+                    <>
+                        {onOpenPanel ? (
+                            <button
+                                type="button"
+                                onClick={() => onOpenPanel(task)}
+                                title={task.title}
+                                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+                            >
+                                {formatTaskTitleForList(task.title)}
+                            </button>
+                        ) : (
+                            <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">{formatTaskTitleForList(task.title)}</span>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTitleDraft(task.title);
+                                setEditingTitle(true);
+                            }}
+                            className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover/title:opacity-100"
+                            title={t("taskRow.editTitle")}
+                            aria-label={t("taskRow.editTitle")}
+                        >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                        </button>
+                    </>
+                )}
+            </div>
             <div className="flex flex-wrap items-center gap-1.5">
                 <TagDropdown selectedId={task.statusId} items={statuses} workspaceId={workspaceId} disabled={isPending}
                     onChange={(id) => { if (id) { startTransition(async () => { const res = await updateWorkspaceTaskAction(workspaceId, task.id, { statusId: id }); if (res.ok) onUpdate(res.task); }); } }}
@@ -1133,7 +1318,7 @@ function DraggableTaskCard({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function DroppableColumn({
-    status, tasks, statuses, priorities, workspaceId, onUpdate, onDelete, onAdded, onStatusesChange, onPrioritiesChange,
+    status, tasks, statuses, priorities, workspaceId, onUpdate, onDelete, onAdded, onStatusesChange, onPrioritiesChange, onOpenPanel,
 }: {
     status: ApiWorkspaceStatus;
     tasks: ApiWorkspaceTask[];
@@ -1145,6 +1330,7 @@ function DroppableColumn({
     onAdded: (t: ApiWorkspaceTask) => void;
     onStatusesChange: (s: ApiWorkspaceStatus[]) => void;
     onPrioritiesChange: (p: ApiWorkspacePriority[]) => void;
+    onOpenPanel?: (t: ApiWorkspaceTask) => void;
 }) {
     const t = useTranslations("workspace");
     const { isOver, setNodeRef } = useDroppable({ id: status.id });
@@ -1161,7 +1347,8 @@ function DroppableColumn({
                 {tasks.map((task) => (
                     <DraggableTaskCard key={task.id} task={task} statuses={statuses} priorities={priorities}
                         workspaceId={workspaceId} onUpdate={onUpdate} onDelete={onDelete}
-                        onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange} />
+                        onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
+                        onOpenPanel={onOpenPanel} />
                 ))}
                 {adding ? (
                     <InlineAddForm workspaceId={workspaceId} defaultStatusId={status.id}
@@ -1348,20 +1535,32 @@ function MyWorkTab({
         setActiveId(null);
         if (!over || active.id === over.id) return;
 
-        const oldIndex = topTasks.findIndex((t) => t.id === active.id);
-        const newIndex = topTasks.findIndex((t) => t.id === over.id);
+        const activeTask = tasks.find((t) => t.id === active.id);
+        const overTask = tasks.find((t) => t.id === over.id);
+        if (!activeTask || !overTask) return;
+
+        const activeParent = activeTask.parentId ?? null;
+        const overParent = overTask.parentId ?? null;
+        if (activeParent !== overParent) return;
+
+        const siblingList =
+            activeParent === null
+                ? displayTopTasks
+                : siblingTasksForParent(tasks, activeParent);
+
+        const oldIndex = siblingList.findIndex((t) => t.id === active.id);
+        const newIndex = siblingList.findIndex((t) => t.id === over.id);
         if (oldIndex === -1 || newIndex === -1) return;
 
-        const reordered = arrayMove(topTasks, oldIndex, newIndex);
+        const reordered = arrayMove(siblingList, oldIndex, newIndex);
         const items = reordered.map((t, i) => ({ ...t, order: i }));
 
-        // 낙관적 업데이트
-        onTasksChange([
-            ...items,
-            ...tasks.filter((t) => t.parentId),
-        ]);
+        const nextTasks = tasks.map((t) => {
+            const u = items.find((x) => x.id === t.id);
+            return u ?? t;
+        });
+        onTasksChange(nextTasks);
 
-        // 서버 저장
         reorderWorkspaceTasksAction(
             workspaceId,
             items.map((t) => ({ id: t.id, order: t.order })),
@@ -1481,41 +1680,39 @@ function MyWorkTab({
                                         <th className="w-16 py-2 pr-2" />
                                     </tr>
                                 </thead>
-                                {addingTop && (
-                                    <tbody>
+                                <tbody>
+                                    {addingTop && (
                                         <tr>
                                             <td colSpan={8} className="px-3 py-1.5">
                                                 <InlineAddForm workspaceId={workspaceId} defaultStatusId={sortedStatuses[0]?.id}
                                                     onAdded={(t) => { onAdded(t); setAddingTop(false); }} onCancel={() => setAddingTop(false)} />
                                             </td>
                                         </tr>
-                                    </tbody>
-                                )}
-                                {displayTopTasks.map((task) => (
-                                    <SortableTaskRow key={task.id} task={task}
-                                        subTasks={tasks.filter((t) => t.parentId === task.id)}
-                                        allTasks={tasks} statuses={statuses} priorities={priorities}
-                                        workspaceId={workspaceId} depth={0}
-                                        onUpdate={onUpdate} onDelete={onDelete} onAdded={onAdded}
-                                        onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
-                                        onOpenPanel={(t) => setPanelTask(t)}
-                                    />
-                                ))}
-                                {!addingTop && displayTopTasks.length === 0 && (
-                                    <tbody>
+                                    )}
+                                    {displayTopTasks.map((task) => (
+                                        <SortableTaskRow key={task.id} task={task}
+                                            subTasks={tasks.filter((t) => t.parentId === task.id)}
+                                            allTasks={tasks} statuses={statuses} priorities={priorities}
+                                            workspaceId={workspaceId} depth={0}
+                                            onUpdate={onUpdate} onDelete={onDelete} onAdded={onAdded}
+                                            onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
+                                            onOpenPanel={(t) => setPanelTask(t)}
+                                        />
+                                    ))}
+                                    {!addingTop && displayTopTasks.length === 0 && (
                                         <tr>
                                             <td colSpan={8} className="py-12 text-center text-sm text-stone-400">
                                                 {topTasks.length === 0 ? t("empty.noTasks") : t("empty.noTasksFilter")}
                                             </td>
                                         </tr>
-                                    </tbody>
-                                )}
+                                    )}
+                                </tbody>
                             </table>
                         </SortableContext>
                         <DragOverlay>
                             {activeTask && (
                                 <div className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold shadow-lg opacity-90">
-                                    {activeTask.title}
+                                    {formatTaskTitleForList(activeTask.title)}
                                 </div>
                             )}
                         </DragOverlay>
@@ -1550,14 +1747,15 @@ function MyWorkTab({
                                     <DroppableColumn key={status.id} status={status} tasks={colTasks}
                                         statuses={statuses} priorities={priorities} workspaceId={workspaceId}
                                         onUpdate={onUpdate} onDelete={onDelete} onAdded={onAdded}
-                                        onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange} />
+                                        onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
+                                        onOpenPanel={(t) => setPanelTask(t)} />
                                 );
                             })}
                         </div>
                         <DragOverlay>
                             {activeTask && (
                                 <div className="w-[260px] rounded-lg border border-stone-300 bg-white p-3 shadow-xl opacity-95">
-                                    <p className="text-sm font-medium text-stone-800">{activeTask.title}</p>
+                                    <p className="text-sm font-medium text-stone-800">{formatTaskTitleForList(activeTask.title)}</p>
                                 </div>
                             )}
                         </DragOverlay>
@@ -1584,13 +1782,162 @@ function MyWorkTab({
 // 업무 요약 — 타임라인 서브탭 (실제 데이터)
 // ─────────────────────────────────────────────────────────────────────────────
 
+function SummaryTimelineTaskCard({
+    task,
+    workspaceId,
+    onTaskUpdate,
+    onSelectTask,
+    statusColor,
+    priorityColor,
+    dueLabel,
+    dueClass,
+}: {
+    task: ApiWorkspaceTask;
+    workspaceId: string;
+    onTaskUpdate: (t: ApiWorkspaceTask) => void;
+    onSelectTask?: (task: ApiWorkspaceTask) => void;
+    statusColor: TagColorResult;
+    priorityColor: TagColorResult | null;
+    dueLabel: string;
+    dueClass: string;
+}) {
+    const t = useTranslations("workspace");
+    const [draft, setDraft] = useState(task.title);
+    const [isPending, startTransition] = useTransition();
+    const [editingTitle, setEditingTitle] = useState(false);
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setDraft(task.title);
+    }, [task.id, task.title]);
+
+    useEffect(() => {
+        if (editingTitle) {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+        }
+    }, [editingTitle]);
+
+    function commitTitle() {
+        const v = draft.trim();
+        if (!v) {
+            setDraft(task.title);
+            return;
+        }
+        if (v === task.title) return;
+        startTransition(async () => {
+            const res = await updateWorkspaceTaskAction(workspaceId, task.id, { title: v });
+            if (res.ok) onTaskUpdate(res.task);
+        });
+    }
+
+    function finishTitleEdit() {
+        commitTitle();
+        setEditingTitle(false);
+    }
+
+    return (
+        <div
+            role={onSelectTask ? "button" : undefined}
+            tabIndex={onSelectTask ? 0 : undefined}
+            onClick={() => onSelectTask?.(task)}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") onSelectTask?.(task);
+            }}
+            className={`group/tl flex items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${onSelectTask ? "cursor-pointer hover:border-stone-300" : ""}`}
+        >
+            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`} style={statusColor.dotStyle} />
+            <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-1">
+                    {editingTitle ? (
+                        <input
+                            ref={titleInputRef}
+                            type="text"
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            onBlur={finishTitleEdit}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") e.currentTarget.blur();
+                                if (e.key === "Escape") {
+                                    setDraft(task.title);
+                                    setEditingTitle(false);
+                                }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            disabled={isPending}
+                            className="w-full truncate rounded border border-stone-200 bg-white px-1 py-0 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+                        />
+                    ) : (
+                        <>
+                            {onSelectTask ? (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelectTask(task);
+                                    }}
+                                    title={task.title}
+                                    className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+                                >
+                                    {formatTaskTitleForList(task.title)}
+                                </button>
+                            ) : (
+                                <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">{formatTaskTitleForList(task.title)}</span>
+                            )}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDraft(task.title);
+                                    setEditingTitle(true);
+                                }}
+                                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover/tl:opacity-100"
+                                title={t("taskRow.editTitle")}
+                                aria-label={t("taskRow.editTitle")}
+                            >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                            </button>
+                        </>
+                    )}
+                </div>
+                <div className="mt-0.5 flex items-center gap-2">
+                    <span className={`text-[11px] ${statusColor.badge} rounded-full px-1.5 py-px`} style={statusColor.badgeStyle}>{task.status.name}</span>
+                    {priorityColor && task.priority && (
+                        <span className={`text-[11px] ${priorityColor.badge} rounded-full px-1.5 py-px`} style={priorityColor.badgeStyle}>
+                            {task.priority.name}
+                            {(task.priority.value ?? 0) > 0 && <span className="ml-0.5 opacity-60">·{task.priority.value}</span>}
+                        </span>
+                    )}
+                    {task.assignee && (
+                        <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                            {task.assignee.avatarUrl
+                                ? <img src={task.assignee.avatarUrl} className="h-3.5 w-3.5 rounded-full" alt="" />
+                                : <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">{(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}</span>
+                            }
+                            {task.assignee.name ?? task.assignee.email}
+                        </span>
+                    )}
+                </div>
+            </div>
+            <span className={`shrink-0 text-xs ${dueClass}`}>{dueLabel}</span>
+        </div>
+    );
+}
+
 function TimelineTab({
     tasks,
     statuses,
+    workspaceId,
+    onTaskUpdate,
     onSelectTask,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
+    workspaceId: string;
+    onTaskUpdate: (t: ApiWorkspaceTask) => void;
     onSelectTask?: (task: ApiWorkspaceTask) => void;
 }) {
     const t = useTranslations("workspace");
@@ -1689,36 +2036,17 @@ function TimelineTab({
                                 const statusColor = tagColorOf(task.status.color);
                                 const priorityColor = task.priority ? tagColorOf(task.priority.color) : null;
                                 return (
-                                    <div key={task.id}
-                                        role={onSelectTask ? "button" : undefined}
-                                        tabIndex={onSelectTask ? 0 : undefined}
-                                        onClick={() => onSelectTask?.(task)}
-                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelectTask?.(task); }}
-                                        className={`flex items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${onSelectTask ? "cursor-pointer hover:border-stone-300" : ""}`}>
-                                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`} style={statusColor.dotStyle} />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium text-stone-800">{task.title}</p>
-                                            <div className="mt-0.5 flex items-center gap-2">
-                                                <span className={`text-[11px] ${statusColor.badge} rounded-full px-1.5 py-px`} style={statusColor.badgeStyle}>{task.status.name}</span>
-                                                {priorityColor && task.priority && (
-                                                    <span className={`text-[11px] ${priorityColor.badge} rounded-full px-1.5 py-px`} style={priorityColor.badgeStyle}>
-                                                        {task.priority.name}
-                                                        {(task.priority.value ?? 0) > 0 && <span className="ml-0.5 opacity-60">·{task.priority.value}</span>}
-                                                    </span>
-                                                )}
-                                                {task.assignee && (
-                                                    <span className="flex items-center gap-1 text-[11px] text-stone-400">
-                                                        {task.assignee.avatarUrl
-                                                            ? <img src={task.assignee.avatarUrl} className="h-3.5 w-3.5 rounded-full" alt="" />
-                                                            : <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">{(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}</span>
-                                                        }
-                                                        {task.assignee.name ?? task.assignee.email}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>{dueDateLabel(task)}</span>
-                                    </div>
+                                    <SummaryTimelineTaskCard
+                                        key={task.id}
+                                        task={task}
+                                        workspaceId={workspaceId}
+                                        onTaskUpdate={onTaskUpdate}
+                                        onSelectTask={onSelectTask}
+                                        statusColor={statusColor}
+                                        priorityColor={priorityColor}
+                                        dueLabel={dueDateLabel(task)}
+                                        dueClass={dueDateColor(task)}
+                                    />
                                 );
                             })}
                         </div>
@@ -1902,7 +2230,7 @@ function DashboardPanel({
                                 <div key={task.id} className="flex items-center gap-3 rounded-xl border border-stone-100 px-4 py-3">
                                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color.dot}`} style={color.dotStyle} />
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-xs font-semibold text-stone-800">{task.title}</p>
+                                        <p title={task.title} className="truncate text-xs font-semibold text-stone-800">{formatTaskTitleForList(task.title)}</p>
                                         <p className="mt-0.5 truncate text-[11px] text-stone-400">{task.status.name}</p>
                                     </div>
                                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${labelBg}`}>{label}</span>
@@ -1926,11 +2254,15 @@ function SummaryTab({
     tasks,
     statuses,
     priorities,
+    workspaceId,
+    onTaskUpdate,
     onSelectTask,
 }: {
     tasks: ApiWorkspaceTask[];
     statuses: ApiWorkspaceStatus[];
     priorities: ApiWorkspacePriority[];
+    workspaceId: string;
+    onTaskUpdate: (t: ApiWorkspaceTask) => void;
     onSelectTask?: (task: ApiWorkspaceTask) => void;
 }) {
     const t = useTranslations("workspace");
@@ -1959,7 +2291,13 @@ function SummaryTab({
             {/* 서브탭 콘텐츠 */}
             <div className="min-h-0 flex-1">
                 {subTab === "timeline" && (
-                    <TimelineTab tasks={tasks} statuses={statuses} onSelectTask={onSelectTask} />
+                    <TimelineTab
+                        tasks={tasks}
+                        statuses={statuses}
+                        workspaceId={workspaceId}
+                        onTaskUpdate={onTaskUpdate}
+                        onSelectTask={onSelectTask}
+                    />
                 )}
                 {subTab === "dashboard" && (
                     <DashboardPanel tasks={tasks} statuses={statuses} priorities={priorities} />
@@ -2075,78 +2413,93 @@ function RequestsTab({ workspaceId, onAccepted }: { workspaceId: string; onAccep
                     </div>
                 </div>
             ) : (
-                <ul className="min-h-0 flex-1 divide-y divide-stone-100 overflow-y-auto">
+                <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 pb-5 pt-3">
                     {requests.map((req) => {
                         const senderName = req.fromUser.name?.trim() || req.fromUser.email.split("@")[0];
                         const isProcessing = processingId === req.id;
 
                         return (
-                            <li key={req.id} className="flex flex-col gap-3 bg-white px-5 py-4 transition-colors hover:bg-stone-50/60">
-                                {/* 발신자 + 날짜 */}
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        {req.fromUser.avatarUrl ? (
-                                            <img
-                                                src={req.fromUser.avatarUrl}
-                                                alt={senderName}
-                                                className="h-7 w-7 rounded-full object-cover ring-1 ring-stone-200"
-                                            />
-                                        ) : (
-                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white">
-                                                {senderName[0]?.toUpperCase() ?? "?"}
-                                            </span>
-                                        )}
-                                        <div>
-                                            <span className="text-xs font-semibold text-stone-800">
-                                                {senderName}
-                                            </span>
-                                            {req.project && (
-                                                <span className="ml-1.5 text-xs text-stone-400">
-                                                    ({req.project.name})
+                            <li
+                                key={req.id}
+                                className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                            >
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                                    {/* 요청자 */}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                            요청자
+                                        </p>
+                                        <div className="mt-2 flex items-start gap-2.5">
+                                            {req.fromUser.avatarUrl ? (
+                                                <img
+                                                    src={req.fromUser.avatarUrl}
+                                                    alt=""
+                                                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-stone-200"
+                                                />
+                                            ) : (
+                                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white">
+                                                    {senderName[0]?.toUpperCase() ?? "?"}
                                                 </span>
                                             )}
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                                                    <span className="text-sm font-semibold text-stone-800">
+                                                        {senderName}
+                                                    </span>
+                                                    {req.project && (
+                                                        <span className="text-xs text-stone-400">
+                                                            · {req.project.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="mt-0.5 truncate text-xs text-stone-500">
+                                                    {req.fromUser.email}
+                                                </p>
+                                                <p className="mt-1 text-[11px] text-stone-400">
+                                                    {formatDate(req.createdAt)}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <span className="shrink-0 text-[11px] text-stone-400">
-                                        {formatDate(req.createdAt)}
-                                    </span>
+
+                                    {/* 수락 / 거절 — 오른쪽 정렬 */}
+                                    <div className="flex w-full shrink-0 flex-row justify-end gap-2 sm:w-auto sm:flex-col sm:items-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleAccept(req.id)}
+                                            disabled={isProcessing}
+                                            className="min-w-[88px] rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-50"
+                                        >
+                                            {isProcessing ? "처리 중…" : "수락"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleReject(req.id)}
+                                            disabled={isProcessing}
+                                            className="min-w-[88px] rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50 disabled:opacity-50"
+                                        >
+                                            {isProcessing ? "처리 중…" : "거절"}
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {/* 제목 */}
-                                <p className="text-sm font-semibold text-stone-800">{req.title}</p>
+                                <div className="mt-4 border-t border-stone-100 pt-4">
+                                    {/* 제목 */}
+                                    <p className="text-sm font-semibold text-stone-800">{req.title}</p>
 
-                                {/* 긴급 뱃지 */}
-                                {req.isUrgent && (
-                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600">
-                                        긴급
-                                    </span>
-                                )}
+                                    {/* 긴급 뱃지 */}
+                                    {req.isUrgent && (
+                                        <span className="mt-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600">
+                                            긴급
+                                        </span>
+                                    )}
 
-                                {/* 내용 */}
-                                {req.content && (
-                                    <p className="whitespace-pre-line rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">
-                                        {req.content}
-                                    </p>
-                                )}
-
-                                {/* 수락 / 거절 버튼 */}
-                                <div className="flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleAccept(req.id)}
-                                        disabled={isProcessing}
-                                        className="flex-1 rounded-lg bg-stone-800 py-1.5 text-xs font-medium text-white hover:bg-stone-700 disabled:opacity-50"
-                                    >
-                                        {isProcessing ? "처리 중…" : "수락"}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleReject(req.id)}
-                                        disabled={isProcessing}
-                                        className="flex-1 rounded-lg border border-stone-200 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50 disabled:opacity-50"
-                                    >
-                                        {isProcessing ? "처리 중…" : "거절"}
-                                    </button>
+                                    {/* 내용 */}
+                                    {req.content && (
+                                        <p className="mt-3 whitespace-pre-line rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">
+                                            {req.content}
+                                        </p>
+                                    )}
                                 </div>
                             </li>
                         );
@@ -2250,6 +2603,8 @@ export default function WorkspaceDetailClient({
                             tasks={tasks}
                             statuses={statuses}
                             priorities={priorities}
+                            workspaceId={workspace.id}
+                            onTaskUpdate={(tk) => setTasks((prev) => prev.map((x) => (x.id === tk.id ? tk : x)))}
                             onSelectTask={setSummaryPanelTask}
                         />
                         {summaryPanelTask && (

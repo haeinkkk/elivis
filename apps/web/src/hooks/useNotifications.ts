@@ -39,9 +39,10 @@ interface ClientToServerEvents {
 
 /**
  * 브라우저 알림 권한을 요청합니다.
- * 이미 허가된 경우에는 즉시 'granted'를 반환합니다.
+ * Chrome 등은 **사용자 제스처(클릭 등)** 가 있을 때만 프롬프트가 뜨고 granted 됩니다.
+ * 페이지 로드 직후 자동 호출만으로는 permission이 default에 머물러 OS 알림이 나오지 않는 경우가 많습니다.
  */
-async function requestNotificationPermission(): Promise<boolean> {
+export async function requestDesktopNotificationPermission(): Promise<boolean> {
   if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
@@ -51,33 +52,42 @@ async function requestNotificationPermission(): Promise<boolean> {
 
 /**
  * 탭이 비활성 또는 브라우저가 최소화된 상태일 때만 OS 알림을 표시합니다.
- * (탭이 활성화된 상태에서는 앱 내 드롭다운으로 충분하기 때문)
+ * (이 탭을 보고 있으면 앱 내 토스트로 충분)
  */
-function showDesktopNotification(title: string, body: string | null) {
+function showDesktopNotification(title: string, body: string | null, notificationId: string) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
-  // 페이지가 포커스 상태면 OS 알림 생략
-  if (document.visibilityState === "visible" && document.hasFocus()) return;
+  // 창 최소화·다른 창 포커스·백그라운드 탭: document.hidden 이 true 이거나 hasFocus() 가 false
+  if (!document.hidden && document.hasFocus()) return;
 
-  const n = new Notification(title, {
-    body: body ?? undefined,
-    icon: "/favicon.ico",
-    badge: "/favicon.ico",
-    tag: "elivis-notification", // 같은 태그면 덮어쓰기(중복 방지)
-  });
+  try {
+    const n = new Notification(title, {
+      body: body ?? undefined,
+      icon: "/favicon.ico",
+      badge: "/favicon.ico",
+      // 고정 태그면 연속 알림이 서로 덮어써져 "알림이 안 뜨는 것처럼" 보일 수 있음
+      tag: `elivis-${notificationId}`,
+    });
 
-  // 클릭하면 탭으로 포커스 이동
-  n.onclick = () => {
-    window.focus();
-    n.close();
-  };
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+  } catch {
+    // 일부 환경(비보안 컨텍스트 등)에서 생성 실패
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 훅
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useNotifications(accessToken: string | null) {
+export type UseNotificationsOptions = {
+  /** 탭이 보일 때(실시간 수신) 앱 내 토스트 등 — OS 알림과 별개 */
+  onNotificationNew?: (notification: NotificationItem) => void;
+};
+
+export function useNotifications(accessToken: string | null, options?: UseNotificationsOptions) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [connected, setConnected] = useState(false);
@@ -86,11 +96,8 @@ export function useNotifications(accessToken: string | null) {
     ServerToClientEvents,
     ClientToServerEvents
   > | null>(null);
-
-  // 앱 로드 시 OS 알림 권한 요청
-  useEffect(() => {
-    void requestNotificationPermission();
-  }, []);
+  const onNotificationNewRef = useRef(options?.onNotificationNew);
+  onNotificationNewRef.current = options?.onNotificationNew;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -128,7 +135,11 @@ export function useNotifications(accessToken: string | null) {
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
       // 브라우저 최소화·탭 비활성 시 OS 데스크톱 알림 표시
-      showDesktopNotification(notification.title, notification.message);
+      showDesktopNotification(notification.title, notification.message, notification.id);
+      // 현재 탭이 보이는 경우 앱 내 토스트(우측 상단 등)
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        onNotificationNewRef.current?.(notification);
+      }
     });
 
     socket.on("notification:updated", ({ id, isRead }) => {

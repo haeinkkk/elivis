@@ -1,17 +1,15 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ProjectFavoriteButton } from "@/components/ProjectFavoriteButton";
 import { getProject, type Project, type ProjectUser, type ProjectViewerRole } from "@/lib/projects";
+import { formatTaskTitleForList } from "@/lib/task-title-display";
 
-import {
-    ProjectSettingsProjectTab,
-    ProjectSettingsSecurityTab,
-} from "./ProjectSettingsPanels";
+import { ProjectSettingsProjectTab, ProjectSettingsSecurityTab } from "./ProjectSettingsPanels";
 import { ProjectTasksTab, type ApiProjectTasksItem } from "./ProjectTasksTab";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -19,15 +17,16 @@ import { ProjectTasksTab, type ApiProjectTasksItem } from "./ProjectTasksTab";
 import ProjectCalendarTab from "./ProjectCalendarTab";
 
 /** 서버에서 API로 받은 데이터는 props로 전달(팀 상세와 동일). Server Action 직렬화 없음 */
-export type ProjectDetailLoadMode = "server_ok" | "server_miss" | "client_only";
+export type ProjectDetailLoadMode = "server_ok" | "client_only";
 
-type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "settings";
+type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "performance" | "settings";
 
 const TABS: { id: ProjectTab; label: string }[] = [
     { id: "overview", label: "대시보드" },
     { id: "list", label: "업무" },
     { id: "calendar", label: "캘린더" },
     { id: "wiki", label: "위키" },
+    { id: "performance", label: "실적현황" },
     { id: "settings", label: "설정" },
 ];
 
@@ -64,14 +63,14 @@ const DEMO_WIKI_MARKDOWN = `## 가이드라인 (데모)
 
 /** API color 키 → CSS 색상 */
 const STATUS_COLOR_MAP: Record<string, string> = {
-    gray:   "#78716c",
-    red:    "#ef4444",
+    gray: "#78716c",
+    red: "#ef4444",
     orange: "#f97316",
     yellow: "#eab308",
-    green:  "#22c55e",
-    blue:   "#3b82f6",
+    green: "#22c55e",
+    blue: "#3b82f6",
     purple: "#a855f7",
-    pink:   "#ec4899",
+    pink: "#ec4899",
 };
 
 function statusCssColor(color: string): string {
@@ -91,9 +90,7 @@ function isCompletedStatus(s: { color: string; name: string }): boolean {
 /** 진행중 상태 판별 */
 function isInProgressStatus(s: { color: string; name: string }): boolean {
     return (
-        s.color === "blue" ||
-        s.name.includes("진행") ||
-        s.name.toLowerCase().includes("progress")
+        s.color === "blue" || s.name.includes("진행") || s.name.toLowerCase().includes("progress")
     );
 }
 
@@ -154,7 +151,7 @@ function projectRoleLabelKo(role: ProjectViewerRole | undefined): string {
 const AVATAR_STACK_MAX = 4;
 
 function AvatarStack({
-   participants,
+    participants,
     size = "md",
 }: {
     participants: ProjectUser[];
@@ -165,10 +162,7 @@ function AvatarStack({
     const sizeClass = size === "sm" ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm";
 
     return (
-        <div
-            className="flex items-center -space-x-2"
-            aria-label={`멤버 ${participants.length}명`}
-        >
+        <div className="flex items-center -space-x-2" aria-label={`멤버 ${participants.length}명`}>
             {participants.slice(0, displayCount).map((user) => (
                 <UserAvatar
                     key={user.id}
@@ -186,6 +180,155 @@ function AvatarStack({
                     +{overflow}
                 </div>
             )}
+        </div>
+    );
+}
+
+/** 팀 프로젝트 리더 전용 — 담당자 기준 업무 실적 */
+function ProjectPerformanceTab({
+    project,
+    projectTasksData,
+}: {
+    project: Project;
+    projectTasksData: ApiProjectTasksItem[];
+}) {
+    const allTasks = projectTasksData.flatMap((item) => item.tasks);
+    const statusById = new Map(
+        projectTasksData.flatMap((item) => item.statuses).map((s) => [s.id, s]),
+    );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const rows = project.participants.map((p) => {
+        const assigned = allTasks.filter((t) => t.assignee?.id === p.id);
+        const completed = assigned.filter((t) => {
+            const s = statusById.get(t.statusId);
+            return s ? isCompletedStatus(s) : false;
+        });
+        const inProgress = assigned.filter((t) => {
+            const s = statusById.get(t.statusId);
+            return s ? isInProgressStatus(s) : false;
+        });
+        const overdue = assigned.filter((t) => {
+            const s = statusById.get(t.statusId);
+            const done = s ? isCompletedStatus(s) : false;
+            if (done || !t.dueDate) return false;
+            return new Date(t.dueDate) < today;
+        });
+        return {
+            participant: p,
+            total: assigned.length,
+            completed: completed.length,
+            inProgress: inProgress.length,
+            overdue: overdue.length,
+        };
+    });
+
+    const unassigned = allTasks.filter((t) => !t.assignee?.id);
+    const unassignedCompleted = unassigned.filter((t) => {
+        const s = statusById.get(t.statusId);
+        return s ? isCompletedStatus(s) : false;
+    });
+    const unassignedInProgress = unassigned.filter((t) => {
+        const s = statusById.get(t.statusId);
+        return s ? isInProgressStatus(s) : false;
+    });
+    const unassignedOverdue = unassigned.filter((t) => {
+        const s = statusById.get(t.statusId);
+        const done = s ? isCompletedStatus(s) : false;
+        if (done || !t.dueDate) return false;
+        return new Date(t.dueDate) < today;
+    });
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-lg font-semibold text-stone-800">실적 현황</h2>
+                <p className="mt-1 text-sm text-stone-500">
+                    프로젝트 전체 업무 중 담당자(Assignee)별 처리 건수입니다.
+                </p>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white shadow-sm">
+                <table className="min-w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-stone-100 bg-stone-50/80 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
+                            <th className="px-4 py-3">멤버</th>
+                            <th className="hidden px-4 py-3 sm:table-cell">이메일</th>
+                            <th className="px-4 py-3 text-right tabular-nums">담당</th>
+                            <th className="px-4 py-3 text-right tabular-nums">완료</th>
+                            <th className="px-4 py-3 text-right tabular-nums">진행</th>
+                            <th className="px-4 py-3 text-right tabular-nums">기한 초과</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-50">
+                        {rows.map(
+                            ({
+                                participant: p,
+                                total,
+                                completed,
+                                inProgress,
+                                overdue,
+                            }) => (
+                                <tr key={p.id} className="text-stone-700">
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <UserAvatar
+                                                userId={p.id}
+                                                label={p.name}
+                                                avatarUrl={p.avatarUrl}
+                                                sizeClass="h-8 w-8 text-xs"
+                                            />
+                                            <span className="font-medium text-stone-800">{p.name}</span>
+                                        </div>
+                                    </td>
+                                    <td className="hidden max-w-[200px] truncate px-4 py-3 text-stone-500 sm:table-cell">
+                                        {p.userId}
+                                    </td>
+                                    <td className="px-4 py-3 text-right font-medium tabular-nums text-stone-800">
+                                        {total}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-green-600">
+                                        {completed}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-blue-600">
+                                        {inProgress}
+                                    </td>
+                                    <td
+                                        className={`px-4 py-3 text-right tabular-nums ${overdue > 0 ? "font-medium text-red-600" : "text-stone-400"}`}
+                                    >
+                                        {overdue}
+                                    </td>
+                                </tr>
+                            ),
+                        )}
+                        {unassigned.length > 0 ? (
+                            <tr className="bg-stone-50/50 text-stone-600">
+                                <td className="px-4 py-3 font-medium text-stone-700">담당자 미지정</td>
+                                <td className="hidden px-4 py-3 sm:table-cell">—</td>
+                                <td className="px-4 py-3 text-right tabular-nums font-medium">
+                                    {unassigned.length}
+                                </td>
+                                <td className="px-4 py-3 text-right tabular-nums text-green-600">
+                                    {unassignedCompleted.length}
+                                </td>
+                                <td className="px-4 py-3 text-right tabular-nums text-blue-600">
+                                    {unassignedInProgress.length}
+                                </td>
+                                <td
+                                    className={`px-4 py-3 text-right tabular-nums ${unassignedOverdue.length > 0 ? "font-medium text-red-600" : "text-stone-400"}`}
+                                >
+                                    {unassignedOverdue.length}
+                                </td>
+                            </tr>
+                        ) : null}
+                    </tbody>
+                </table>
+            </div>
+
+            {allTasks.length === 0 ? (
+                <p className="text-center text-sm text-stone-400">등록된 업무가 없습니다.</p>
+            ) : null}
         </div>
     );
 }
@@ -214,21 +357,47 @@ export function ProjectDetailPageClient({
     );
     const [membersModalOpen, setMembersModalOpen] = useState(false);
 
-    useEffect(() => {
-        setProject(initialProject);
-        if (loadMode === "server_ok" && initialProject) {
-            setLoadState("done");
+    const visibleTabs = useMemo(() => {
+        if (!project) {
+            return TABS.filter((t) => t.id !== "performance" && t.id !== "settings");
         }
-    }, [initialProject, loadMode]);
+        if (project.projectType === "team" && project.viewerRole !== "LEADER") {
+            return TABS.filter((t) => t.id !== "performance" && t.id !== "settings");
+        }
+        return TABS;
+    }, [project]);
 
     useEffect(() => {
-        if (loadMode === "server_ok") return;
-        if (!id) return;
+        if (!project) return;
+        if (project.projectType === "team" && project.viewerRole !== "LEADER") {
+            if (activeTab === "performance" || activeTab === "settings") {
+                setActiveTab("overview");
+            }
+        }
+    }, [project, activeTab]);
+
+    useEffect(() => {
+        if (loadMode === "server_ok") {
+            if (initialProject && initialProject.id === id) {
+                setProject(initialProject);
+                setLoadState("done");
+            } else if (!initialProject) {
+                setProject(null);
+                setLoadState("done");
+            } else {
+                setLoadState("loading");
+            }
+            return;
+        }
+        if (!id) {
+            setProject(null);
+            setLoadState("done");
+            return;
+        }
         setLoadState("loading");
-        const local = getProject(id);
-        setProject(local);
+        setProject(getProject(id));
         setLoadState("done");
-    }, [id, loadMode]);
+    }, [id, initialProject, loadMode]);
 
     if (!id) {
         return (
@@ -245,7 +414,6 @@ export function ProjectDetailPageClient({
             </div>
         );
     }
-
 
     return (
         <div className="flex min-h-full w-full flex-col">
@@ -374,13 +542,13 @@ export function ProjectDetailPageClient({
                 </div>
             </div>
 
-            {/* 서브메뉴: 대시보드, 업무, 요청, 캘린더, 위키, 설정 */}
+            {/* 서브메뉴: 대시보드, 업무, 캘린더, 위키, 실적현황·설정(팀 프로젝트는 리더만) */}
             <div className="border-b border-stone-200 bg-white/95">
                 <nav
                     className="flex gap-0 overflow-x-auto px-4 sm:px-5 md:px-6"
                     aria-label="프로젝트 서브메뉴"
                 >
-                    {TABS.map((tab) => (
+                    {visibleTabs.map((tab) => (
                         <button
                             key={tab.id}
                             type="button"
@@ -402,7 +570,9 @@ export function ProjectDetailPageClient({
             </div>
 
             {/* 탭별 콘텐츠 */}
-            <div className={`min-h-0 flex-1 ${activeTab === "list" || activeTab === "calendar" ? "" : "p-4 sm:p-5 md:p-6"}`}>
+            <div
+                className={`min-h-0 flex-1 ${activeTab === "list" || activeTab === "calendar" ? "" : "p-4 sm:p-5 md:p-6"}`}
+            >
                 {activeTab === "overview" && (
                     <OverviewTab
                         project={project}
@@ -410,6 +580,16 @@ export function ProjectDetailPageClient({
                         onSeeMoreTasks={() => setActiveTab("list")}
                     />
                 )}
+
+                {activeTab === "performance" &&
+                    project &&
+                    project.projectType === "team" &&
+                    project.viewerRole === "LEADER" && (
+                        <ProjectPerformanceTab
+                            project={project}
+                            projectTasksData={projectTasksData}
+                        />
+                    )}
 
                 {activeTab === "list" && (
                     <ProjectTasksTab
@@ -441,7 +621,9 @@ export function ProjectDetailPageClient({
                     </div>
                 )}
 
-                {activeTab === "settings" && (
+                {activeTab === "settings" &&
+                    project &&
+                    (project.projectType !== "team" || project.viewerRole === "LEADER") && (
                     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                         <nav
                             className="flex shrink-0 gap-1 overflow-x-auto pb-1 lg:w-44 lg:flex-col lg:overflow-x-visible lg:pb-0"
@@ -592,7 +774,9 @@ function OverviewTab({
     const maxCount = Math.max(1, ...statusCounts.map((s) => s.count));
 
     // 완료율
-    const completionPercent = totalTasks ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+    const completionPercent = totalTasks
+        ? Math.round((completedTasks.length / totalTasks) * 100)
+        : 0;
 
     // 최근 업무 (updatedAt 내림차순)
     const recentTasks = [...allTasks]
@@ -645,7 +829,9 @@ function OverviewTab({
                     <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
                         프로젝트 기간
                     </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold tracking-wide ${dDayColor}`}>
+                    <span
+                        className={`rounded-full px-3 py-0.5 text-xs font-bold tracking-wide ${dDayColor}`}
+                    >
                         {dDayLabel}
                     </span>
                 </div>
@@ -668,7 +854,9 @@ function OverviewTab({
                             {remainingDays === null ? (
                                 daysSinceStart !== null ? (
                                     <>
-                                        <span className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}>
+                                        <span
+                                            className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}
+                                        >
                                             {daysSinceStart}
                                         </span>
                                         <span className="text-sm font-semibold text-stone-500">
@@ -682,7 +870,9 @@ function OverviewTab({
                                 )
                             ) : remainingDays > 0 ? (
                                 <>
-                                    <span className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}>
+                                    <span
+                                        className={`text-5xl font-black tabular-nums sm:text-6xl ${dDayTextColor}`}
+                                    >
                                         {remainingDays}
                                     </span>
                                     <span className="text-sm font-semibold text-stone-500">
@@ -697,7 +887,9 @@ function OverviewTab({
                                 </>
                             ) : (
                                 <>
-                                    <span className={`text-4xl font-black tabular-nums sm:text-5xl ${dDayTextColor}`}>
+                                    <span
+                                        className={`text-4xl font-black tabular-nums sm:text-5xl ${dDayTextColor}`}
+                                    >
                                         {Math.abs(remainingDays)}
                                     </span>
                                     <span className="text-sm font-semibold text-red-500">
@@ -795,8 +987,16 @@ function OverviewTab({
                         key={label}
                         className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-4 sm:p-5"
                     >
-                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                            <svg className={`h-5 w-5 ${color}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                        <div
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}
+                        >
+                            <svg
+                                className={`h-5 w-5 ${color}`}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.8}
+                                stroke="currentColor"
+                            >
                                 <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                             </svg>
                         </div>
@@ -839,10 +1039,15 @@ function OverviewTab({
                         <div className="min-w-0 flex-1 space-y-2.5">
                             {[
                                 { label: "완료", count: completedTasks.length, color: "#22c55e" },
-                                { label: "진행중", count: inProgressTasks.length, color: "#3b82f6" },
+                                {
+                                    label: "진행중",
+                                    count: inProgressTasks.length,
+                                    color: "#3b82f6",
+                                },
                                 {
                                     label: "기타",
-                                    count: totalTasks - completedTasks.length - inProgressTasks.length,
+                                    count:
+                                        totalTasks - completedTasks.length - inProgressTasks.length,
                                     color: "#d1d5db",
                                 },
                             ].map(({ label, count, color }) => (
@@ -913,8 +1118,18 @@ function OverviewTab({
                     </p>
                     {inProgressTasks.length === 0 ? (
                         <div className="mt-6 flex flex-col items-center justify-center gap-2 py-6 text-stone-300">
-                            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.2} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            <svg
+                                className="h-8 w-8"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.2}
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                />
                             </svg>
                             <span className="text-xs">모두 완료됐어요!</span>
                         </div>
@@ -926,8 +1141,11 @@ function OverviewTab({
                                     className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-stone-50"
                                 >
                                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
-                                    <span className="min-w-0 flex-1 truncate text-sm text-stone-700">
-                                        {task.title}
+                                    <span
+                                        title={task.title}
+                                        className="min-w-0 flex-1 truncate text-sm text-stone-700"
+                                    >
+                                        {formatTaskTitleForList(task.title)}
                                     </span>
                                     {task.assignee?.name && (
                                         <span className="shrink-0 text-xs text-stone-400">
@@ -996,14 +1214,19 @@ function OverviewTab({
                                                 : "#d1d5db",
                                         }}
                                     />
-                                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
-                                        {task.title}
+                                    <span
+                                        title={task.title}
+                                        className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800"
+                                    >
+                                        {formatTaskTitleForList(task.title)}
                                     </span>
                                     {/* 상태 뱃지 */}
                                     {taskStatus && (
                                         <span
                                             className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                                            style={{ backgroundColor: statusCssColor(taskStatus.color) }}
+                                            style={{
+                                                backgroundColor: statusCssColor(taskStatus.color),
+                                            }}
                                         >
                                             {taskStatus.name}
                                         </span>

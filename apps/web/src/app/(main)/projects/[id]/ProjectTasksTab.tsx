@@ -9,6 +9,7 @@ import type {
     ApiWorkspaceTask,
 } from "@/lib/map-api-workspace";
 import type { ProjectUser, ProjectViewerRole } from "@/lib/projects";
+import { formatTaskTitleForList } from "@/lib/task-title-display";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore – dynamic segment folder name
@@ -263,11 +264,12 @@ function TaskRow({
                         <button
                             type="button"
                             onClick={() => onOpenPanel(task)}
-                            className={`flex-1 text-left hover:underline ${
+                            title={task.title}
+                            className={`flex-1 truncate text-left hover:underline ${
                                 isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"
                             }`}
                         >
-                            {task.title}
+                            {formatTaskTitleForList(task.title)}
                         </button>
                     </div>
                 </td>

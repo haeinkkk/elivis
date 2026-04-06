@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { ApiWorkspaceListItem } from "@/lib/map-api-workspace";
+import { workspaceDisplayName, type ApiWorkspaceListItem } from "@/lib/map-api-workspace";
+import { WorkspaceSidebarLabelModal } from "@/components/WorkspaceSidebarLabelModal";
 import type { ApiTeamFavoriteItem } from "@/lib/map-api-team";
 import type { ApiProjectFavoriteItem } from "@/lib/map-api-project";
 import { useNotificationContext } from "@/context/NotificationContext";
@@ -71,9 +72,11 @@ export function AppSidebar({
   projectFavorites = [],
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const tNav = useTranslations("nav");
   const tSidebar = useTranslations("sidebar");
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
+  const [renameWorkspace, setRenameWorkspace] = useState<ApiWorkspaceListItem | null>(null);
   const showLabels = size === "expanded";
   const showFloatingRestore = size === "hidden";
 
@@ -434,13 +437,14 @@ export function AppSidebar({
                     ) : (
                       workspaces.map((ws) => {
                         const isActive = pathname === `/mywork/${ws.id}`;
+                        const displayName = workspaceDisplayName(ws);
                         return (
-                          <li key={ws.id}>
+                          <li key={ws.id} className="group flex items-stretch gap-0.5">
                             <Link
                               href={`/mywork/${ws.id}`}
                               onClick={onClose}
-                              title={ws.project.name}
-                              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                              title={displayName}
+                              className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                                 isActive
                                   ? "bg-orange-50 text-orange-800"
                                   : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
@@ -451,12 +455,25 @@ export function AppSidebar({
                                   isActive ? "bg-orange-200 text-orange-800" : "bg-stone-200 text-stone-600"
                                 }`}
                               >
-                                {ws.project.name[0]?.toUpperCase() ?? "W"}
+                                {displayName[0]?.toUpperCase() ?? "W"}
                               </span>
-                              <span className="min-w-0 flex-1 truncate text-xs">
-                                {ws.project.name}
-                              </span>
+                              <span className="min-w-0 flex-1 truncate text-xs">{displayName}</span>
                             </Link>
+                            <button
+                              type="button"
+                              onClick={() => setRenameWorkspace(ws)}
+                              className="mr-1 shrink-0 self-center rounded-md p-1.5 text-stone-400 opacity-70 transition-opacity hover:bg-stone-100 hover:text-stone-600 md:opacity-0 md:group-hover:opacity-100"
+                              aria-label={tSidebar("editWorkspaceDisplayName")}
+                              title={tSidebar("editWorkspaceDisplayName")}
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                />
+                              </svg>
+                            </button>
                           </li>
                         );
                       })
@@ -505,6 +522,12 @@ export function AppSidebar({
           </div>
         )}
       </aside>
+
+      <WorkspaceSidebarLabelModal
+        workspace={renameWorkspace}
+        onClose={() => setRenameWorkspace(null)}
+        onSaved={() => router.refresh()}
+      />
     </>
   );
 }

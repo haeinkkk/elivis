@@ -38,7 +38,15 @@ export default async function ProjectDetailPage({
     const token = jar.get(AT_COOKIE)?.value;
 
     if (!token) {
-        return <ProjectDetailPageClient initialProject={null} loadMode="client_only" isFavorite={false} projectTasksData={[]} />;
+        return (
+            <ProjectDetailPageClient
+                key={id}
+                initialProject={null}
+                loadMode="client_only"
+                isFavorite={false}
+                projectTasksData={[]}
+            />
+        );
     }
 
     const currentUserId = extractUserIdFromToken(token);
@@ -52,6 +60,7 @@ export default async function ProjectDetailPage({
     if (result.ok) {
         return (
             <ProjectDetailPageClient
+                key={id}
                 initialProject={result.project}
                 loadMode="server_ok"
                 isFavorite={isFavorite}
@@ -73,5 +82,18 @@ export default async function ProjectDetailPage({
         );
     }
 
-    return <ProjectDetailPageClient initialProject={null} loadMode="server_miss" isFavorite={false} projectTasksData={[]} />;
+    if (result.reason === "not_found") {
+        return (
+            <div className="flex min-h-full items-center justify-center p-8">
+                <p className="text-stone-600">프로젝트를 찾을 수 없습니다.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex min-h-full flex-col items-center justify-center gap-2 p-8 text-center">
+            <p className="text-stone-600">프로젝트 정보를 불러오지 못했습니다.</p>
+            <p className="text-xs text-stone-400">API 서버 연결을 확인한 뒤 새로고침해 주세요.</p>
+        </div>
+    );
 }

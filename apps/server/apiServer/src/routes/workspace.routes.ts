@@ -19,12 +19,14 @@ import {
     type WorkspaceTaskAttachmentParams,
     type WorkspaceTaskNoteParams,
     type CreateWorkspaceTaskNoteBody,
+    type UpdateWorkspaceBody,
 } from "../controllers/workspace.controller";
 
 export async function workspaceRoutes(app: FastifyInstance) {
     const {
         listWorkspaces,
         getWorkspace,
+        updateWorkspace,
         listWorkspaceStatuses,
         createWorkspaceStatus,
         updateWorkspaceStatus,
@@ -51,6 +53,11 @@ export async function workspaceRoutes(app: FastifyInstance) {
 
     app.get("/workspaces", { preHandler: [authenticateUser] }, listWorkspaces);
     app.get<{ Params: WorkspaceParams }>("/workspaces/:workspaceId", { preHandler: [authenticateUser] }, getWorkspace);
+    app.patch<{ Params: WorkspaceParams; Body: UpdateWorkspaceBody }>(
+        "/workspaces/:workspaceId",
+        { preHandler: [authenticateUser] },
+        updateWorkspace,
+    );
 
     // 상태 CRUD
     app.get<{ Params: WorkspaceParams }>("/workspaces/:workspaceId/statuses", { preHandler: [authenticateUser] }, listWorkspaceStatuses);

@@ -28,6 +28,8 @@ export type ApiWorkspaceStatus = {
 /** GET /api/workspaces 목록 한 행 */
 export type ApiWorkspaceListItem = {
     id: string;
+    /** 사이드바 표시용 이름 (없으면 project.name 사용) */
+    sidebarLabel?: string | null;
     createdAt: string;
     updatedAt: string;
     project: {
@@ -45,9 +47,16 @@ export type ApiWorkspaceListItem = {
     _count: { tasks: number };
 };
 
+/** 사이드바·목록 등에 쓸 표시 이름 (커스텀 없으면 프로젝트명) */
+export function workspaceDisplayName(ws: Pick<ApiWorkspaceListItem, "sidebarLabel" | "project">): string {
+    const custom = ws.sidebarLabel?.trim();
+    return custom && custom.length > 0 ? custom : ws.project.name;
+}
+
 /** GET /api/workspaces/:workspaceId 상세 */
 export type ApiWorkspaceDetail = {
     id: string;
+    sidebarLabel?: string | null;
     userId: string;
     createdAt: string;
     updatedAt: string;

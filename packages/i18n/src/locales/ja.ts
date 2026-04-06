@@ -78,6 +78,8 @@ export const ja = {
     workspace: {
       listFetched:    "ワークスペース一覧を読み込みました。",
       fetched:        "ワークスペースの取得が完了しました。",
+      updated:        "ワークスペースを更新しました。",
+      patchBodyInvalid: "リクエスト本文に sidebarLabel が必要です。",
       notFound:       "ワークスペースが見つかりません。",
       forbidden:      "このワークスペースへのアクセス権限がありません。",
       taskCreated:    "タスクが追加されました。",
@@ -490,6 +492,14 @@ export const ja = {
       restore:         "サイドバーを再表示",
       favoriteTeams:    "チームのお気に入り",
       favoriteProjects: "プロジェクトのお気に入り",
+      workspaceDisplayNameTitle: "サイドバー表示名",
+      workspaceDisplayNameHint: "空にするとプロジェクト名が表示されます。",
+      workspaceDisplayNameLabel: "表示名",
+      workspaceDisplayNamePlaceholder: "例: デザイン作業",
+      workspaceRenameSave: "保存",
+      workspaceRenameCancel: "キャンセル",
+      workspaceRenameSaving: "保存中…",
+      editWorkspaceDisplayName: "表示名を変更",
     },
     settings: {
       title: "マイ設定",
@@ -625,7 +635,12 @@ export const ja = {
         task: "タスク", status: "ステータス", priority: "優先度",
         assignee: "担当者", startDate: "開始日", dueDate: "終了日",
       },
-      taskRow: { addSubtask: "サブタスクを追加", dragAria: "ドラッグして並び替え" },
+      taskRow: {
+          addSubtask: "サブタスクを追加",
+          dragAria: "ドラッグして並び替え",
+          openDetail: "詳細を開く",
+          editTitle: "タイトルを編集",
+      },
       empty: {
         noTasks: "タスクがありません。「タスクを追加」をクリックして始めましょう。",
         noTasksFilter: "フィルター条件に一致するタスクがありません。",

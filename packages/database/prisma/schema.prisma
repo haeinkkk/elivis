@@ -291,6 +291,8 @@ model Workspace {
   id        String   @id
   projectId String
   userId    String
+  /// 사이드바 등 UI에만 쓰는 표시 이름 (null·빈 값이면 프로젝트 이름 사용)
+  sidebarLabel String? @db.VarChar(128)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

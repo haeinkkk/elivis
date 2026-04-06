@@ -50,6 +50,8 @@ export const MSG = {
     // ── 워크스페이스 ───────────────────────────────────────────────────────────
     WORKSPACE_LIST_FETCHED: "server.workspace.listFetched",
     WORKSPACE_FETCHED: "server.workspace.fetched",
+    WORKSPACE_UPDATED: "server.workspace.updated",
+    WORKSPACE_PATCH_BODY_INVALID: "server.workspace.patchBodyInvalid",
     WORKSPACE_NOT_FOUND: "server.workspace.notFound",
     WORKSPACE_FORBIDDEN: "server.workspace.forbidden",
     WORKSPACE_TASK_CREATED: "server.workspace.taskCreated",

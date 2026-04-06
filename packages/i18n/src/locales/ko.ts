@@ -81,6 +81,8 @@ export const ko = {
     workspace: {
       listFetched:    "워크스페이스 목록을 불러왔습니다.",
       fetched:        "워크스페이스 조회가 완료되었습니다.",
+      updated:        "워크스페이스가 수정되었습니다.",
+      patchBodyInvalid: "요청 본문에 sidebarLabel이 필요합니다.",
       notFound:       "워크스페이스를 찾을 수 없습니다.",
       forbidden:      "이 워크스페이스에 접근할 권한이 없습니다.",
       taskCreated:    "업무가 추가되었습니다.",
@@ -499,6 +501,14 @@ export const ko = {
       restore:         "사이드바 다시 열기",
       favoriteTeams:    "팀 즐겨찾기",
       favoriteProjects: "프로젝트 즐겨찾기",
+      workspaceDisplayNameTitle: "사이드바에 표시할 이름",
+      workspaceDisplayNameHint: "비워 두면 프로젝트 이름이 표시됩니다.",
+      workspaceDisplayNameLabel: "표시 이름",
+      workspaceDisplayNamePlaceholder: "예: 디자인 작업",
+      workspaceRenameSave: "저장",
+      workspaceRenameCancel: "취소",
+      workspaceRenameSaving: "저장 중…",
+      editWorkspaceDisplayName: "표시 이름 바꾸기",
     },
     settings: {
       title: "내 설정",
@@ -634,7 +644,12 @@ export const ko = {
         task: "업무", status: "상태", priority: "우선순위",
         assignee: "담당자", startDate: "시작일", dueDate: "종료일",
       },
-      taskRow: { addSubtask: "하위 업무 추가", dragAria: "드래그하여 순서 변경" },
+      taskRow: {
+          addSubtask: "하위 업무 추가",
+          dragAria: "드래그하여 순서 변경",
+          openDetail: "상세 보기",
+          editTitle: "제목 편집",
+      },
       empty: {
         noTasks: "업무가 없습니다. 업무 추가를 눌러 시작하세요.",
         noTasksFilter: "필터 조건에 맞는 업무가 없습니다.",
