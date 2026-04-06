@@ -6,7 +6,7 @@ export async function notificationRoutes(app: FastifyInstance) {
     const { listNotifications, markAsRead, markAllAsRead } =
         createNotificationController(app);
 
-    app.get(
+    app.get<{ Querystring: { page?: string } }>(
         "/notifications",
         { preHandler: [authenticateUser] },
         listNotifications,

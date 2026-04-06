@@ -29,7 +29,7 @@ function generateFileName(originalName: string): string {
     return `${rand}${ext}`;
 }
 
-export function uploadController(app: FastifyInstance) {
+export function uploadController(_app: FastifyInstance) {
     // ── POST /api/upload ───────────────────────────────────────────────────────
     async function uploadFile(request: FastifyRequest, reply: FastifyReply) {
         const data = await request.file();

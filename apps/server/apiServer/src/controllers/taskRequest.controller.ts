@@ -102,7 +102,11 @@ export function createTaskRequestController(app: FastifyInstance) {
             type: "TASK_REQUEST_RECEIVED",
             title: `[${project.name}] 새 업무 요청이 도착했습니다`,
             message: `${senderName}님이 '${urgentPrefix}${title.trim()}' 업무를 요청했습니다.\n* 이 업무는 워크스페이스의 요청업무에서 확인하실 수 있습니다.`,
-            data: { requestId: taskRequest.id, projectId, workspaceId: toWorkspace?.id ?? null },
+            data: {
+                requestId: taskRequest.id,
+                projectId,
+                ...(toWorkspace?.id ? { workspaceId: toWorkspace.id } : {}),
+            },
         }).catch((err) => app.log.error({ err }, "Failed to publish task request notification"));
 
         return reply.code(201).send(created(taskRequest, "업무 요청이 전송되었습니다."));
