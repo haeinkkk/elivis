@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "node ./scripts/prisma-generate-retry.mjs",
     "build": "node ./scripts/prisma-generate-retry.mjs && tsc",
     "dev": "tsc --watch",
     "lint": "eslint . --max-warnings 0",

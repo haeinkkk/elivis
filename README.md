@@ -147,6 +147,21 @@ pnpm dev
 | 알림 (Socket.IO) | http://localhost:4001 (웹은 `NEXT_PUBLIC_NOTIFICATION_URL`로 연결) |
 | 데스크톱 | Electron 창 (`pnpm dev` 시 웹 준비 후 기동) |
 
+### Windows: `EPERM` … `query_engine-windows.dll.node` (rename)
+
+백신 실시간 검사·Windows 검색 인덱싱·**OneDrive가 동기화하는 폴더**(예: 바탕화면·문서 아래 클론)가 `node_modules` 안 파일을 잠그면 `prisma generate`가 실패할 수 있습니다.
+
+1. 가능하면 저장소를 **`C:\dev\elivis`처럼 OneDrive 밖**으로 옮깁니다.  
+2. 프로젝트 폴더를 Windows Defender **제외** 목록에 넣거나, 설치 전에 실시간 검사를 잠시 끕니다.  
+3. 루트 `.npmrc`에 **`node-linker=hoisted`** 가 이미 설정되어 있습니다. 적용을 위해 **`node_modules`를 지운 뒤** 다시 설치합니다.
+
+```powershell
+Remove-Item -Recurse -Force node_modules
+pnpm install
+```
+
+그다음 `pnpm run setup:win` 또는 `pnpm run setup`을 다시 실행하면 됩니다.
+
 ---
 
 ## 사용 방법 (앱 관점)

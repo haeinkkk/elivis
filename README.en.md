@@ -145,6 +145,21 @@ pnpm dev
 | Notifications (Socket.IO) | http://localhost:4001 (web uses `NEXT_PUBLIC_NOTIFICATION_URL`) |
 | Desktop | Electron window (starts after web is ready with `pnpm dev`) |
 
+### Windows: `EPERM` renaming `query_engine-windows.dll.node`
+
+Antivirus real-time scanning, Windows Search indexing, or **OneDrive-synced folders** (e.g. clone under Desktop/Documents) can lock files under `node_modules` and make `prisma generate` fail.
+
+1. Prefer a path **outside OneDrive** (e.g. `C:\dev\elivis`).  
+2. Add the project folder to Windows Defender **exclusions**, or pause real-time protection briefly while installing.  
+3. The repo `.npmrc` sets **`node-linker=hoisted`** to reduce this. After changing it, **delete `node_modules` and reinstall**:
+
+```powershell
+Remove-Item -Recurse -Force node_modules
+pnpm install
+```
+
+Then run `pnpm run setup:win` or `pnpm run setup` again.
+
 ---
 
 ## Usage (product view)
