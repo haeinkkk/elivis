@@ -67,17 +67,61 @@ Copy-Item env.example .env
 
 Set `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` to long random values (e.g. `openssl rand -hex 32`).
 
-**2. One-shot setup**
+**2. After `pnpm install` — what’s left?**
+
+**Installing dependencies is not enough** — tables are not created in the database yet.
+
+| Step | What |
+|------|------|
+| **Run Postgres + Redis** | `pnpm install` only adds Node packages. You still need **database servers** (this repo expects Docker Compose for local dev) so `DATABASE_URL` / `REDIS_URL` work. |
+| **Run Prisma migrations** | `@repo/database` may run `prisma generate` on `postinstall`, but **`prisma migrate dev` does not run automatically.** You must run migrations so the schema (tables) exists in Postgres. |
+
+If you already ran `pnpm install` only, do this next:
 
 ```bash
-pnpm setup
+docker compose up -d --wait
+pnpm --filter @repo/database db:setup
+```
+
+`db:setup` runs `prisma generate` then `prisma migrate dev`. Then start the app with **`5. Development`** → `pnpm dev`.
+
+**3. One-shot setup (from scratch)**
+
+Plain `pnpm setup` runs pnpm’s built-in command (global pnpm install, etc.). Run the repo script with **`run`**:
+
+```bash
+pnpm run setup
 ```
 
 - `pnpm install`
 - `docker compose up -d --wait` → PostgreSQL + Redis
 - `prisma generate` + `prisma migrate dev` via `@repo/database` `db:setup`
 
-**3. Development**
+Same outcome as the manual steps in **2**.
+
+**4. Database setup (details / repeat)**
+
+- **Connection strings** — Root `.env` `DATABASE_URL` and `REDIS_URL` must match the Postgres and Redis you run. With dev Docker, the defaults in `env.example` (`postgresql://elivis:elivis@localhost:5432/elivis`, `redis://localhost:6379`) match `docker-compose.yml`.
+
+- **Start containers** (if not already up):
+
+```bash
+docker compose up -d --wait
+```
+
+- **Apply schema (Prisma client + migrations)** — `@repo/database` loads the root `.env` via `dotenv-cli`:
+
+```bash
+pnpm --filter @repo/database db:setup
+```
+
+This runs `prisma generate` then `prisma migrate dev`. If the DB already exists and you only want the interactive migrate flow, use `pnpm --filter @repo/database db:migrate`.
+
+- **Production-style DB** — from repo root: `pnpm db:deploy` (`migrate deploy` + `generate`).
+
+- **Browse / edit data** — `pnpm db:studio` (Prisma Studio).
+
+**5. Development**
 
 ```bash
 pnpm dev
@@ -110,7 +154,10 @@ pnpm dev
 
 | Command | Description |
 |---------|-------------|
-| `pnpm setup` | Install + Docker + DB migrations |
+| `pnpm run setup` | Install + Docker + DB migrations |
+| `pnpm --filter @repo/database db:setup` | DB only: Prisma generate + migrate dev |
+| `pnpm --filter @repo/database db:migrate` | migrate dev only (interactive) |
+| `pnpm db:deploy` | migrate deploy + generate (deploy) |
 | `pnpm dev` | Web, API, notifications, desktop in dev mode |
 | `pnpm dev:web` / `pnpm dev:server` / `pnpm dev:notification` / `pnpm dev:desktop` | Single app |
 | `pnpm build` | Build all packages |

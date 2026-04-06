@@ -2,7 +2,7 @@
 /**
  * scripts/setup.mjs
  *
- * `pnpm setup` 의 실제 진입점. 아래 4단계를 순서대로 실행합니다.
+ * `pnpm run setup` 으로 실행. (`pnpm setup` 만 치면 pnpm 내장 명령이 실행됨)
  *
  *  1) 환경 변수 파일 확인 / 자동 생성 (.env 없으면 example 복사)
  *  2) 패키지 설치 (pnpm install)

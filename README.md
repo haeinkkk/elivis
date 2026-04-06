@@ -67,17 +67,63 @@ Copy-Item env.example .env
 
 `.env`에서 `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`을 충분히 긴 무작위 값으로 바꿉니다. (`openssl rand -hex 32`)
 
-**2. 한 번에 셋업**
+**2. `pnpm install` 다음에 꼭 할 일**
+
+맞습니다. **의존성 설치만으로는 DB에 테이블이 생기지 않습니다.**
+
+| 해야 할 일 | 설명 |
+|------------|------|
+| **DB·Redis 띄우기** | `pnpm install`은 Node 패키지만 설치합니다. PostgreSQL·Redis **서버**는 Docker 등으로 따로 기동해야 `DATABASE_URL` / `REDIS_URL`에 연결됩니다. |
+| **Prisma 마이그레이션** | `@repo/database` 설치 시 `postinstall`로 `prisma generate`는 돌아갈 수 있지만, **`prisma migrate dev`는 자동으로 안 돕니다.** 마이그레이션을 실행해야 스키마(테이블)가 DB에 반영됩니다. |
+
+이미 `pnpm install`만 해 둔 상태라면 순서는 다음과 같습니다.
 
 ```bash
-pnpm setup
+docker compose up -d --wait
+pnpm --filter @repo/database db:setup
+```
+
+`db:setup`은 `prisma generate` 후 `prisma migrate dev`와 같습니다. 그다음 **5. 개발 서버**의 `pnpm dev`를 실행하면 됩니다.
+
+**3. 한 번에 셋업 (처음부터 끝까지)**
+
+`pnpm setup`만 입력하면 pnpm 전역 설치용 내장 명령이 실행됩니다. 이 저장소 셋업은 **`run`을 붙여** 스크립트를 실행하세요.
+
+```bash
+pnpm run setup
 ```
 
 - `pnpm install`
 - `docker compose up -d --wait` → PostgreSQL + Redis 기동
 - `prisma generate` 및 `prisma migrate dev` (`@repo/database`의 `db:setup`)
 
-**3. 개발 서버**
+위 스크립트는 **2번에서 수동으로 하던 것과 동일한 결과**를 한 번에 냅니다.
+
+**4. 데이터베이스 셋업 (상세·반복 시)**
+
+- **연결 정보**  
+  루트 `.env`의 `DATABASE_URL`, `REDIS_URL`이 실제로 뜬 DB·Redis와 같아야 합니다. 개발용 Docker를 쓰면 `env.example` 기본값(`postgresql://elivis:elivis@localhost:5432/elivis`, `redis://localhost:6379`)이 `docker-compose.yml`의 Postgres·Redis와 맞습니다.
+
+- **컨테이너 기동** (아직 안 떠 있다면)
+
+```bash
+docker compose up -d --wait
+```
+
+- **스키마 반영 (Prisma 클라이언트 생성 + 마이그레이션)**  
+  `@repo/database`는 루트 `.env`를 `dotenv-cli`로 읽습니다.
+
+```bash
+pnpm --filter @repo/database db:setup
+```
+
+위는 `prisma generate` 후 `prisma migrate dev`와 같습니다. 이미 DB가 있고 마이그레이션만 다시 적용·대화형 이름을 붙이고 싶을 때는 `pnpm --filter @repo/database db:migrate`만 써도 됩니다.
+
+- **배포 환경**에 스키마만 맞출 때는 루트에서 `pnpm db:deploy` (`migrate deploy` + `generate`).
+
+- **데이터 확인·편집**은 `pnpm db:studio`(Prisma Studio).
+
+**5. 개발 서버**
 
 ```bash
 pnpm dev
@@ -115,7 +161,10 @@ pnpm dev
 
 | 명령 | 설명 |
 |------|------|
-| `pnpm setup` | 설치 + Docker + DB 마이그레이션 |
+| `pnpm run setup` | 설치 + Docker + DB 마이그레이션 |
+| `pnpm --filter @repo/database db:setup` | (DB만) Prisma generate + migrate dev |
+| `pnpm --filter @repo/database db:migrate` | migrate dev만 (대화형) |
+| `pnpm db:deploy` | migrate deploy + generate (배포용) |
 | `pnpm dev` | 웹·API·알림·데스크톱 등 개발 모드 병렬 실행 |
 | `pnpm dev:web` / `pnpm dev:server` / `pnpm dev:notification` / `pnpm dev:desktop` | 앱 단독 실행 |
 | `pnpm build` | 패키지 전체 빌드 |
