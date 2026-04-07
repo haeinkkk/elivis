@@ -1,9 +1,10 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { config as dotenvConfig } from "dotenv";
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, shell, Tray } from "electron";
 import type { MenuItemConstructorOptions } from "electron";
+
+import { PACKAGED_WEB_URL } from "./packagedWebUrl";
 
 const isDev = process.env.ELECTRON_DEV === "1" || !app.isPackaged;
 
@@ -13,13 +14,6 @@ app.setName("Elivis");
 if (process.platform === "win32") {
     app.setAppUserModelId("com.elivis.desktop");
 }
-
-/** 실행 파일 옆 `.env` → 모노레포 루트 `.env` (ELIVIS_WEB_URL 등) */
-function loadDesktopEnv(): void {
-    dotenvConfig({ path: path.join(path.dirname(process.execPath), ".env") });
-    dotenvConfig({ path: path.join(__dirname, "..", "..", "..", ".env") });
-}
-loadDesktopEnv();
 
 const GITHUB_REPO_URL = "https://github.com/haeinkkk/elivis";
 /** 저장소 `docs/` 폴더 (GitHub에서 보기) */
@@ -151,8 +145,8 @@ async function resolveAppTarget(): Promise<AppTarget> {
         return { kind: "app", url: "http://localhost:3000/" };
     }
 
-    /** 패키징된 앱: 서버에 올린 Next 웹 URL (https://...) */
-    const remote = normalizeRemoteWebUrl(process.env.ELIVIS_WEB_URL);
+    /** 패키징된 앱: `packagedWebUrl.ts`에 하드코딩된 배포 웹 URL */
+    const remote = normalizeRemoteWebUrl(PACKAGED_WEB_URL);
     if (!remote) {
         return { kind: "nobuild" };
     }

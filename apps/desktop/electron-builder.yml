@@ -1,4 +1,11 @@
-# 루트에서: pnpm build:desktop — 웹은 서버에 배포하고, 앱은 ELIVIS_WEB_URL 원격 로드
+# 루트에서: pnpm build:desktop — 웹은 서버에 배포, 앱 URL은 src/packagedWebUrl.ts 에 하드코딩
+#
+# 플랫폼별 빌드:
+# - Windows: 어디서든 `pnpm build:desktop` (기본은 현재 OS의 win 타깃)
+# - macOS .dmg: macOS 호스트에서 `pnpm exec electron-builder --config electron-builder.yml --mac`
+# - Linux AppImage: Linux 호스트에서 `pnpm exec electron-builder --config electron-builder.yml --linux`
+# 서명 없이 빌드할 때(로컬/CI): 환경 변수 CSC_IDENTITY_AUTO_DISCOVERY=false 권장
+
 appId: com.elivis.desktop
 productName: Elivis
 copyright: Copyright © Elivis
@@ -13,12 +20,15 @@ directories:
   output: release
   buildResources: build
 
-# 아이콘 원본: icons/windows — icon.ico 또는 favicon.ico / mac — icon.icns 또는 favicon.icns
-# Windows ICO 는 256×256 포함 권장. mac ICNS 없으면 기본 아이콘으로 빌드될 수 있음.
+# 아이콘: `pnpm build` 시 sync-icon → build/icon.ico, build/icon.icns
+# Windows ICO 는 256×256 포함 권장.
 files:
   - dist/**/*
   - static/**/*
   - package.json
+
+# 산출물 이름 통일 (win / mac / linux)
+artifactName: "${productName}-${version}.${ext}"
 
 win:
   # 실행 파일 메타데이터 서명·winCodeSign 미사용 (로컬 빌드 시 7z 심볼릭 링크 오류 방지)
@@ -27,14 +37,22 @@ win:
   # portable: 단일 .exe, NSIS/winCodeSign(심볼릭 링크) 없이 Windows 로컬 빌드에 유리
   target:
     - portable
-  artifactName: "${productName}-${version}.${ext}"
 
 mac:
   target:
     - dmg
   category: public.app-category.productivity
+  # 서명 없이 배포 시 Gatekeeper 평가 완화(로컬 테스트용). 스토어/공식 배포 시 서명·노터라이즈 권장
+  hardenedRuntime: false
+  gatekeeperAssess: false
+
+dmg:
+  # 앱 번들이 서명되지 않은 경우 DMG 서명 생략
+  sign: false
 
 linux:
   target:
     - AppImage
   category: Office
+  synopsis: Elivis desktop application
+  maintainer: "Elivis <noreply@elivis.local>"

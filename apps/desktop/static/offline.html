@@ -1,40 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>인터넷 연결 — Elivis</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; }
-    html, body { height: 100%; font-family: ui-sans-serif, system-ui, sans-serif; background: #f8f7f5; color: #292524; }
-    .wrap {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100%; padding: 2rem; text-align: center; gap: 1rem; max-width: 28rem; margin: 0 auto;
-    }
-    h1 { font-size: 1.125rem; font-weight: 600; }
-    p { font-size: 0.875rem; color: #57534e; line-height: 1.6; }
-    button {
-      margin-top: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 0.75rem; border: 1px solid #d6d3d1;
-      background: #292524; color: #fafaf9; font-size: 0.875rem; font-weight: 500; cursor: pointer;
-    }
-    button:hover { background: #44403c; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>인터넷에 연결되어 있지 않습니다</h1>
-    <p>
-      Elivis는 API 서버와 통신해야 합니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.
-    </p>
-    <button type="button" id="retry">다시 시도</button>
-  </div>
-  <script>
-    document.getElementById("retry").addEventListener("click", function () {
-      var api = window.elivisDesktop;
-      if (api && api.retryShell) {
-        api.retryShell();
-      }
-    });
-  </script>
-</body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>네트워크 오류 — Elivis</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+            }
+            html,
+            body {
+                height: 100%;
+                font-family: ui-sans-serif, system-ui, sans-serif;
+                background: #f8f7f5;
+                color: #292524;
+            }
+            .wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100%;
+                padding: 2rem;
+                text-align: center;
+                gap: 1rem;
+                max-width: 28rem;
+                margin: 0 auto;
+            }
+            h1 {
+                font-size: 1.125rem;
+                font-weight: 600;
+            }
+            p {
+                font-size: 0.875rem;
+                color: #57534e;
+                line-height: 1.6;
+            }
+            code {
+                font-size: 0.8rem;
+                background: #e7e5e4;
+                padding: 0.15rem 0.4rem;
+                border-radius: 0.25rem;
+            }
+            button {
+                margin-top: 0.5rem;
+                padding: 0.5rem 1.25rem;
+                border-radius: 0.75rem;
+                border: 1px solid #d6d3d1;
+                background: #292524;
+                color: #fafaf9;
+                font-size: 0.875rem;
+                font-weight: 500;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #44403c;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <h1>인터넷에 연결할 수 없습니다!</h1>
+            <p>
+                네트워크 연결을 확인해 주세요. Wi-Fi 또는 유선 연결이 켜져 있는지, 방화벽이 앱을
+                차단하지 않는지 확인한 뒤 아래 <strong>다시 시도</strong>를 눌러 주세요.
+            </p>
+            <button type="button" id="retry">다시 시도</button>
+        </div>
+        <script>
+            document.getElementById("retry").addEventListener("click", function () {
+                var api = window.elivisDesktop;
+                if (api && api.retryShell) {
+                    api.retryShell();
+                }
+            });
+        </script>
+    </body>
 </html>

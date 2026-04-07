@@ -7,14 +7,14 @@
     "build": "tsc && node scripts/sync-icon.mjs",
     "sync-icon": "node scripts/sync-icon.mjs",
     "build:desktop": "pnpm run build && electron-builder --config electron-builder.yml",
+    "build:desktop:mac": "pnpm run build && electron-builder --config electron-builder.yml --mac",
+    "build:desktop:linux": "pnpm run build && electron-builder --config electron-builder.yml --linux",
     "dev": "node scripts/sync-icon.mjs && tsc && concurrently -k \"tsc -w\" \"cross-env ELECTRON_DEV=1 node scripts/run-electron-app.mjs dist/main.js\"",
     "start": "node scripts/run-electron-app.mjs dist/main.js",
     "lint": "node ../../scripts/eslint-run.mjs . --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {
-    "dotenv": "^16.4.7"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
