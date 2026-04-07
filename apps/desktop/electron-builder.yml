@@ -27,7 +27,7 @@ win:
   # portable: 단일 .exe, NSIS/winCodeSign(심볼릭 링크) 없이 Windows 로컬 빌드에 유리
   target:
     - portable
-  artifactName: "${productName}-${version}-portable.${ext}"
+  artifactName: "${productName}-${version}.${ext}"
 
 mac:
   target:
