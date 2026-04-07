@@ -21,7 +21,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "node ../../scripts/eslint-run.mjs \"src/**/*.{ts,tsx}\" --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -67,7 +67,7 @@
     "@repo/tsconfig": "workspace:*",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.17.0",
     "next": "16.2.0",
     "next-intl": "^4.8.3",
     "react": "^19.0.0",

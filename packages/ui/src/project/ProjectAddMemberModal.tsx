@@ -57,7 +57,7 @@ export function ProjectAddMemberModal({
             }
         }, 350);
         return () => window.clearTimeout(timer);
-    }, [query, open, existingUserIds]);
+    }, [query, open, existingUserIds, searchUsers]);
 
     const handlePick = async (user: SearchableUserForProject) => {
         setError("");

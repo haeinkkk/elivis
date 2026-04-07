@@ -31,6 +31,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "eslint": "^9.17.0",
     "concurrently": "^9.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
@@ -41,6 +42,12 @@
     "*.{js,jsx,ts,tsx,json,css,md,mdx,yaml,yml}": "prettier --write"
   },
   "packageManager": "pnpm@9.14.2",
+  "pnpm": {
+    "overrides": {
+      "eslint": "^9.17.0",
+      "zod-validation-error": "^5.0.0"
+    }
+  },
   "engines": {
     "node": ">=24.14.0"
   },

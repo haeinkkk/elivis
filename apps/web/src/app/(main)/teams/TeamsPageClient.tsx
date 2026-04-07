@@ -38,6 +38,7 @@ function listBannerSrc(url: string | null | undefined): string | null {
 
 const MY_TEAMS_PAGE_SIZE = 5;
 const PUBLIC_TEAMS_TAKE = 20;
+const EMPTY_MY_TEAMS: TeamListItem[] = [];
 
 function truncate(str: string, maxLen: number): string {
     if (str.length <= maxLen) return str;
@@ -245,7 +246,7 @@ export function TeamsPageClient({
     const t = useTranslations("teams");
     const tCommon = useTranslations("common");
 
-    const myTeams = myTeamsProp ?? [];
+    const myTeams = myTeamsProp ?? EMPTY_MY_TEAMS;
     const [publicTeams, setPublicTeams] = useState<TeamListItem[]>(publicTeamsProp ?? []);
     const favoriteTeamIds = favoriteTeamIdsProp ?? new Set<string>();
     const [publicLoadingMore, setPublicLoadingMore] = useState(false);

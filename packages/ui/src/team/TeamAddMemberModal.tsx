@@ -58,7 +58,7 @@ export function TeamAddMemberModal({
             }
         }, 350);
         return () => window.clearTimeout(t);
-    }, [query, open, existingUserIds]);
+    }, [query, open, existingUserIds, inviteActions]);
 
     const handlePick = async (user: SearchableUserForTeamInvite) => {
         setError("");

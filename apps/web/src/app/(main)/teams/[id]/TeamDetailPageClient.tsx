@@ -126,6 +126,23 @@ export function TeamDetailPageClient({
         setShortDescDraft(team.shortDescription ?? "");
     }, [team.id, team.shortDescription]);
 
+    /** viewerRole === null 일 때 early return 이 있으므로 훅은 항상 위에서 호출하고, 내부에서만 분기 */
+    useEffect(() => {
+        if (team.viewerRole === null) return;
+        const isLeader = team.viewerRole === "LEADER";
+        const canSeeSettings = isLeader || isSuperAdmin;
+        if (activeTab === "settings" && !canSeeSettings) {
+            setActiveTab("intro");
+        }
+    }, [activeTab, team.viewerRole, isSuperAdmin]);
+
+    useEffect(() => {
+        if (team.viewerRole === null) return;
+        if (activeTab !== "intro") {
+            introRef.current?.exitLayoutEditMode();
+        }
+    }, [activeTab, team.viewerRole]);
+
     const memberUserIds = team.members.map((m) => m.user.id);
 
     const stackMembers = team.members.map((m) => ({
@@ -158,19 +175,6 @@ export function TeamDetailPageClient({
     const TABS = canSeeSettings
         ? ALL_TABS
         : ALL_TABS.filter((t) => t !== "settings");
-
-    // 권한 없는 탭에 머물러 있으면 intro로 강제 이동
-    useEffect(() => {
-        if (activeTab === "settings" && !canSeeSettings) {
-            setActiveTab("intro");
-        }
-    }, [activeTab, canSeeSettings]);
-
-    useEffect(() => {
-        if (activeTab !== "intro") {
-            introRef.current?.exitLayoutEditMode();
-        }
-    }, [activeTab]);
 
     return (
         <div className={`flex w-full flex-col ${activeTab === "community" ? "h-full overflow-hidden" : "min-h-full"}`}>

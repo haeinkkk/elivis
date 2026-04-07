@@ -6,7 +6,7 @@
     "dev": "cross-env DOTENV_CONFIG_PATH=../../../.env tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "node ../../../scripts/eslint-run.mjs . --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,9 +19,9 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
+    "cross-env": "^7.0.3",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20.0.0",
-    "cross-env": "^7.0.3",
     "tsx": "^4.19.3",
     "typescript": "^5.3.0"
   }

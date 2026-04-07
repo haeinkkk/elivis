@@ -35,7 +35,7 @@ export function RequestsTab({
             })
             .catch(() => setError(t("listLoadError")))
             .finally(() => setLoading(false));
-    }, [workspaceId]);
+    }, [workspaceId, t, taskRequests]);
 
     async function handleAccept(requestId: string) {
         setProcessingId(requestId);

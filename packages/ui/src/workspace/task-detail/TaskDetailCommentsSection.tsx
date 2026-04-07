@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import type { AnyExtension } from "@tiptap/core";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -10,6 +11,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { ApiWorkspaceTaskComment } from "../../types/workspace-api";
 import type { WorkspaceTaskDetailActions } from "../../types/workspace-task-detail-actions";
 import { TaskDetailFontSize } from "./task-detail-font-size";
+import { applyTaskDetailFontSize } from "./task-detail-font-size-chain";
 import { formatTaskDetailDate } from "./task-detail-utils";
 
 export function TaskDetailCommentsSection({
@@ -34,8 +36,8 @@ export function TaskDetailCommentsSection({
         immediatelyRender: false,
         extensions: [
             StarterKit,
-            TextStyle as any,
-            TaskDetailFontSize as any,
+            TextStyle as unknown as AnyExtension,
+            TaskDetailFontSize as unknown as AnyExtension,
             Placeholder.configure({ placeholder: t("taskDetail.commentPlaceholder") }),
         ],
         editorProps: {
@@ -145,11 +147,7 @@ export function TaskDetailCommentsSection({
                         onChange={(e) => {
                             const val = e.target.value;
                             if (!editor) return;
-                            if (val === "") {
-                                (editor.chain().focus() as any).unsetFontSize().run();
-                            } else {
-                                (editor.chain().focus() as any).setFontSize(val).run();
-                            }
+                            applyTaskDetailFontSize(editor, val);
                             setFontSizeKey((k) => k + 1);
                         }}
                         className="rounded border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-500 outline-none hover:bg-stone-50 focus:border-stone-400"

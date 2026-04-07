@@ -62,9 +62,16 @@ export default function NotificationPage() {
   };
 
   useEffect(() => {
-    loadPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    startTransition(async () => {
+      const res = await fetchNotificationsAction(1);
+      if (res.ok) {
+        setServerNotifications(res.data.notifications.map(fromApiNotification));
+        setTotal(res.data.total);
+        setPage(1);
+        setInitialLoaded(true);
+      }
+    });
+  }, [startTransition]);
 
   const displayList: NotificationItem[] =
     page === 1 && liveNotifications.length > 0 ? liveNotifications : serverNotifications;

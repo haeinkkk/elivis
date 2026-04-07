@@ -97,7 +97,10 @@ export function useNotifications(accessToken: string | null, options?: UseNotifi
     ClientToServerEvents
   > | null>(null);
   const onNotificationNewRef = useRef(options?.onNotificationNew);
-  onNotificationNewRef.current = options?.onNotificationNew;
+
+  useEffect(() => {
+    onNotificationNewRef.current = options?.onNotificationNew;
+  }, [options?.onNotificationNew]);
 
   useEffect(() => {
     if (!accessToken) return;

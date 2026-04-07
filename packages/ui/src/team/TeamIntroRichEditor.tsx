@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -51,6 +52,11 @@ export function TeamIntroRichEditor({
     disabled = false,
 }: TeamIntroRichEditorProps) {
     const t = useTranslations("teams.detail.intro.richEditor");
+    const onChangeMarkdownRef = useRef(onChangeMarkdown);
+    useEffect(() => {
+        onChangeMarkdownRef.current = onChangeMarkdown;
+    }, [onChangeMarkdown]);
+
     const editor = useEditor(
         {
             immediatelyRender: false,
@@ -71,7 +77,7 @@ export function TeamIntroRichEditor({
             content: markdownToHtml(initialMarkdown),
             editable: !disabled,
             onUpdate: ({ editor: ed }) => {
-                onChangeMarkdown(htmlToMarkdown(ed.getHTML()));
+                onChangeMarkdownRef.current(htmlToMarkdown(ed.getHTML()));
             },
             editorProps: {
                 attributes: {
@@ -80,9 +86,8 @@ export function TeamIntroRichEditor({
                 },
             },
         },
-        // 부모에서 `key`로 리셋 — 마운트 시점의 initialMarkdown만 반영
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-        [t],
+        /** `onChangeMarkdown`은 ref로 최신 참조 유지 — 부모 `key`로 마크다운 리셋 */
+        [t, initialMarkdown, disabled],
     );
 
     if (!editor) {

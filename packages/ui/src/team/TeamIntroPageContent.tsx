@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import type { UpdateTeamFieldsFn } from "../types/team-fields-actions";
@@ -54,21 +54,21 @@ export const TeamIntroPageContent = forwardRef<
         onLayoutEditModeChange?.(layoutEditMode);
     }, [layoutEditMode, onLayoutEditModeChange]);
 
-    function exitLayoutEditMode() {
+    const exitLayoutEditMode = useCallback(() => {
         setLayoutEditMode(false);
         setPanelOpen(false);
         setLayoutDraft(parseIntroLayoutJson(team.introLayoutJson));
-    }
+    }, [team.introLayoutJson]);
 
-    function enterLayoutEditMode() {
+    const enterLayoutEditMode = useCallback(() => {
         setLayoutDraft(parseIntroLayoutJson(team.introLayoutJson));
         setLayoutEditMode(true);
-    }
+    }, [team.introLayoutJson]);
 
-    function toggleLayoutEditMode() {
+    const toggleLayoutEditMode = useCallback(() => {
         if (layoutEditMode) exitLayoutEditMode();
         else enterLayoutEditMode();
-    }
+    }, [layoutEditMode, exitLayoutEditMode, enterLayoutEditMode]);
 
     function applyTemplate(id: IntroTemplateId) {
         setLayoutDraft((prev) => mergeIntroTemplate(prev, id));

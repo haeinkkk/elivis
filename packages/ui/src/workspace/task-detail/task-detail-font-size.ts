@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+import type { CommandProps } from "@tiptap/core";
 import { Extension } from "@tiptap/core";
 
 /** 글자 크기 커스텀 확장 */
@@ -26,12 +26,12 @@ export const TaskDetailFontSize = Extension.create({
         return {
             setFontSize:
                 (size: string) =>
-                ({ chain }: { chain: () => any }) =>
+                ({ chain }: CommandProps) =>
                     chain().setMark("textStyle", { fontSize: size }).run(),
             unsetFontSize:
                 () =>
-                ({ chain }: { chain: () => any }) =>
+                ({ chain }: CommandProps) =>
                     chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
-        } as any;
+        };
     },
 });

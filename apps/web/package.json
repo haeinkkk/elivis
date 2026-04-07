@@ -7,7 +7,7 @@
     "build": "next build",
     "build:static": "cross-env ELECTRON_STATIC=1 next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "node ../../scripts/eslint-run.mjs . --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -49,10 +49,9 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
-    "eslint": "^8.57.0",
+    "eslint": "^9.17.0",
     "eslint-config-next": "16.2.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.0"

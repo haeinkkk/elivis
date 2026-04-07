@@ -1,3 +1,4 @@
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
 import path from "path";
 
@@ -47,10 +48,6 @@ function createLocalStorage(uploadsDir: string): StorageService {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createS3Storage(): StorageService {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { S3Client, PutObjectCommand, DeleteObjectCommand } =
-        require("@aws-sdk/client-s3") as typeof import("@aws-sdk/client-s3");
-
     const bucket = process.env.UPLOAD_S3_BUCKET;
     const region = process.env.UPLOAD_S3_REGION ?? "us-east-1";
     const endpoint = process.env.UPLOAD_S3_ENDPOINT;
