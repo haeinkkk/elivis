@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type {
@@ -163,6 +163,7 @@ function TaskRow({
     expandKey = 0,
     defaultExpanded = true,
     locale,
+    visibleTaskIds,
 }: {
     task: EnrichedTask;
     subTasks: EnrichedTask[];
@@ -175,6 +176,8 @@ function TaskRow({
     expandKey?: number;
     defaultExpanded?: boolean;
     locale: string;
+    /** 상태/우선순위 필터 시 매칭 업무 + 조상만 표시 */
+    visibleTaskIds?: Set<string> | null;
 }) {
     const tList = useTranslations("projects.detail.tasksList");
     const [expanded, setExpanded] = useState(defaultExpanded);
@@ -317,7 +320,11 @@ function TaskRow({
                     <TaskRow
                         key={sub.id}
                         task={sub}
-                        subTasks={allTasks.filter((t) => t.parentId === sub.id)}
+                        subTasks={allTasks.filter(
+                            (t) =>
+                                t.parentId === sub.id &&
+                                (!visibleTaskIds || visibleTaskIds.has(t.id)),
+                        )}
                         allTasks={allTasks}
                         depth={depth + 1}
                         currentUserId={currentUserId}
@@ -326,6 +333,7 @@ function TaskRow({
                         expandKey={expandKey}
                         defaultExpanded={defaultExpanded}
                         locale={locale}
+                        visibleTaskIds={visibleTaskIds}
                     />
                 ))}
         </>
@@ -429,20 +437,49 @@ function MemberHeaderRow({
 // 정렬 함수
 // ─────────────────────────────────────────────────────────────────────────────
 
-function applySortAndFilter(
+/** 상태·우선순위 필터: 매칭 업무 + 그 조상 id (1단이 하위 매칭 시에도 보이게) */
+function computeVisibleTaskIdsForFilters(
     tasks: EnrichedTask[],
     filterStatusName: string,
     filterPriorityName: string,
+): Set<string> | null {
+    const hasStatusFilter = filterStatusName !== "all";
+    const hasPriorityFilter = filterPriorityName !== "all";
+    if (!hasStatusFilter && !hasPriorityFilter) return null;
+
+    const byId = new Map(tasks.map((t) => [t.id, t] as const));
+    const visible = new Set<string>();
+
+    function matches(t: EnrichedTask): boolean {
+        if (hasStatusFilter && t.status.name !== filterStatusName) return false;
+        if (hasPriorityFilter && t.priority?.name !== filterPriorityName) return false;
+        return true;
+    }
+
+    for (const t of tasks) {
+        if (!matches(t)) continue;
+        visible.add(t.id);
+        let cur: EnrichedTask | undefined = t;
+        while (cur?.parentId) {
+            const p = byId.get(cur.parentId);
+            if (!p) break;
+            visible.add(p.id);
+            cur = p;
+        }
+    }
+
+    return visible;
+}
+
+function applySortAndFilter(
+    tasks: EnrichedTask[],
+    visibleTaskIds: Set<string> | null,
     sortBy: SortBy,
     sortLocale: string,
 ): EnrichedTask[] {
     let result = tasks.filter((t) => !t.parentId);
-
-    if (filterStatusName !== "all") {
-        result = result.filter((t) => t.status.name === filterStatusName);
-    }
-    if (filterPriorityName !== "all") {
-        result = result.filter((t) => t.priority?.name === filterPriorityName);
+    if (visibleTaskIds) {
+        result = result.filter((t) => visibleTaskIds.has(t.id));
     }
 
     if (sortBy !== "default") {
@@ -626,7 +663,9 @@ export function ProjectTasksTab({
     allEnrichedTasks.forEach((t) => statusNames.add(t.status.name));
     const statusOptions = [
         { value: "all", label: tList("filterAllStatuses") },
-        ...[...statusNames].sort().map((n) => ({ value: n, label: n })),
+        ...[...statusNames]
+            .sort((a, b) => a.localeCompare(b, sortLocale, { sensitivity: "base" }))
+            .map((n) => ({ value: n, label: n })),
     ];
 
     const prioritySeen = new Map<string, number>();
@@ -648,11 +687,15 @@ export function ProjectTasksTab({
         { value: "dueDate", label: tList("sortDueDate") },
     ];
 
+    const filterVisibleTaskIds = useMemo(
+        () => computeVisibleTaskIdsForFilters(allEnrichedTasks, filterStatusName, filterPriorityName),
+        [allEnrichedTasks, filterStatusName, filterPriorityName],
+    );
+
     // 필터/정렬 적용된 전체 top-task 목록
     let displayedTopTasks = applySortAndFilter(
         allEnrichedTasks,
-        filterStatusName,
-        filterPriorityName,
+        filterVisibleTaskIds,
         sortBy,
         sortLocale,
     );
@@ -671,13 +714,12 @@ export function ProjectTasksTab({
                 _statuses: statuses,
                 _priorities: priorities,
             }));
-            const filtered = applySortAndFilter(
+            const sectionVisible = computeVisibleTaskIdsForFilters(
                 enriched,
                 filterStatusName,
                 filterPriorityName,
-                sortBy,
-                sortLocale,
             );
+            const filtered = applySortAndFilter(enriched, sectionVisible, sortBy, sortLocale);
 
             const participant = participantMap.get(workspace.user.id);
             const displayName =
@@ -691,6 +733,7 @@ export function ProjectTasksTab({
                 avatarUrl: workspace.user.avatarUrl,
                 role: participant?.role,
                 tasks: filtered,
+                visibleTaskIds: sectionVisible,
                 totalCount: rawTasks.filter((t) => !t.parentId).length,
             };
         })
@@ -850,7 +893,11 @@ export function ProjectTasksTab({
                                 <TaskRow
                                     key={task.id}
                                     task={task}
-                                    subTasks={allEnrichedTasks.filter((t) => t.parentId === task.id)}
+                                    subTasks={allEnrichedTasks.filter(
+                                        (t) =>
+                                            t.parentId === task.id &&
+                                            (!filterVisibleTaskIds || filterVisibleTaskIds.has(t.id)),
+                                    )}
                                     allTasks={allEnrichedTasks}
                                     currentUserId={currentUserId}
                                     onOpenPanel={handleOpenPanel}
@@ -858,6 +905,7 @@ export function ProjectTasksTab({
                                     expandKey={expandKey}
                                     defaultExpanded={globalDefaultExpanded}
                                     locale={locale}
+                                    visibleTaskIds={filterVisibleTaskIds}
                                 />
                             ))}
                         </tbody>
@@ -886,7 +934,10 @@ export function ProjectTasksTab({
                                                     key={task.id}
                                                     task={task}
                                                     subTasks={allEnrichedTasks.filter(
-                                                        (t) => t.parentId === task.id,
+                                                        (t) =>
+                                                            t.parentId === task.id &&
+                                                            (!section.visibleTaskIds ||
+                                                                section.visibleTaskIds.has(t.id)),
                                                     )}
                                                     allTasks={allEnrichedTasks}
                                                     currentUserId={currentUserId}
@@ -895,6 +946,7 @@ export function ProjectTasksTab({
                                                     expandKey={expandKey}
                                                     defaultExpanded={globalDefaultExpanded}
                                                     locale={locale}
+                                                    visibleTaskIds={section.visibleTaskIds}
                                                 />
                                             ))}
                                             {section.tasks.length === 0 && (

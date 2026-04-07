@@ -25,7 +25,7 @@ export default async function RootLayout({
     const timeZone = await getTimeZone();
 
     return (
-        <html lang={locale} className={notoSans.variable}>
+        <html lang={locale} className={notoSans.variable} data-scroll-behavior="smooth">
             <body className="antialiased font-sans">
                 <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
                     {children}

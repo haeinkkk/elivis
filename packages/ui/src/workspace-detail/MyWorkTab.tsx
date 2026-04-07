@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
     closestCenter,
     DndContext,
@@ -9,6 +9,7 @@ import {
     PointerSensor,
     useSensor,
     useSensors,
+    type CollisionDetection,
     type DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -23,7 +24,7 @@ import { FilterSortDropdown } from "./FilterSortDropdown";
 import { InlineAddForm } from "./InlineAddForm";
 import { SortableTaskRow } from "./TaskRows";
 import type { MyWorkView, SortBy } from "./types";
-import { siblingTasksForParent } from "./task-sort";
+import { rootWorkspaceTask, siblingTasksForParent, sortTasksByOrder } from "./task-sort";
 
 export function MyWorkTab({
     tasks, statuses, priorities, workspaceId,
@@ -46,6 +47,7 @@ export function MyWorkTab({
     onTasksChange: (t: ApiWorkspaceTask[]) => void;
 }) {
     const t = useTranslations("workspace");
+    const locale = useLocale();
     const [view, setView] = useState<MyWorkView>("list");
     const [addingTop, setAddingTop] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -62,14 +64,45 @@ export function MyWorkTab({
     const sortedStatuses = [...statuses].sort((a, b) => a.order - b.order || a.createdAt.localeCompare(b.createdAt));
     const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
 
-    // ── 필터 적용 ──────────────────────────────────────────────────────────
-    const filteredTopTasks = topTasks
-        .filter((t) => filterStatusId === "all" || t.statusId === filterStatusId)
-        .filter((t) => filterPriorityId === "all" || t.priorityId === filterPriorityId);
+    // ── 필터 적용 (하위 업무 포함) ──────────────────────────────────────────
+    // 필터가 걸려있을 때는 "조건에 맞는 업무 + 그 업무의 모든 조상(상위)"를 visible 로 둬서
+    // 2·3단이 조건에 맞더라도 화면에서 사라지지 않게 한다.
+    const visibleTaskIds = useMemo(() => {
+        const hasStatusFilter = filterStatusId !== "all";
+        const hasPriorityFilter = filterPriorityId !== "all";
+        if (!hasStatusFilter && !hasPriorityFilter) return null;
+
+        const byId = new Map(tasks.map((t) => [t.id, t] as const));
+        const visible = new Set<string>();
+
+        function matches(t: ApiWorkspaceTask) {
+            if (hasStatusFilter && t.statusId !== filterStatusId) return false;
+            if (hasPriorityFilter && t.priorityId !== filterPriorityId) return false;
+            return true;
+        }
+
+        for (const t of tasks) {
+            if (!matches(t)) continue;
+            // 자신
+            visible.add(t.id);
+            // 조상 체인
+            let cur: ApiWorkspaceTask | undefined = t;
+            while (cur?.parentId) {
+                const p = byId.get(cur.parentId);
+                if (!p) break;
+                visible.add(p.id);
+                cur = p;
+            }
+        }
+
+        return visible;
+    }, [tasks, filterStatusId, filterPriorityId]);
+
+    const filteredTopTasks = topTasks.filter((t) => !visibleTaskIds || visibleTaskIds.has(t.id));
 
     // ── 정렬 적용 ──────────────────────────────────────────────────────────
     const displayTopTasks = sortBy === "default"
-        ? filteredTopTasks
+        ? [...filteredTopTasks].sort(sortTasksByOrder)
         : [...filteredTopTasks].sort((a, b) => {
             if (sortBy === "status") {
                 return sortedStatuses.findIndex((s) => s.id === a.statusId) - sortedStatuses.findIndex((s) => s.id === b.statusId);
@@ -94,15 +127,42 @@ export function MyWorkTab({
 
     const topTaskIds = displayTopTasks.map((t) => t.id);
 
+    /** 1단 드래그 시 중첩 Sortable 행이 충돌 후보에 섞이지 않도록 droppable 을 최상위 id 로만 제한 */
+    const listCollisionDetection = useMemo<CollisionDetection>(() => {
+        return (args) => {
+            const activeId = String(args.active.id);
+            const dragging = tasks.find((t) => t.id === activeId);
+            if (dragging && !dragging.parentId) {
+                const allowed = new Set(displayTopTasks.map((t) => t.id));
+                const filtered = args.droppableContainers.filter((c) =>
+                    allowed.has(String(c.id)),
+                );
+                if (filtered.length > 0) {
+                    return closestCenter({ ...args, droppableContainers: filtered });
+                }
+            }
+            return closestCenter(args);
+        };
+    }, [tasks, displayTopTasks]);
+
     // 보드: 상태 필터 적용
     const displayStatuses = filterStatusId === "all"
         ? sortedStatuses
         : sortedStatuses.filter((s) => s.id === filterStatusId);
 
+    // 필터 드롭다운: 워크스페이스 order 가 아니라 사용자가 지정한 상태 이름 순
+    const statusesForFilter = useMemo(
+        () =>
+            [...statuses].sort((a, b) =>
+                a.name.localeCompare(b.name, locale, { sensitivity: "base" }),
+            ),
+        [statuses, locale],
+    );
+
     // 필터/정렬 옵션
     const statusOptions = [
         { value: "all", label: t("toolbar.allStatuses") },
-        ...sortedStatuses.map((s) => ({ value: s.id, label: s.name })),
+        ...statusesForFilter.map((s) => ({ value: s.id, label: s.name })),
     ];
     const priorityOptions = [
         { value: "all", label: t("toolbar.allPriorities") },
@@ -121,11 +181,19 @@ export function MyWorkTab({
     function handleListDragEnd(event: DragEndEvent) {
         const { active, over } = event;
         setActiveId(null);
-        if (!over || active.id === over.id) return;
+        if (!over) return;
 
         const activeTask = tasks.find((t) => t.id === active.id);
-        const overTask = tasks.find((t) => t.id === over.id);
+        let overTask = tasks.find((t) => t.id === over.id);
         if (!activeTask || !overTask) return;
+
+        // 1단(최상위) 재정렬: 테이블이 중첩 SortableContext 를 쓰므로 closestCenter 가
+        // 펼쳐진 2·3단 행을 over 로 잡는 경우가 있다 → 형제 비교 전에 루트 행으로 맞춘다.
+        if (activeTask.parentId == null) {
+            overTask = rootWorkspaceTask(overTask, tasks);
+        }
+
+        if (active.id === overTask.id) return;
 
         const activeParent = activeTask.parentId ?? null;
         const overParent = overTask.parentId ?? null;
@@ -137,7 +205,8 @@ export function MyWorkTab({
                 : siblingTasksForParent(tasks, activeParent);
 
         const oldIndex = siblingList.findIndex((t) => t.id === active.id);
-        const newIndex = siblingList.findIndex((t) => t.id === over.id);
+        // over 는 하위 행 id 일 수 있음 — siblingList 는 정규화된 overTask 기준으로 찾는다
+        const newIndex = siblingList.findIndex((t) => t.id === overTask.id);
         if (oldIndex === -1 || newIndex === -1) return;
 
         const reordered = arrayMove(siblingList, oldIndex, newIndex);
@@ -251,7 +320,7 @@ export function MyWorkTab({
             <div className="min-h-0 flex-1 overflow-auto">
                 {/* ── 리스트 뷰 ── */}
                 {view === "list" && (
-                    <DndContext id="workspace-list-dnd" sensors={sensors} collisionDetection={closestCenter}
+                    <DndContext id="workspace-list-dnd" sensors={sensors} collisionDetection={listCollisionDetection}
                         onDragStart={(e) => setActiveId(String(e.active.id))}
                         onDragEnd={handleListDragEnd}>
                         <SortableContext items={topTaskIds} strategy={verticalListSortingStrategy}>
@@ -280,7 +349,7 @@ export function MyWorkTab({
                                     )}
                                     {displayTopTasks.map((task) => (
                                         <SortableTaskRow key={task.id} task={task}
-                                            subTasks={tasks.filter((t) => t.parentId === task.id)}
+                                            subTasks={tasks.filter((t) => t.parentId === task.id && (!visibleTaskIds || visibleTaskIds.has(t.id)))}
                                             allTasks={tasks} statuses={statuses} priorities={priorities}
                                             workspaceId={workspaceId} depth={0}
                                             onUpdate={onUpdate} onDelete={onDelete} onAdded={onAdded}
