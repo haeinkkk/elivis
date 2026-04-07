@@ -25,7 +25,12 @@ import { uploadRoutes } from "./routes/upload.routes";
 import { createStorageService } from "./services/storage.service";
 import { initSetupToken } from "./services/setup.service";
 import { languageMiddleware } from "./middleware/language";
-import { appendSystemEvent, createApiServerLogger, logHttpRequestSummary } from "./services/system-log.service";
+import {
+  appendApiServerErrorLog,
+  appendSystemEvent,
+  createApiServerLogger,
+  logHttpRequestSummary,
+} from "./services/system-log.service";
 
 // ── 설정 상수 ─────────────────────────────────────────────────────────────────
 
@@ -59,7 +64,16 @@ export const storageService = createStorageService(UPLOADS_DIR);
 
 const DIVIDER = "─".repeat(58);
 
+/** onError에서 이미 errors-api NDJSON에 기록했는지 (onResponse 5xx 중복 방지) */
+const kErrorLogWritten = "__elivisErrorLogWritten";
+
+function httpPath(url: string): string {
+  const q = url.indexOf("?");
+  return q === -1 ? url : url.slice(0, q);
+}
+
 process.on("uncaughtException", (err) => {
+  appendApiServerErrorLog({ event: "uncaughtException", level: 60, error: err });
   appendSystemEvent(60, err.message, {
     event: "uncaughtException",
     name: err.name,
@@ -69,6 +83,12 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("unhandledRejection", (reason) => {
+  const e = reason instanceof Error ? reason : new Error(String(reason));
+  appendApiServerErrorLog({
+    event: "unhandledRejection",
+    level: 50,
+    error: e,
+  });
   const msg = reason instanceof Error ? reason.message : String(reason);
   const stack = reason instanceof Error ? reason.stack : undefined;
   appendSystemEvent(50, msg, { event: "unhandledRejection", stack });
@@ -84,10 +104,44 @@ async function main() {
 
   app.addHook("onResponse", (request, reply, done) => {
     logHttpRequestSummary(request, reply, reply.elapsedTime ?? 0);
+    if (reply.statusCode >= 500) {
+      const r = request as { [kErrorLogWritten]?: boolean };
+      if (!r[kErrorLogWritten]) {
+        const uid = (request as { userId?: string }).userId;
+        appendApiServerErrorLog({
+          event: "http_5xx",
+          level: 50,
+          reqId: request.id,
+          method: request.method,
+          path: httpPath(request.url),
+          statusCode: reply.statusCode,
+          userId: uid,
+          msg: `HTTP ${reply.statusCode} (no onError)`,
+        });
+      }
+    }
     done();
   });
 
-  app.addHook("onError", (request, _reply, error, done) => {
+  app.addHook("onError", (request, reply, error, done) => {
+    (request as { [kErrorLogWritten]?: boolean })[kErrorLogWritten] = true;
+    const uid = (request as { userId?: string }).userId;
+    const status =
+      reply.statusCode >= 400
+        ? reply.statusCode
+        : typeof (error as { statusCode?: number }).statusCode === "number"
+          ? (error as { statusCode?: number }).statusCode
+          : undefined;
+    appendApiServerErrorLog({
+      event: "request_error",
+      level: 50,
+      reqId: request.id,
+      method: request.method,
+      path: httpPath(request.url),
+      statusCode: status,
+      userId: uid,
+      error,
+    });
     request.log.error(
       {
         err: error,
@@ -169,6 +223,7 @@ ${DIVIDER}
 
 main().catch((err) => {
   const e = err instanceof Error ? err : new Error(String(err));
+  appendApiServerErrorLog({ event: "bootstrap_fatal", level: 60, error: e });
   appendSystemEvent(60, e.message, { event: "main_reject", stack: e.stack, name: e.name });
   console.error(err);
   process.exit(1);

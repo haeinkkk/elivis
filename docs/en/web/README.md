@@ -6,6 +6,7 @@ Next.js 16 (App Router) web app. It talks to the REST API (`@repo/api-server`) a
 
 - [Tech stack](#tech-stack)
 - [Directory layout](#directory-layout)
+- [Admin console & auth UI](#admin-console--auth-ui)
 - [Environment variables](#environment-variables)
 - [Development server](#development-server)
 - [UI organization](#ui-organization)
@@ -23,7 +24,7 @@ Next.js 16 (App Router) web app. It talks to the REST API (`@repo/api-server`) a
 | Framework | Next.js 16 (App Router) |
 | UI | React 19 + Tailwind CSS |
 | Shared packages | `@repo/ui`, `@repo/types`, `@repo/i18n`, `@repo/docs` |
-| Compiler | React Compiler (`reactCompiler: true`) |
+| Compiler | React Compiler (`reactCompiler: true`) — automatic memoization; manual `useMemo` / `useCallback` are usually unnecessary |
 | Rich text, etc. | TipTap, react-markdown (used in domain screens) |
 | Real-time | socket.io-client |
 
@@ -35,19 +36,28 @@ Next.js 16 (App Router) web app. It talks to the REST API (`@repo/api-server`) a
 apps/web/src/
 ├── app/
 │   ├── layout.tsx, globals.css
-│   ├── login/
+│   ├── login/                  # Sign-in (local / LDAP tabs, etc.)
+│   ├── signup/                 # Public signup (or disabled message)
+│   ├── account-suspended/      # Suspended-account message
 │   ├── (main)/                 # Main shell after login
 │   │   ├── page.tsx            # Home
-│   │   ├── teams/, projects/, mywork/
+│   │   ├── teams/, projects/, mywork/   # mywork/performance
 │   │   ├── notification/, settings/, trash/, workspace/
 │   │   └── pages/              # Static page group
-│   ├── (admin)/admin/          # SUPER_ADMIN
+│   ├── (admin)/admin/          # SUPER_ADMIN — users, performance, email, security, system logs
 │   └── docx/                   # Other routes
 ├── components/                 # App-only components & client widgets
 └── ...
 ```
 
 Routes with dynamic segments (`[id]`) may need `generateStaticParams` in `layout.tsx` (or `page.tsx`) for the Electron static build.
+
+---
+
+## Admin console & auth UI
+
+- **`SUPER_ADMIN`** pages live under `(admin)/admin`. LDAP, public signup, SMTP, system logs, and org-wide performance are summarized in **[Admin, security, ops](../admin.md)**.
+- Login and signup UIs load public options from **`GET /api/auth/config`**.
 
 ---
 

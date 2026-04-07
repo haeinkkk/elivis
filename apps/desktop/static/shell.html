@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elivis</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; font-family: ui-sans-serif, system-ui, sans-serif; background: #f8f7f5; color: #292524; }
+    body { position: relative; overflow: hidden; }
+    /* webview는 네이티브 레이어로 display:none을 무시하고 흰 화면을 그릴 수 있어, URL 확정 전에는 DOM에 두지 않음 */
+    #splash {
+      position: fixed; inset: 0; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; padding: 1rem;
+      background: #f8f7f5;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid #e7e5e4; border-top-color: #d97706;
+      border-radius: 50%; animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #app-host {
+      position: fixed; inset: 0; z-index: 1;
+      display: none;
+    }
+    #app-host.show { display: block; }
+    #app-host webview {
+      width: 100%; height: 100%; border: none;
+    }
+    #splash.hidden { display: none; }
+    #status { font-size: 0.875rem; color: #78716c; }
+    .title { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <p class="title">Elivis</p>
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="status">준비 중…</p>
+  </div>
+  <div id="app-host"></div>
+  <script>
+    (function () {
+      var splash = document.getElementById("splash");
+      var statusEl = document.getElementById("status");
+      var appHost = document.getElementById("app-host");
+
+      function runWithApi(api) {
+        statusEl.textContent = "연결을 확인하는 중…";
+        api.onShellStartApp(function (url) {
+        statusEl.textContent = "앱을 불러오는 중…";
+        var webview = document.createElement("webview");
+        webview.setAttribute("partition", "persist:elivis");
+        webview.setAttribute("allowpopups", "");
+        var preloadPath = typeof api.getWebviewPreloadPath === "function" ? api.getWebviewPreloadPath() : "";
+        if (preloadPath) {
+          webview.setAttribute("preload", preloadPath);
+        }
+        webview.addEventListener("ipc-message", function (event) {
+          if (event.channel === "elivis-native-notification" && event.args && event.args[0]) {
+            var p = event.args[0];
+            if (api.showNativeNotification) {
+              void api.showNativeNotification({ title: p.title, body: p.body || "" });
+            }
+          }
+        });
+        function showApp() {
+          splash.classList.add("hidden");
+          appHost.classList.add("show");
+        }
+        webview.addEventListener("did-finish-load", function once() {
+          webview.removeEventListener("did-finish-load", once);
+          showApp();
+        });
+        webview.addEventListener("did-fail-load", function (e) {
+          if (e.errorCode === -3) return;
+          statusEl.textContent = "페이지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        });
+        appHost.appendChild(webview);
+        webview.setAttribute("src", url);
+      });
+      }
+
+      function tryStart() {
+        var api = window.elivisDesktop;
+        if (api && typeof api.onShellStartApp === "function") {
+          runWithApi(api);
+          return;
+        }
+        var n = 0;
+        var t = setInterval(function () {
+          n += 1;
+          api = window.elivisDesktop;
+          if (api && typeof api.onShellStartApp === "function") {
+            clearInterval(t);
+            runWithApi(api);
+          } else if (n >= 100) {
+            clearInterval(t);
+            statusEl.textContent = "초기화에 실패했습니다.";
+          }
+        }, 30);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", tryStart);
+      } else {
+        tryStart();
+      }
+    })();
+  </script>
+</body>
+</html>

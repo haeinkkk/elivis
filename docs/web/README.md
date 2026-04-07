@@ -6,6 +6,7 @@ Next.js 16(App Router) 기반 웹 앱입니다. REST API(`@repo/api-server`)와 
 
 - [기술 스택](#기술-스택)
 - [디렉토리 구조](#디렉토리-구조)
+- [관리자 콘솔 및 인증 UI](#관리자-콘솔-및-인증-ui)
 - [환경 변수](#환경-변수)
 - [개발 서버 실행](#개발-서버-실행)
 - [UI 구성](#ui-구성)
@@ -23,7 +24,7 @@ Next.js 16(App Router) 기반 웹 앱입니다. REST API(`@repo/api-server`)와 
 | Framework | Next.js 16 (App Router) |
 | UI | React 19 + Tailwind CSS |
 | 공유 패키지 | `@repo/ui`, `@repo/types`, `@repo/i18n`, `@repo/docs` |
-| 컴파일러 | React Compiler (`reactCompiler: true`) |
+| 컴파일러 | React Compiler (`reactCompiler: true`) — 자동 메모이제이션을 사용하므로 일반적으로 수동 `useMemo` / `useCallback`은 필요 없음 |
 | 리치 텍스트 등 | TipTap, react-markdown 등 (도메인 화면에서 사용) |
 | 실시간 | socket.io-client |
 
@@ -35,19 +36,28 @@ Next.js 16(App Router) 기반 웹 앱입니다. REST API(`@repo/api-server`)와 
 apps/web/src/
 ├── app/
 │   ├── layout.tsx, globals.css
-│   ├── login/
+│   ├── login/                  # 로그인 (로컬 / LDAP 탭 등)
+│   ├── signup/                 # 공개 회원가입 (설정에 따라 비활성 메시지)
+│   ├── account-suspended/      # 계정 정지 등 안내
 │   ├── (main)/                 # 로그인 후 메인 셸
 │   │   ├── page.tsx            # 홈
-│   │   ├── teams/, projects/, mywork/
+│   │   ├── teams/, projects/, mywork/   # mywork/performance — 성과
 │   │   ├── notification/, settings/, trash/, workspace/
 │   │   └── pages/              # 정적 페이지 그룹
-│   ├── (admin)/admin/          # SUPER_ADMIN
+│   ├── (admin)/admin/          # SUPER_ADMIN — 사용자, 성과, 이메일, 보안(LDAP·가입), 시스템 로그
 │   └── docx/                   # 기타 라우트
 ├── components/                 # 앱 전용 컴포넌트·클라이언트 위젯
 └── ...
 ```
 
 동적 세그먼트(`[id]`)가 있는 라우트는 Electron 정적 빌드용으로 `layout.tsx` 등에 `generateStaticParams`가 필요할 수 있습니다.
+
+---
+
+## 관리자 콘솔 및 인증 UI
+
+- **`SUPER_ADMIN`** 전용 화면은 `(admin)/admin` 아래에 있습니다. LDAP, 공개 회원가입, SMTP, 시스템 로그, 전체 성과 대시보드 등은 **[관리자·보안·운영 문서](../admin.md)** 에 정리되어 있습니다.
+- 공개 설정(가입 허용, LDAP 노출 여부 등)은 클라이언트가 **`GET /api/auth/config`** 로 받아 로그인·회원가입 UI를 구성합니다.
 
 ---
 

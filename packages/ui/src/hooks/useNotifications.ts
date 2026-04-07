@@ -34,8 +34,19 @@ interface ClientToServerEvents {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OS 데스크톱 알림 (Web Notifications API)
+// OS 데스크톱 알림 (브라우저 Web Notifications API 또는 Electron 시스템 토스트)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Electron 데스크톱(webview preload `elivisNative`) — 메인 프로세스가 Windows/macOS 시스템 알림 표시 */
+function getElivisNativeBridge(): {
+  showNotification: (title: string, body: string | null) => void;
+} | null {
+  if (typeof window === "undefined") return null;
+  const w = window as Window & {
+    elivisNative?: { showNotification: (title: string, body: string | null) => void };
+  };
+  return w.elivisNative?.showNotification ? w.elivisNative : null;
+}
 
 /**
  * 브라우저 알림 권한을 요청합니다.
@@ -43,7 +54,10 @@ interface ClientToServerEvents {
  * 페이지 로드 직후 자동 호출만으로는 permission이 default에 머물러 OS 알림이 나오지 않는 경우가 많습니다.
  */
 export async function requestDesktopNotificationPermission(): Promise<boolean> {
-  if (typeof window === "undefined" || !("Notification" in window)) return false;
+  if (typeof window === "undefined") return false;
+  /** Electron 데스크톱은 메인 프로세스에서 시스템 알림을 쓰므로 브라우저 Notification 권한 불필요 */
+  if (getElivisNativeBridge()) return true;
+  if (!("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
   const result = await Notification.requestPermission();
@@ -53,12 +67,28 @@ export async function requestDesktopNotificationPermission(): Promise<boolean> {
 /**
  * 탭이 비활성 또는 브라우저가 최소화된 상태일 때만 OS 알림을 표시합니다.
  * (이 탭을 보고 있으면 앱 내 토스트로 충분)
+ *
+ * Electron 데스크톱: webview preload의 `elivisNative`로 **시스템 토스트**(작업 표시줄·알림 센터)를 띄웁니다.
  */
 function showDesktopNotification(title: string, body: string | null, notificationId: string) {
-  if (typeof window === "undefined" || !("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  // 창 최소화·다른 창 포커스·백그라운드 탭: document.hidden 이 true 이거나 hasFocus() 가 false
+  if (typeof window === "undefined") return;
+
+  /** Electron: webview는 대개 포커스가 있어서 아래 “탭 포커스” 가드에 걸리면 OS 알림이 영원히 안 뜸 — 네이티브 브리지는 먼저 처리 */
+  const native = getElivisNativeBridge();
+  if (native) {
+    try {
+      native.showNotification(title, body);
+    } catch {
+      /* noop */
+    }
+    return;
+  }
+
+  // 브라우저: 이 탭을 보고 있으면 앱 내 토스트로 충분 → OS 알림 생략
   if (!document.hidden && document.hasFocus()) return;
+
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
 
   try {
     const n = new Notification(title, {

@@ -16,6 +16,7 @@ The Elivis backend splits into a **REST API** and a **real-time notification ser
 - [Environment variables](#environment-variables)
 - [Running in development](#running-in-development)
 - [Notification server (Socket.IO)](#notification-server-socketio)
+- [System log files](#system-log-files)
 - [REST API overview](#rest-api-overview)
 - [Data model notes](#data-model-notes)
 - [Auth flow](#auth-flow)
@@ -77,6 +78,11 @@ Use a **single root `.env`**. Copy from `env.example`.
 | `CORS_ORIGIN` | Allowed origins (comma-separated); used for API & Socket.IO CORS |
 | `UPLOAD_STORAGE` | `local` or `s3` |
 | `UPLOAD_MAX_FILE_SIZE_MB` | Max upload size (MB) |
+| `SYSTEM_LOG_DIR` | (optional) **Root** directory for NDJSON logs. Default: repo root **`.logs`** (creates `YYYY-MM-DD/` folders below) |
+
+### Auth seed env (optional, first `AuthSettings` row only)
+
+Commented keys in **`env.example`** such as **`PUBLIC_SIGNUP_ENABLED`**, **`LDAP_*`** seed the **first** `AuthSettings` row when it is created. After that, the DB and admin UI win. See [`docs/en/admin.md`](../admin.md).
 
 ### Notification server
 
@@ -117,6 +123,37 @@ The web app uses `NEXT_PUBLIC_NOTIFICATION_URL` (e.g. `http://localhost:4001`).
 
 ---
 
+## System log files
+
+- API and notification servers share a **`SYSTEM_LOG_DIR`** root (default: repo **`.logs`**). Under it, each day is a folder **`YYYY-MM-DD/`** with fixed NDJSON filenames inside.
+- The directory name is **`.logs`** (with a trailing **`s`**). Searching the repo for the substring `.log` will also match `.logs`. A leftover **`.log/`** folder from an older layout is not used by current servers and can be removed locally.
+
+```
+.logs/
+  2026-04-07/
+    system.ndjson
+    http-api.ndjson
+    errors-api.ndjson
+    notification.ndjson
+    http-notification.ndjson
+    errors-notification.ndjson
+```
+
+- **`http-api.ndjson`**: one line per REST request (`event: http_request`).
+- **`http-notification.ndjson`**: one line per HTTP request (health, Socket.IO engine, etc.).
+- Admins browse via **`GET /api/admin/system-logs`** using paths like `2026-04-07/system.ndjson`. See [`docs/en/admin.md`](../admin.md).
+
+### Error-only logs (for metrics)
+
+| File (inside each day folder) | Contents |
+|-------------------------------|----------|
+| `errors-api.ndjson` | REST API: `request_error`, `http_5xx`, process errors, `bootstrap_fatal` |
+| `errors-notification.ndjson` | Notification server: process errors, `socket_handler_error`, etc. |
+
+Typical fields: `time`, `service`, `event`, `level`, `reqId`, `method`, `path`, `statusCode`, `userId`, `errorName`, `errorMessage`, `errorStack` (truncated when very long).
+
+---
+
 ## REST API overview
 
 All routes below are under the **`/api`** prefix unless noted. Methods, bodies, and permissions are defined in each `*.routes.ts` and controller.
@@ -131,8 +168,9 @@ All routes below are under the **`/api`** prefix unless noted. Methods, bodies, 
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/auth/config` | Public auth config for login/signup UI (no auth) |
 | `POST` | `/auth/signup` | Sign up (`setupToken` only for first `SUPER_ADMIN`) |
-| `POST` | `/auth/login` | Log in |
+| `POST` | `/auth/login` | Log in (`body.mode`: `auto` \| `local` \| `ldap` for LDAP vs local) |
 | `POST` | `/auth/refresh` | Refresh tokens (rotation) |
 | `POST` | `/auth/logout` | Log out current device |
 | `POST` | `/auth/logout/all` | Log out all devices (Bearer) |
@@ -186,6 +224,15 @@ Authenticated file upload (`UPLOAD_STORAGE` controls backend storage).
 | `GET` | `/admin/users/:userId` | User detail |
 | `PATCH` | `/admin/users/:userId` | Update user |
 | `PATCH` | `/admin/users/:userId/role` | Change system role |
+| `GET` | `/admin/auth-settings` | Read auth settings (signup, LDAP, etc.) |
+| `PATCH` | `/admin/auth-settings` | Update auth settings |
+| `POST` | `/admin/auth-settings/ldap-test` | Test LDAP credentials |
+| `GET` | `/admin/smtp` | Read SMTP config |
+| `PATCH` | `/admin/smtp` | Update SMTP config |
+| `POST` | `/admin/smtp/test` | Send test email |
+| `GET` | `/admin/system-logs` | List/read NDJSON system logs |
+
+For UI and ops notes, see [`docs/en/admin.md`](../admin.md).
 
 ---
 

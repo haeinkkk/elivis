@@ -1308,7 +1308,7 @@ export const ja = {
       },
       systemLogsPage: {
         intro:
-          "APIサーバーと通知サーバーのNDJSONログを表示します。リポジトリ直下の`.log`に日別ファイルで保存されます。SYSTEM_LOG_DIRで変更できます。",
+          "APIサーバーと通知サーバーのNDJSONログを表示します。既定の保存先はリポジトリ直下の`.logs`で、その下の日付フォルダー(YYYY-MM-DD)にNDJSONが保存されます。SYSTEM_LOG_DIRでルートを変更できます。",
         loadError:
           "ログを読み込めませんでした。API接続と権限を確認して再度お試しください。",
         fileLabel: "ファイル",
@@ -1326,7 +1326,7 @@ export const ja = {
         searchPlaceholder: "文字列…",
         apply: "表示",
         applying: "読み込み中…",
-        noFiles: "ログファイルがありません。サーバー起動後に`.log`に作成されます。",
+        noFiles: "ログファイルがありません。サーバー起動後に`.logs`以下に作成されます。",
         noEntries: "該当する項目がありません。",
         colTime: "時刻",
         colLevel: "レベル",

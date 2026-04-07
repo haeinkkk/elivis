@@ -1308,7 +1308,7 @@ export const ko = {
             },
             systemLogsPage: {
                 intro:
-                    "API 서버·알림 서버의 NDJSON 로그를 확인합니다. 로그는 저장소 루트 `.log`에 일별 파일로 쌓입니다. 환경변수 SYSTEM_LOG_DIR로 경로를 바꿀 수 있습니다.",
+                    "API 서버·알림 서버의 NDJSON 로그를 확인합니다. 기본 저장 위치는 저장소 루트의 `.logs`이며, 그 아래 날짜별 폴더(YYYY-MM-DD)에 NDJSON 파일이 쌓입니다. 환경변수 SYSTEM_LOG_DIR로 루트 경로를 바꿀 수 있습니다.",
                 loadError:
                     "로그 목록을 불러오지 못했습니다. API 서버 연결과 권한을 확인한 뒤 다시 시도해 주세요.",
                 fileLabel: "파일",
@@ -1326,7 +1326,7 @@ export const ko = {
                 searchPlaceholder: "문자열…",
                 apply: "조회",
                 applying: "불러오는 중…",
-                noFiles: "로그 파일이 없습니다. 서버를 실행하면 `.log`에 생성됩니다.",
+                noFiles: "로그 파일이 없습니다. 서버를 실행하면 `.logs` 아래에 생성됩니다.",
                 noEntries: "조건에 맞는 항목이 없습니다.",
                 colTime: "시간",
                 colLevel: "레벨",

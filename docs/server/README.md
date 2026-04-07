@@ -16,6 +16,7 @@ Elivis 백엔드는 **REST API**와 **실시간 알림 서버**로 나뉩니다.
 - [환경 변수](#환경-변수)
 - [개발 서버 실행](#개발-서버-실행)
 - [알림 서버 (Socket.IO)](#알림-서버-socketio)
+- [시스템 로그 파일](#시스템-로그-파일)
 - [REST API 개요](#rest-api-개요)
 - [데이터 모델 메모](#데이터-모델-메모)
 - [인증 흐름](#인증-흐름)
@@ -77,6 +78,11 @@ apps/server/
 | `CORS_ORIGIN` | 허용 Origin (쉼표 구분). API·Socket.IO CORS에 사용 |
 | `UPLOAD_STORAGE` | `local` 또는 `s3` |
 | `UPLOAD_MAX_FILE_SIZE_MB` | 업로드 상한 (MB) |
+| `SYSTEM_LOG_DIR` | (선택) 시스템 NDJSON 로그 **루트** 디렉터리. 미설정 시 모노레포 루트 **`.logs`** (하위에 `YYYY-MM-DD/` 생성) |
+
+### 인증 시드 (선택, `AuthSettings` 최초 생성 시만)
+
+`env.example`에 주석으로 있는 **`PUBLIC_SIGNUP_ENABLED`**, **`LDAP_*`** 등은 DB에 `AuthSettings` 행이 **아직 없을 때** 첫 값으로만 쓰입니다. 이후에는 관리자 UI·DB가 우선입니다. 상세는 [`docs/admin.md`](../admin.md) 참고.
 
 ### 알림 서버
 
@@ -117,6 +123,37 @@ pnpm dev:notification  # 알림 서버만 → http://localhost:4001
 
 ---
 
+## 시스템 로그 파일
+
+- API 서버·알림 서버가 **`SYSTEM_LOG_DIR`**(기본: 모노레포 루트 **`.logs`**) 아래에 **날짜별 폴더**를 만들고, 그 안에 NDJSON 파일을 둡니다.
+- 저장소 이름은 **`.logs`**(맨 끝 `s` 포함)입니다. 코드베이스에서 문자열 `.log`만 검색하면 `.logs`가 부분 일치로 함께 검색됩니다. 로컬에 예전 **`.log/`** 폴더가 남아 있어도 현재 서버는 쓰지 않으며, 지워도 됩니다.
+
+```
+.logs/
+  2026-04-07/
+    system.ndjson              # Pino 기본(콘솔과 동일)
+    http-api.ndjson            # REST API HTTP 요청 한 줄 요약 (`event: http_request`)
+    errors-api.ndjson          # API 오류·5xx·프로세스 예외
+    notification.ndjson        # 알림 서버 일반 로그
+    http-notification.ndjson   # 알림 서버 HTTP 요청(헬스·Socket.IO 엔진 등)
+    errors-notification.ndjson # 알림 서버 오류·소켓 핸들러 실패 등
+```
+
+- 관리자 **`GET /api/admin/system-logs`** 에서 파일 선택 시 `2026-04-07/system.ndjson` 형식의 상대 경로로 표시됩니다.
+
+### 서버 오류 전용 로그 (메트릭 연동용)
+
+일반 로그와 분리해 **오류만** 한 줄 JSON으로 `errors-api.ndjson` / `errors-notification.ndjson`에 씁니다. (날짜는 상위 폴더명)
+
+| 파일 (일별 폴더 안) | 내용 |
+|----------------------|------|
+| `errors-api.ndjson` | REST API: `request_error`, `http_5xx`, `uncaughtException`, `unhandledRejection`, `bootstrap_fatal` |
+| `errors-notification.ndjson` | 알림 서버: 프로세스 오류, `socket_handler_error` 등 |
+
+필드 예: `time`, `service`, `event`, `level`, `reqId`, `method`, `path`, `statusCode`, `userId`, `errorName`, `errorMessage`, `errorStack`(길이 상한 후 truncate). 외부 메트릭·로그 수집기는 `errors-*.ndjson`만 tail 하면 됩니다.
+
+---
+
 ## REST API 개요
 
 아래는 **프리픽스 `/api`** 기준 그룹만 정리한 것입니다. HTTP 메서드·바디·권한은 각 `*.routes.ts` 와 컨트롤러를 확인하세요.
@@ -131,8 +168,9 @@ pnpm dev:notification  # 알림 서버만 → http://localhost:4001
 
 | Method | Path | 설명 |
 |--------|------|------|
+| `GET` | `/auth/config` | 공개 인증 설정 (회원가입·LDAP 등 UI용, 인증 불필요) |
 | `POST` | `/auth/signup` | 회원가입 (`setupToken`은 최초 SUPER_ADMIN 전용) |
-| `POST` | `/auth/login` | 로그인 |
+| `POST` | `/auth/login` | 로그인 (`body.mode`: `auto` \| `local` \| `ldap` — LDAP 탭·자동 판별) |
 | `POST` | `/auth/refresh` | 토큰 재발급 (Rotation) |
 | `POST` | `/auth/logout` | 현재 기기 로그아웃 |
 | `POST` | `/auth/logout/all` | 전체 기기 로그아웃 (Bearer) |
@@ -186,6 +224,15 @@ pnpm dev:notification  # 알림 서버만 → http://localhost:4001
 | `GET` | `/admin/users/:userId` | 상세 |
 | `PATCH` | `/admin/users/:userId` | 정보 수정 |
 | `PATCH` | `/admin/users/:userId/role` | 시스템 역할 변경 |
+| `GET` | `/admin/auth-settings` | 인증 설정 조회 (공개 가입·LDAP 등) |
+| `PATCH` | `/admin/auth-settings` | 인증 설정 변경 |
+| `POST` | `/admin/auth-settings/ldap-test` | LDAP 인증 테스트 |
+| `GET` | `/admin/smtp` | SMTP 설정 조회 |
+| `PATCH` | `/admin/smtp` | SMTP 설정 저장 |
+| `POST` | `/admin/smtp/test` | SMTP 테스트 발송 |
+| `GET` | `/admin/system-logs` | 시스템 NDJSON 로그 목록·내용 조회 |
+
+자세한 화면·운영 요약: [`docs/admin.md`](../admin.md)
 
 ---
 

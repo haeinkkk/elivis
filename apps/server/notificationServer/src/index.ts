@@ -2,7 +2,11 @@ import "dotenv/config";
 
 import http from "http";
 import { prisma } from "@repo/database";
-import { appendNotificationLog } from "./system-log";
+import {
+  appendNotificationErrorLog,
+  appendNotificationHttpRequestLog,
+  appendNotificationLog,
+} from "./system-log";
 import { createSocketServer } from "./socket";
 import { createRedisSubscriber } from "./redis";
 
@@ -14,6 +18,7 @@ const host = process.env.NOTIFICATION_HOST ?? "0.0.0.0";
 const DIVIDER = "─".repeat(58);
 
 process.on("uncaughtException", (err) => {
+  appendNotificationErrorLog({ event: "uncaughtException", level: 60, error: err });
   appendNotificationLog(60, err.message, {
     event: "uncaughtException",
     name: err.name,
@@ -23,6 +28,8 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("unhandledRejection", (reason) => {
+  const e = reason instanceof Error ? reason : new Error(String(reason));
+  appendNotificationErrorLog({ event: "unhandledRejection", level: 50, error: e });
   const msg = reason instanceof Error ? reason.message : String(reason);
   const stack = reason instanceof Error ? reason.stack : undefined;
   appendNotificationLog(50, msg, { event: "unhandledRejection", stack });
@@ -38,6 +45,24 @@ async function main() {
   const httpServer = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok", service: "notification-server" }));
+  });
+
+  /** 모든 HTTP 요청(헬스·Socket.IO 엔진 등)에 대해 날짜별 `http-notification.ndjson`에 기록 */
+  httpServer.prependListener("request", (req, res) => {
+    const start = Date.now();
+    const rawUrl = req.url ?? "";
+    const pathOnly = rawUrl.split("?")[0] ?? "";
+    res.on("finish", () => {
+      appendNotificationHttpRequestLog({
+        method: req.method ?? "GET",
+        path: pathOnly || "/",
+        url: rawUrl,
+        statusCode: res.statusCode,
+        durationMs: Date.now() - start,
+        userAgent:
+          typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
+      });
+    });
   });
 
   const io = createSocketServer(httpServer);
@@ -80,6 +105,8 @@ ${DIVIDER}
 }
 
 main().catch((err) => {
+  const e = err instanceof Error ? err : new Error(String(err));
+  appendNotificationErrorLog({ event: "bootstrap_fatal", level: 60, error: e });
   console.error(err);
   process.exit(1);
 });

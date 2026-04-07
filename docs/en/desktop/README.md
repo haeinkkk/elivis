@@ -35,16 +35,34 @@ apps/desktop/
 ├── src/
 │   ├── main.ts         # Main process
 │   └── preload.ts      # Preload (context bridge)
+├── scripts/
+│   └── sync-icon.mjs   # Copy web public/favicon.ico → build & dist/icon.ico
+├── static/             # Local shell (splash), offline / dev-server hints (no network required)
+├── build/              # electron-builder assets (icon.ico, etc.)
 ├── dist/               # Compiled JS (after build)
 ├── release/            # Installer / portable output
 └── electron-builder.yml
 ```
 
+### Icon (favicon)
+
+- Place **`apps/web/public/favicon.ico`** (same as the web app). A normal multi-resolution `.ico` (e.g. 16×16 through 256×256) is enough for Windows window and executable icons; no separate size is strictly required.
+- **`pnpm build`** / **`pnpm dev`** run **`scripts/sync-icon.mjs`**, which copies that file to **`build/icon.ico`** and **`dist/icon.ico`**. `electron-builder` picks up **`build/icon.ico`** for packaged builds.
+- For **macOS** DMG/App icons, you can add **`build/icon.icns`** later (optional).
+
+### Splash & offline
+
+- The app loads **`static/shell.html`** first (native-style splash), then loads the real UI in a **`<webview>`** so the splash stays until the page finishes loading.
+- **Development**: if `http://127.0.0.1:3000` is unreachable, **`noserver.html`** explains starting the Next dev server.
+- **Packaged (static `web/out`)**: if the internet probe fails, **`offline.html`** asks the user to check the connection. For air-gapped installs where only the static shell should open, set the OS environment variable **`ELIVIS_DESKTOP_SKIP_INTERNET_CHECK=1`** when launching the app (the packaged binary does not auto-load the monorepo `.env`).
+- **Missing `web/out`**: **`nobuild.html`** explains running `pnpm --filter web build:static`.
+- Each screen has **Retry**, which re-runs checks and returns to the shell.
+
 ---
 
 ## Development
 
-> **Prerequisite:** the web dev server (`localhost:3000`) must be running.
+> **Web UI:** In dev, the app loads `http://localhost:3000`. If it is not up yet, **`noserver.html`** is shown. Run `pnpm dev:web` in another terminal, or use `pnpm dev` below.
 
 Recommended — run web, API, notifications, and desktop together:
 
@@ -52,7 +70,7 @@ Recommended — run web, API, notifications, and desktop together:
 pnpm dev
 ```
 
-Desktop only (web dev server already up):
+Desktop only (Electron starts immediately; start `pnpm dev:web` separately to connect):
 
 ```bash
 pnpm dev:desktop
@@ -60,7 +78,7 @@ pnpm dev:desktop
 pnpm --filter @repo/desktop dev
 ```
 
-The dev script waits on `wait-on tcp:127.0.0.1:3000` before starting Electron.
+The `dev` script runs `tsc` once to produce `dist/`, then runs `tsc -w` alongside Electron.
 
 ---
 
@@ -95,17 +113,7 @@ pnpm build:desktop
 
 ### Dev vs production loading
 
-```typescript
-// main.ts
-if (app.isPackaged) {
-  // Production: load bundled static files
-  const webOutDir = path.join(process.resourcesPath, "web-out");
-  win.loadFile(path.join(webOutDir, "index.html"));
-} else {
-  // Development: Next.js dev server
-  win.loadURL("http://localhost:3000");
-}
-```
+In dev, **`static/shell.html`** loads first, then a **webview** loads `http://localhost:3000/` (or `noserver.html` when the dev server is unreachable). Production uses `web-out` static files. See `resolveAppTarget()` and `beginShellFlow()` in `main.ts`.
 
 ### preload.ts
 
@@ -114,6 +122,10 @@ Exposes a minimal, safe API to the renderer via the context bridge with `context
 ---
 
 ## Troubleshooting (Windows)
+
+### `pnpm dev:desktop` does not open Electron
+
+- Older scripts used **`wait-on`** on port 3000, so without the web server running Electron **never started**. The current script starts Electron immediately; if the web server is down you see **`noserver.html`**. Start `pnpm dev:web` in another terminal or use `pnpm dev`.
 
 ### `Cannot create symbolic link`
 
@@ -137,7 +149,7 @@ ERROR: Cannot create symbolic link
 ### Electron shows a blank window
 
 - Ensure the web dev server on `localhost:3000` is running.
-- Running `pnpm dev` starts everything and `wait-on` handles ordering.
+- Running `pnpm dev` starts web, API, notifications, and desktop together.
 
 ---
 

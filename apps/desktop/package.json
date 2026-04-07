@@ -4,12 +4,16 @@
   "private": true,
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
-    "build:desktop": "electron-builder --config electron-builder.yml",
-    "dev": "concurrently -k \"tsc -w\" \"wait-on tcp:127.0.0.1:3000 && cross-env ELECTRON_DEV=1 electron dist/main.js\"",
-    "start": "electron dist/main.js",
+    "build": "tsc && node scripts/sync-icon.mjs",
+    "sync-icon": "node scripts/sync-icon.mjs",
+    "build:desktop": "pnpm run build && electron-builder --config electron-builder.yml",
+    "dev": "node scripts/sync-icon.mjs && tsc && concurrently -k \"tsc -w\" \"cross-env ELECTRON_DEV=1 node scripts/run-electron-app.mjs dist/main.js\"",
+    "start": "node scripts/run-electron-app.mjs dist/main.js",
     "lint": "node ../../scripts/eslint-run.mjs . --max-warnings 0",
     "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -19,8 +23,9 @@
     "cross-env": "^7.0.3",
     "electron": "41.1.0",
     "electron-builder": "26.8.1",
-    "electron-builder-squirrel-windows": "26.8.1",
-    "typescript": "^5.3.0",
-    "wait-on": "^8.0.1"
+    "png2icons": "^2.0.1",
+    "sharp": "^0.34.5",
+    "to-ico": "^1.1.5",
+    "typescript": "^5.3.0"
   }
 }

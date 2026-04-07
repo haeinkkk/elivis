@@ -73,9 +73,6 @@ function serverActionBodySizeLimit() {
 }
 
 const nextConfig: NextConfig = {
-  ...(process.env.ELECTRON_STATIC === "1" && {
-    output: "export" as const,
-  }),
   turbopack: {
     resolveAlias: {
       "next-intl": nextIntlTurbopackAlias,
@@ -92,8 +89,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   env: {
-    /** 정적 export 시 rewrites 없음 → 아바타는 API 절대 URL 사용 */
-    NEXT_PUBLIC_UPLOADS_SAME_ORIGIN: process.env.ELECTRON_STATIC === "1" ? "0" : "1",
+    NEXT_PUBLIC_UPLOADS_SAME_ORIGIN: "1",
   },
   transpilePackages: ["@repo/ui", "@repo/docs", "@repo/i18n"],
   reactCompiler: true,
@@ -107,7 +103,6 @@ const nextConfig: NextConfig = {
    * 브라우저가 같은 출처(예: localhost:3000)로만 요청하도록 함 — img 크로스 포트 이슈 완화
    */
   async rewrites() {
-    if (process.env.ELECTRON_STATIC === "1") return [];
     const apiBase =
       process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:4000";
     return [{ source: "/uploads/:path*", destination: `${apiBase}/uploads/:path*` }];

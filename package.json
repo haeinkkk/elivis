@@ -12,6 +12,7 @@
     "dev:desktop": "pnpm --filter @repo/desktop dev",
     "build": "turbo build",
     "build:desktop": "turbo run build:desktop --filter=@repo/desktop",
+    "prestart": "pnpm --filter @repo/i18n build",
     "start": "concurrently -k \"pnpm --filter web start\" \"pnpm --filter @repo/api-server start\" \"pnpm --filter @repo/notification-server start\"",
     "db:deploy": "pnpm --filter @repo/database db:deploy",
     "db:reset": "pnpm --filter @repo/database db:reset",

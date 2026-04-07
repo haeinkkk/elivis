@@ -1310,7 +1310,7 @@ export const en = {
       },
       systemLogsPage: {
         intro:
-          "Inspect NDJSON logs from the API and notification servers. Files are written daily under the repo `.log` directory. Override with SYSTEM_LOG_DIR.",
+          "Inspect NDJSON logs from the API and notification servers. By default they are stored under the repo `.logs` directory, in per-day folders (YYYY-MM-DD/*.ndjson). Override the root with SYSTEM_LOG_DIR.",
         loadError:
           "Could not load logs. Check the API connection and permissions, then try again.",
         fileLabel: "File",
@@ -1328,7 +1328,7 @@ export const en = {
         searchPlaceholder: "Text…",
         apply: "Load",
         applying: "Loading…",
-        noFiles: "No log files yet. They appear under `.log` after servers run.",
+        noFiles: "No log files yet. They appear under `.logs` after servers run.",
         noEntries: "No matching entries.",
         colTime: "Time",
         colLevel: "Level",

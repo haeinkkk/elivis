@@ -13,6 +13,7 @@ import {
   markAsRead,
   markAllAsRead,
 } from "./services/notification.service";
+import { appendNotificationErrorLog } from "./system-log";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Socket.IO 서버 생성
@@ -80,6 +81,12 @@ export function createSocketServer(httpServer: HttpServer) {
       const data = await getNotifications(userId, 1);
       socket.emit("notification:list", data);
     } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      appendNotificationErrorLog({
+        event: "socket_handler_error",
+        error: e,
+        extra: { handler: "connection_initial_list", userId },
+      });
       console.error("[Socket.IO] Failed to send initial notification list", err);
     }
 
@@ -94,6 +101,12 @@ export function createSocketServer(httpServer: HttpServer) {
           });
         }
       } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        appendNotificationErrorLog({
+          event: "socket_handler_error",
+          error: e,
+          extra: { handler: "notification:read", userId },
+        });
         console.error("[Socket.IO] Failed to mark notification as read", err);
       }
     });
@@ -104,6 +117,12 @@ export function createSocketServer(httpServer: HttpServer) {
         await markAllAsRead(userId);
         socket.emit("notification:all_read");
       } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        appendNotificationErrorLog({
+          event: "socket_handler_error",
+          error: e,
+          extra: { handler: "notification:read_all", userId },
+        });
         console.error("[Socket.IO] Failed to mark all notifications as read", err);
       }
     });
@@ -114,6 +133,12 @@ export function createSocketServer(httpServer: HttpServer) {
         const data = await getNotifications(userId, page);
         socket.emit("notification:list", data);
       } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        appendNotificationErrorLog({
+          event: "socket_handler_error",
+          error: e,
+          extra: { handler: "notification:get_list", userId },
+        });
         console.error("[Socket.IO] Failed to get notification list", err);
       }
     });

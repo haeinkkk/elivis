@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "cross-env ELECTRON_STATIC=1 next build",
     "start": "next start",
     "lint": "node ../../scripts/eslint-run.mjs . --max-warnings 0",
     "type-check": "tsc --noEmit"

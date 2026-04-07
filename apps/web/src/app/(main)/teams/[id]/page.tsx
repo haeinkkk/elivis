@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
-import { fetchTeamById } from "@/lib/server/teams.server";
 import { checkTeamFavoriteAction } from "@/app/actions/teams";
+import { fetchTeamById } from "@/lib/server/teams.server";
 import { getMyProfile } from "@/lib/server/user-profile.server";
 
 import { TeamDetailLoadError } from "@repo/ui/team/TeamDetailLoadError";

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>빌드 필요 — Elivis</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; font-family: ui-sans-serif, system-ui, sans-serif; background: #f8f7f5; color: #292524; }
+    .wrap {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100%; padding: 2rem; text-align: center; gap: 1rem; max-width: 28rem; margin: 0 auto;
+    }
+    h1 { font-size: 1.125rem; font-weight: 600; }
+    p { font-size: 0.875rem; color: #57534e; line-height: 1.6; }
+    code { font-size: 0.75rem; background: #e7e5e4; padding: 0.15rem 0.4rem; border-radius: 0.25rem; display: inline-block; margin: 0.15rem 0; }
+    button {
+      margin-top: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 0.75rem; border: 1px solid #d6d3d1;
+      background: #292524; color: #fafaf9; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+    }
+    button:hover { background: #44403c; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>웹 주소가 설정되지 않았습니다</h1>
+    <p>
+      패키징된 앱은 <code>ELIVIS_WEB_URL</code> 환경 변수(배포된 웹 앱 URL, 예: <code>https://app.example.com</code>)가 필요합니다.
+      실행 파일과 같은 폴더에 <code>.env</code>를 두고 다음 한 줄을 넣거나, 시스템 환경 변수로 설정하세요.
+    </p>
+    <p><code>ELIVIS_WEB_URL=https://your-server.example.com</code></p>
+    <button type="button" id="retry">다시 시도</button>
+  </div>
+  <script>
+    document.getElementById("retry").addEventListener("click", function () {
+      var api = window.elivisDesktop;
+      if (api && api.retryShell) {
+        api.retryShell();
+      }
+    });
+  </script>
+</body>
+</html>

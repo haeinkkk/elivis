@@ -6,32 +6,122 @@ import { Writable } from "stream";
 import type { FastifyRequest } from "fastify";
 import pino from "pino";
 
-import { getDefaultSystemLogDir } from "../config/system-log-dir";
+import { getDefaultLogsRootDir } from "../config/system-log-dir";
 
 export const SYSTEM_LOG_SERVICE_API = "api-server";
 
-const FILE_PREFIX = "system-";
+const DATE_DIR_RE = /^\d{4}-\d{2}-\d{2}$/;
 const FILE_SUFFIX = ".ndjson";
 const MAX_TAIL_BYTES = 4 * 1024 * 1024;
+const MAX_ERROR_STACK_CHARS = 48_000;
 
-/** 환경변수 없으면 모노레포 루트 `.log` */
+/** 일별 폴더 안의 고정 파일명 (날짜는 상위 디렉터리명) */
+export const DAY_LOG_FILES = {
+    system: `system${FILE_SUFFIX}`,
+    httpApi: `http-api${FILE_SUFFIX}`,
+    errorsApi: `errors-api${FILE_SUFFIX}`,
+    notification: `notification${FILE_SUFFIX}`,
+    httpNotification: `http-notification${FILE_SUFFIX}`,
+    errorsNotification: `errors-notification${FILE_SUFFIX}`,
+} as const;
+
+/** 관리자·tail API용 상대 경로: `YYYY-MM-DD/system.ndjson` */
+const SAFE_REL_LOG_PATH =
+    /^(\d{4}-\d{2}-\d{2})\/(system|http-api|errors-api|notification|http-notification|errors-notification)\.ndjson$/;
+
+/**
+ * 로그 루트 (기본: 모노레포 `.logs`). `SYSTEM_LOG_DIR`이 있으면 그 경로.
+ * 실제 파일은 `루트/YYYY-MM-DD/*.ndjson`.
+ */
 export function getSystemLogDir(): string {
     const raw = process.env.SYSTEM_LOG_DIR?.trim();
     if (raw) return path.resolve(raw);
-    return getDefaultSystemLogDir();
+    return getDefaultLogsRootDir();
 }
 
-export function ensureSystemLogDir(): void {
+function todayDateStr(): string {
+    return new Date().toISOString().slice(0, 10);
+}
+
+export function ensureLogRoot(): void {
     mkdirSync(getSystemLogDir(), { recursive: true });
 }
 
-function todayFileName(): string {
-    const d = new Date().toISOString().slice(0, 10);
-    return `${FILE_PREFIX}${d}${FILE_SUFFIX}`;
+function ensureDailyDir(dateStr: string): void {
+    if (!DATE_DIR_RE.test(dateStr)) return;
+    mkdirSync(path.join(getSystemLogDir(), dateStr), { recursive: true });
+}
+
+function pathInDay(dateStr: string, fileName: keyof typeof DAY_LOG_FILES): string {
+    ensureDailyDir(dateStr);
+    return path.join(getSystemLogDir(), dateStr, DAY_LOG_FILES[fileName]);
+}
+
+function isPathUnderLogRoot(resolved: string): boolean {
+    const root = path.resolve(getSystemLogDir());
+    const rel = path.relative(root, resolved);
+    return (rel === "" || !rel.startsWith("..")) && !path.isAbsolute(rel);
+}
+
+export function resolveLogFilePath(relativeName: string): string {
+    if (!SAFE_REL_LOG_PATH.test(relativeName.replace(/\\/g, "/"))) {
+        throw new Error("invalid log file name");
+    }
+    const norm = relativeName.replace(/\\/g, "/");
+    const full = path.join(getSystemLogDir(), ...norm.split("/"));
+    const resolved = path.resolve(full);
+    if (!isPathUnderLogRoot(resolved)) throw new Error("invalid log path");
+    return resolved;
+}
+
+export function isAllowedLogFileName(name: string): boolean {
+    return SAFE_REL_LOG_PATH.test(name.replace(/\\/g, "/"));
+}
+
+function truncateErrorStack(s: string | undefined): string | undefined {
+    if (!s) return undefined;
+    if (s.length <= MAX_ERROR_STACK_CHARS) return s;
+    return `${s.slice(0, MAX_ERROR_STACK_CHARS)}…(truncated)`;
 }
 
 /**
- * 날짜가 바뀌면 파일을 바꾸는 쓰기 스트림 (pino multistream용)
+ * 메트릭/알림 연동용 서버 오류 전용 NDJSON (`…/YYYY-MM-DD/errors-api.ndjson`).
+ */
+export function appendApiServerErrorLog(input: {
+    event: string;
+    level?: number;
+    reqId?: string;
+    method?: string;
+    path?: string;
+    statusCode?: number;
+    userId?: string;
+    error?: Error;
+    msg?: string;
+    extra?: Record<string, unknown>;
+}): void {
+    ensureLogRoot();
+    const d = todayDateStr();
+    const e = input.error;
+    const line = JSON.stringify({
+        time: Date.now(),
+        service: SYSTEM_LOG_SERVICE_API,
+        event: input.event,
+        level: input.level ?? 50,
+        reqId: input.reqId,
+        method: input.method,
+        path: input.path,
+        statusCode: input.statusCode,
+        userId: input.userId,
+        errorName: e?.name,
+        errorMessage: e ? e.message : input.msg,
+        errorStack: truncateErrorStack(e?.stack),
+        ...input.extra,
+    });
+    appendFileSync(pathInDay(d, "errorsApi"), `${line}\n`);
+}
+
+/**
+ * 날짜가 바뀌면 디렉터리·파일을 바꾸는 쓰기 스트림 (pino multistream용 → `system.ndjson`)
  */
 class DailyRotatingNdjsonStream extends Writable {
     private currentDate = "";
@@ -45,8 +135,8 @@ class DailyRotatingNdjsonStream extends Writable {
                     this.sink.end();
                 }
                 this.currentDate = d;
-                ensureSystemLogDir();
-                const p = path.join(getSystemLogDir(), `${FILE_PREFIX}${d}${FILE_SUFFIX}`);
+                ensureLogRoot();
+                const p = pathInDay(d, "system");
                 this.sink = createWriteStream(p, { flags: "a" });
             }
             this.sink.write(chunk, callback);
@@ -64,9 +154,9 @@ class DailyRotatingNdjsonStream extends Writable {
     }
 }
 
-/** Fastify / Pino용 로거 인스턴스 생성 (stdout + 일별 NDJSON) */
+/** Fastify / Pino용 로거 인스턴스 생성 (stdout + 일별 `system.ndjson`) */
 export function createApiServerLogger(): pino.Logger {
-    ensureSystemLogDir();
+    ensureLogRoot();
 
     const redactPaths = [
         "req.headers.authorization",
@@ -107,29 +197,34 @@ export interface LogFileInfo {
     mtime: string;
 }
 
-const SAFE_FILE = /^system-\d{4}-\d{2}-\d{2}\.ndjson$/;
-const SAFE_NOTIFICATION_FILE = /^notification-\d{4}-\d{2}-\d{2}\.ndjson$/;
-
-export function isAllowedLogFileName(name: string): boolean {
-    return SAFE_FILE.test(name) || SAFE_NOTIFICATION_FILE.test(name);
-}
-
 export function listSystemLogFiles(): LogFileInfo[] {
-    const dir = getSystemLogDir();
-    if (!existsSync(dir)) return [];
-    const names = readdirSync(dir).filter((n) => SAFE_FILE.test(n) || SAFE_NOTIFICATION_FILE.test(n));
+    const root = getSystemLogDir();
+    if (!existsSync(root)) return [];
     const out: LogFileInfo[] = [];
-    for (const name of names) {
-        try {
-            const s = statSync(path.join(dir, name));
-            if (!s.isFile()) continue;
-            out.push({
-                name,
-                size: s.size,
-                mtime: s.mtime.toISOString(),
-            });
-        } catch {
-            /* skip */
+    let dayEntries: import("fs").Dirent[];
+    try {
+        dayEntries = readdirSync(root, { withFileTypes: true });
+    } catch {
+        return [];
+    }
+    const dayFiles = Object.values(DAY_LOG_FILES);
+    for (const ent of dayEntries) {
+        const dayName = String(ent.name);
+        if (!ent.isDirectory() || !DATE_DIR_RE.test(dayName)) continue;
+        const dayDir = path.join(root, dayName);
+        for (const fn of dayFiles) {
+            const fp = path.join(dayDir, fn);
+            try {
+                const s = statSync(fp);
+                if (!s.isFile()) continue;
+                out.push({
+                    name: `${dayName}/${fn}`,
+                    size: s.size,
+                    mtime: s.mtime.toISOString(),
+                });
+            } catch {
+                /* skip */
+            }
         }
     }
     out.sort((a, b) => b.name.localeCompare(a.name));
@@ -171,15 +266,9 @@ export interface ReadSystemLogsOptions {
     search?: string;
 }
 
-/**
- * 파일 끝에서 최대 `MAX_TAIL_BYTES` 바이트를 읽어 마지막 완전한 줄들만 파싱합니다.
- */
 export async function readSystemLogTail(options: ReadSystemLogsOptions): Promise<ParsedLogEntry[]> {
     const { fileName, limit, levelMin, search } = options;
-    if (!isAllowedLogFileName(fileName)) {
-        throw new Error("invalid log file name");
-    }
-    const full = path.join(getSystemLogDir(), fileName);
+    const full = resolveLogFilePath(fileName);
     if (!existsSync(full)) {
         return [];
     }
@@ -226,13 +315,14 @@ export async function readSystemLogTail(options: ReadSystemLogsOptions): Promise
     }
 }
 
-/** 훅에서 HTTP 요약 한 줄 추가 (pino와 동일 디렉터리·포맷) */
+/** API HTTP 요청 한 줄 (`…/YYYY-MM-DD/http-api.ndjson`) — 메트릭·감사용 */
 export function logHttpRequestSummary(
     request: FastifyRequest,
     reply: { statusCode: number },
     durationMs: number,
 ): void {
-    ensureSystemLogDir();
+    ensureLogRoot();
+    const d = todayDateStr();
     const uid = (request as FastifyRequest & { userId?: string }).userId;
     const line = JSON.stringify({
         level: 30,
@@ -249,12 +339,13 @@ export function logHttpRequestSummary(
         host: request.headers.host,
         userAgent: request.headers["user-agent"],
     });
-    appendFileSync(path.join(getSystemLogDir(), todayFileName()), `${line}\n`);
+    appendFileSync(pathInDay(d, "httpApi"), `${line}\n`);
 }
 
-/** 프로세스 레벨 이벤트(미처리 예외 등)를 동일 NDJSON에 기록 */
+/** 프로세스 레벨 이벤트 → `system.ndjson` */
 export function appendSystemEvent(level: number, msg: string, extra?: Record<string, unknown>): void {
-    ensureSystemLogDir();
+    ensureLogRoot();
+    const d = todayDateStr();
     const line = JSON.stringify({
         level,
         time: Date.now(),
@@ -262,5 +353,5 @@ export function appendSystemEvent(level: number, msg: string, extra?: Record<str
         msg,
         ...extra,
     });
-    appendFileSync(path.join(getSystemLogDir(), todayFileName()), `${line}\n`);
+    appendFileSync(pathInDay(d, "system"), `${line}\n`);
 }

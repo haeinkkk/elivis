@@ -8,6 +8,7 @@
 |------|------|
 | [서버 (`docs/server/README.md`)](./server/README.md) | REST API (`apiServer`), 알림 실시간 서버 (`notificationServer`), 환경 변수, 인증·RBAC, 프로덕션 |
 | [웹 (`docs/web/README.md`)](./web/README.md) | Next.js 앱, 라우트 구조, 환경 변수, Electron용 정적 빌드 |
+| [관리자·보안·운영 (`docs/admin.md`)](./admin.md) | `SUPER_ADMIN` 콘솔, LDAP·공개 가입·SMTP·시스템 로그, 관련 API 요약 |
 | [데스크톱 (`docs/desktop/README.md`)](./desktop/README.md) | Electron 개발·프로덕션 빌드, Windows 이슈 |
 | [ESLint (`docs/lint.md`)](./lint.md) | `pnpm lint`, 패키지별 실행, Flat/레거시 설정 차이 |
 

@@ -9,20 +9,15 @@
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_NOTIFICATION_URL",
     "NOTIFICATION_PORT",
-    "NOTIFICATION_HOST",
-    "ELECTRON_STATIC"
+    "NOTIFICATION_HOST"
   ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
     },
-    "build:static": {
-      "dependsOn": ["^build"],
-      "outputs": ["out/**"]
-    },
     "build:desktop": {
-      "dependsOn": ["web#build:static", "@repo/desktop#build"],
+      "dependsOn": ["@repo/desktop#build"],
       "outputs": ["release/**"]
     },
     "dev": {
