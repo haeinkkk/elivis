@@ -4,7 +4,7 @@ import { t } from "@repo/i18n";
 
 import { checkProjectPermission, isSuperAdmin } from "@repo/database";
 import { MSG } from "../utils/messages";
-import { forbidden, unauthorized } from "../utils/response";
+import { forbidden, forbiddenAccessBlocked, unauthorized } from "../utils/response";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 요청 컨텍스트 타입 확장
@@ -48,6 +48,20 @@ export async function authenticateUser(
         if (payload.type !== "access") {
             return reply.code(401).send(unauthorized(t(request.lang, MSG.AUTH_TOKEN_WRONG_TYPE)));
         }
+
+        const row = await request.server.prisma.user.findUnique({
+            where: { id: payload.sub },
+            select: { accessBlocked: true, accessBlockReason: true },
+        });
+        if (!row) {
+            return reply.code(401).send(unauthorized(t(request.lang, MSG.AUTH_TOKEN_INVALID)));
+        }
+        if (row.accessBlocked) {
+            return reply.code(403).send(
+                forbiddenAccessBlocked(t(request.lang, MSG.AUTH_ACCESS_BLOCKED), row.accessBlockReason),
+            );
+        }
+
         request.userId = payload.sub;
     } catch {
         return reply.code(401).send(unauthorized(t(request.lang, MSG.AUTH_TOKEN_INVALID)));

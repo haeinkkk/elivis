@@ -147,6 +147,11 @@ export {
     ProjectParticipantAvatarStack,
     ProjectPerformanceTab,
     projectDetailRoleLabelKo,
+    calculateWorkloadScore,
+    getWorkloadBand,
+    WORKLOAD_CHART_MAX_SCORE,
+    workloadTaskFromProjectTask,
+    type WorkloadBand,
 } from "./project/project-detail";
 export type {
     ProjectDetailModel,

@@ -17,6 +17,8 @@ export async function updateAdminUserAction(
         name?: string;
         systemRole?: "SUPER_ADMIN" | "USER";
         password?: string;
+        accessBlocked?: boolean;
+        accessBlockReason?: string | null;
     },
 ): Promise<{ ok: true; user: ApiAdminUserRow } | { ok: false; message: string }> {
     const denied = await requireActionSession();

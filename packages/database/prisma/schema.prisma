@@ -99,9 +99,56 @@ enum ProjectHistoryResourceType {
   WIKI_PAGE        /// 팀 프로젝트 위키 문서
 }
 
+/// 로그인 출처 — LDAP 연동 시 JIT 프로비저닝된 계정은 LDAP
+enum AuthProvider {
+  LOCAL
+  LDAP
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// SMTP(이메일 발송) 설정 — 단일 행(id = default)
+model SmtpSettings {
+  id     String @id @default("default")
+  /// 메일 발송 기능 사용 여부
+  enabled Boolean @default(false)
+  host    String  @default("")
+  port    Int     @default(587)
+  /// true: SMTPS(보통 465), false: STARTTLS(보통 587) 또는 비암호
+  secure            Boolean @default(false)
+  /// TLS 인증서 검증 (자체 서명 CA 시 false)
+  rejectUnauthorized Boolean @default(true)
+  authUser   String @default("")
+  /// 평문 저장 — DB 접근을 제한해 주세요
+  authPass   String @default("")
+  fromEmail  String @default("")
+  fromName   String @default("")
+  updatedAt DateTime @updatedAt
+}
+
+/// 공개 인증 정책(관리자 UI) — id = default 단일 행
+model AuthSettings {
+  id String @id @default("default")
+  /// 첫 SUPER_ADMIN 생성 후 로그인 화면에서 누구나 가입 가능
+  publicSignupEnabled Boolean @default(false)
+
+  /// LDAP 로그인 허용 (URL·검색베이스 등이 갖춰져야 실제로 동작)
+  ldapEnabled       Boolean @default(false)
+  ldapUrl           String  @default("")
+  /// 비어 있으면 검색(bind) 방식, 있으면 해당 DN 패턴으로 직접 bind ({{email}}, {{localPart}})
+  ldapUserDnTemplate String @default("")
+  ldapBindDn         String @default("")
+  /// 평문 저장 — DB 접근을 제한해 주세요 (SMTP 설정과 동일)
+  ldapBindPassword   String @default("")
+  ldapSearchBase     String @default("")
+  ldapSearchFilter   String @default("(mail={{email}})")
+  ldapNameAttribute  String @default("cn")
+  ldapTimeoutMs      Int     @default(15000)
+
+  updatedAt DateTime @updatedAt
+}
 
 model User {
   /// 앱에서 `generatePublicId()`로 발급 (8자 영숫자)
@@ -111,8 +158,13 @@ model User {
   avatarUrl  String?    /// 프로필 이미지 경로 (e.g. /uploads/avatars/xxx.jpg)
   bio        String?    /// 프로필 메시지
   status     UserStatus @default(WORKING) /// 현재 상태
-  password   String     /// bcrypt 해시 저장
-  systemRole SystemRole @default(USER)
+  password      String       /// bcrypt 해시 저장 (LDAP 전용 계정은 사용되지 않는 더미 해시)
+  authProvider  AuthProvider @default(LOCAL)
+  systemRole    SystemRole   @default(USER)
+  /// true면 로그인·토큰 갱신·API 접근 불가 (관리자가 해제할 때까지)
+  accessBlocked     Boolean   @default(false)
+  accessBlockReason String?   /// 차단 사유 (관리자 입력, 로그인 실패 시 사용자에게 표시 가능)
+  accessBlockedAt   DateTime? /// 마지막으로 차단 처리된 시각
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 

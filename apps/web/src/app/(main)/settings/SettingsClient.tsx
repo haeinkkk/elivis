@@ -384,7 +384,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
     const avatarUrl = toAbsoluteAvatarUrl(user?.avatarUrl);
 
     return (
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
             {/* ── 프로필 헤더 ── */}
             <div className="mb-6 flex items-center gap-4 sm:mb-8 sm:gap-5">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full shadow-sm sm:h-20 sm:w-20">

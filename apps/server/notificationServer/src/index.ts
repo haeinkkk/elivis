@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import http from "http";
 import { prisma } from "@repo/database";
+import { appendNotificationLog } from "./system-log";
 import { createSocketServer } from "./socket";
 import { createRedisSubscriber } from "./redis";
 
@@ -12,9 +13,25 @@ const host = process.env.NOTIFICATION_HOST ?? "0.0.0.0";
 
 const DIVIDER = "─".repeat(58);
 
+process.on("uncaughtException", (err) => {
+  appendNotificationLog(60, err.message, {
+    event: "uncaughtException",
+    name: err.name,
+    stack: err.stack,
+  });
+  console.error(err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : undefined;
+  appendNotificationLog(50, msg, { event: "unhandledRejection", stack });
+});
+
 async function main() {
   // ── DB 연결 확인 ──────────────────────────────────────────────────────────
   await prisma.$connect();
+  appendNotificationLog(30, "Database connection established", { event: "db_connect" });
   console.log("[DB] Database connection established");
 
   // ── HTTP 서버 + Socket.IO 초기화 ─────────────────────────────────────────
@@ -30,6 +47,12 @@ async function main() {
 
   // ── 서버 기동 ─────────────────────────────────────────────────────────────
   httpServer.listen(port, host, () => {
+    appendNotificationLog(30, "Notification server listening", {
+      event: "listen",
+      host,
+      port,
+      redisChannel: "notification:send",
+    });
     console.log(`
 ${DIVIDER}
   Notification Server running at http://${host}:${port}
@@ -41,6 +64,7 @@ ${DIVIDER}
 
   // ── 종료 시그널 처리 ────────────────────────────────────────────────────
   const shutdown = async () => {
+    appendNotificationLog(30, "Shutdown initiated", { event: "shutdown" });
     console.log("\n[Shutdown] Closing notification server...");
     subscriber.quit();
     io.close();

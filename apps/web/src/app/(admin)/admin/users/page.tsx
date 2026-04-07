@@ -17,10 +17,8 @@ export default async function AdminUsersPage() {
 
     if (!users) {
         return (
-            <div className="w-full p-4 text-left sm:p-5 md:p-6 lg:p-8">
-                <div className="max-w-2xl rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                    <p className="text-sm text-stone-600">{t("loadError")}</p>
-                </div>
+            <div className="w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+                <p className="text-sm text-stone-600">{t("loadError")}</p>
             </div>
         );
     }

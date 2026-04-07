@@ -33,6 +33,27 @@ function projectNamesText(u: AdminUserRow | null | undefined): string {
     return names.join(", ");
 }
 
+function teamListText(
+    u: AdminUserRow | null | undefined,
+    teamRoleLabel: (role: "LEADER" | "MEMBER") => string,
+): string {
+    if (u == null) return "-";
+    const raw = u.teamMemberships;
+    if (!Array.isArray(raw) || raw.length === 0) return "-";
+    const parts: string[] = [];
+    for (const m of raw) {
+        const n = String(m?.team?.name ?? "").trim();
+        if (n.length === 0) continue;
+        if (m.role === "LEADER") {
+            parts.push(`${n} (${teamRoleLabel("LEADER")})`);
+        } else {
+            parts.push(n);
+        }
+    }
+    if (parts.length === 0) return "-";
+    return parts.join(", ");
+}
+
 /* ── 페이지네이션 컴포넌트 ── */
 interface PaginationProps {
     current: number;
@@ -145,6 +166,7 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
     const router = useRouter();
     const t = useTranslations("adminUsers");
     const tRole = useTranslations("domain.systemRole");
+    const tTeamRole = useTranslations("teams.detail.roles");
     const [localUsers, setLocalUsers] = useState<AdminUserRow[]>(() =>
         Array.isArray(users) ? users : [],
     );
@@ -173,9 +195,8 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
 
     return (
         <>
-            <div className="w-full p-4 text-left sm:p-5 md:p-6 lg:p-8">
-                <div className="w-full max-w-5xl">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="w-full max-w-full">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <p className="text-stone-600">{t("intro")}</p>
                         <button
                             type="button"
@@ -214,12 +235,15 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
 
                         {/* 테이블 */}
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[880px] text-center text-sm">
+                            <table className="w-full min-w-[960px] text-center text-sm">
                                 <thead>
                                     <tr className="border-b border-stone-100 bg-stone-50/80 text-xs font-medium text-stone-600">
                                         <th className="px-4 py-3 sm:px-6">{t("colEmail")}</th>
                                         <th className="px-4 py-3 sm:px-6">{t("colName")}</th>
                                         <th className="px-4 py-3 sm:px-6">{t("colRole")}</th>
+                                        <th className="whitespace-nowrap px-4 py-3 sm:px-6">
+                                            {t("colAccess")}
+                                        </th>
                                         <th className="px-4 py-3 sm:px-6">{t("colTeam")}</th>
                                         <th className="px-4 py-3 sm:px-6">{t("colProject")}</th>
                                         <th className="whitespace-nowrap px-4 py-3 sm:px-6">
@@ -232,7 +256,7 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                     {list.length === 0 ? (
                                         <tr>
                                             <td
-                                                colSpan={7}
+                                                colSpan={8}
                                                 className="py-12 text-center text-sm text-stone-400"
                                             >
                                                 {t("empty")}
@@ -241,6 +265,7 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                     ) : (
                                         pageUsers.map((u) => {
                                             const isSelf = u.id === currentUserId;
+                                            const teamCell = teamListText(u, (r) => tTeamRole(r));
                                             return (
                                                 <tr key={u.id} className="text-stone-700">
                                                     <td className="max-w-[200px] truncate px-4 py-3 font-medium sm:max-w-none sm:px-6">
@@ -281,8 +306,25 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                                             ) : null}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 text-stone-400 sm:px-6">
-                                                        -
+                                                    <td className="px-4 py-3 sm:px-6">
+                                                        {u.accessBlocked ? (
+                                                            <span className="inline-flex items-center rounded-lg bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                                                {t("accessSuspendedBadge")}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-stone-300">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="max-w-[220px] px-4 py-3 text-left sm:max-w-[260px] sm:px-6">
+                                                        <span
+                                                            className={
+                                                                teamCell === "-"
+                                                                    ? "text-stone-400"
+                                                                    : "text-stone-700"
+                                                            }
+                                                        >
+                                                            {teamCell}
+                                                        </span>
                                                     </td>
                                                     <td className="max-w-[220px] px-4 py-3 sm:max-w-[280px] sm:px-6">
                                                         <span
@@ -317,7 +359,6 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                         {/* 페이지네이션 */}
                         <Pagination current={safePage} total={totalPages} onChange={onPageChange} />
                     </div>
-                </div>
             </div>
 
             <AdminCreateUserModal

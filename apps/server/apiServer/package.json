@@ -22,6 +22,9 @@
     "fastify-plugin": "^5.0.1",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
+    "ldapts": "^8.1.7",
+    "nodemailer": "^8.0.4",
+    "pino": "^9.6.0",
     "sharp": "^0.34.5",
     "uuid": "^11.1.0"
   },
@@ -31,6 +34,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20.0.0",
+    "@types/nodemailer": "^8.0.0",
     "@types/uuid": "^10.0.0",
     "cross-env": "^7.0.3",
     "tsx": "^4.19.3",

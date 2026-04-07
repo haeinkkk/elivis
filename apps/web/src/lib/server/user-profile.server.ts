@@ -1,11 +1,12 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import type { ApiEnvelope } from "../http/api-envelope";
 import type { ApiUserProfile } from "../mappers/user";
 import { apiUrl } from "../http/api-base-url";
-import { AT_COOKIE } from "./auth.server";
+import { AT_COOKIE, clearSession, getRefreshToken } from "./auth.server";
 import { apiFetchHeaders } from "../http/api-auth-headers.server";
 
 export type { UserProfile, UserStatus } from "../user/user-types";
@@ -27,11 +28,35 @@ export async function getMyProfile(): Promise<UserProfile | null> {
             cache: "no-store",
         });
 
-        if (!res.ok) return null;
+        const body = (await res.json().catch(() => null)) as ApiEnvelope<unknown> | null;
 
-        const body = (await res.json()) as ApiEnvelope<ApiUserProfile>;
-        return body.data;
-    } catch {
+        if (res.status === 403 && body?.data && typeof body.data === "object") {
+            const d = body.data as { accessBlocked?: boolean; accessBlockReason?: string | null };
+            if (d.accessBlocked === true) {
+                const rt = await getRefreshToken();
+                await clearSession(rt ?? undefined);
+                const reason = d.accessBlockReason?.trim();
+                redirect(
+                    reason
+                        ? `/account-suspended?reason=${encodeURIComponent(reason)}`
+                        : "/account-suspended",
+                );
+            }
+        }
+
+        if (!res.ok || !body || body.data == null) return null;
+
+        return body.data as ApiUserProfile;
+    } catch (err: unknown) {
+        if (
+            typeof err === "object" &&
+            err !== null &&
+            "digest" in err &&
+            typeof (err as { digest: unknown }).digest === "string" &&
+            String((err as { digest: string }).digest).startsWith("NEXT_REDIRECT")
+        ) {
+            throw err;
+        }
         return null;
     }
 }

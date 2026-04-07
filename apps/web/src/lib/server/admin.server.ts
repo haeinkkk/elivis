@@ -26,7 +26,9 @@ export type AdminUserDetail = ApiAdminUserDetail;
 export function normalizeAdminUserRow(row: ApiAdminUserRow): ApiAdminUserRow {
     return {
         ...row,
+        accessBlocked: Boolean(row.accessBlocked),
         memberships: Array.isArray(row.memberships) ? row.memberships : [],
+        teamMemberships: Array.isArray(row.teamMemberships) ? row.teamMemberships : [],
         createdAtLabel: formatListDateTime(row.createdAt),
     };
 }
@@ -45,7 +47,13 @@ export async function fetchAdminUser(userId: string): Promise<ApiAdminUserDetail
         if (!res.ok) return null;
 
         const body = (await res.json()) as ApiEnvelope<ApiAdminUserDetail>;
-        return body.data;
+        const row = body.data;
+        return {
+            ...row,
+            accessBlocked: Boolean(row.accessBlocked),
+            memberships: Array.isArray(row.memberships) ? row.memberships : [],
+            teamMemberships: Array.isArray(row.teamMemberships) ? row.teamMemberships : [],
+        };
     } catch {
         return null;
     }

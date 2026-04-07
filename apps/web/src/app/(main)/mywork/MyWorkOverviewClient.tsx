@@ -68,7 +68,7 @@ function isTaskDoneBySemantic(statuses: ApiWorkspaceStatus[], statusId: string):
 // 통계 계산
 // ─────────────────────────────────────────────────────────────────────────────
 
-function computeStats(list: WorkspaceDataItem[]) {
+export function computeStats(list: WorkspaceDataItem[]) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -595,7 +595,7 @@ function TimelineView({
 // 통계 카드 행
 // ─────────────────────────────────────────────────────────────────────────────
 
-function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType<typeof computeStats>) {
+export function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType<typeof computeStats>) {
     const td = useTranslations("workspace.dashboard");
     const tm = useTranslations("mywork");
     const cards = [
@@ -648,8 +648,11 @@ function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType<typeof
 
 export function MyWorkOverviewClient({
     workspaceDataList,
+    timelineOnly = false,
 }: {
     workspaceDataList: WorkspaceDataItem[];
+    /** true면 상단 제목·통계만 숨기고 타임라인·토글만 표시 (전체 실적 페이지 하단용) */
+    timelineOnly?: boolean;
 }) {
     const tm = useTranslations("mywork");
     const tw = useTranslations("workspace");
@@ -708,16 +711,20 @@ export function MyWorkOverviewClient({
 
     return (
         <div className="flex min-h-full w-full flex-col">
-            {/* 헤더 */}
-            <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-6">
-                <h1 className="text-lg font-bold text-stone-800 sm:text-xl">{tm("title")}</h1>
-                <p className="text-xs text-stone-400 sm:text-sm">{tm("subtitle")}</p>
-            </div>
+            {!timelineOnly && (
+                <>
+                    {/* 헤더 */}
+                    <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-6">
+                        <h1 className="text-lg font-bold text-stone-800 sm:text-xl">{tm("title")}</h1>
+                        <p className="text-xs text-stone-400 sm:text-sm">{tm("subtitle")}</p>
+                    </div>
 
-            {/* 상단 통계 */}
-            <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-                <StatsRow {...stats} />
-            </div>
+                    {/* 상단 통계 */}
+                    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
+                        <StatsRow {...stats} />
+                    </div>
+                </>
+            )}
 
             {/* 뷰 모드 토글 */}
             <div className="border-b border-stone-200 bg-white/95 px-4 py-2 sm:px-6">

@@ -1,8 +1,10 @@
 import bcrypt from "bcryptjs";
+import type { PrismaClient } from "@prisma/client";
 import { generatePublicId } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { t } from "@repo/i18n";
 
+import { revokeAllRefreshTokens } from "../services/token.service";
 import { MSG } from "../utils/messages";
 import { badRequest, conflict, created, notFound, ok } from "../utils/response";
 
@@ -25,10 +27,87 @@ export interface CreateUserBody {
     systemRole?: "SUPER_ADMIN" | "USER";
 }
 
+const ACCESS_BLOCK_REASON_MAX_LEN = 2000;
+
 export interface UpdateUserBody {
     name?: string;
     systemRole?: "SUPER_ADMIN" | "USER";
     password?: string;
+    /** true면 접근 차단 + 모든 기기 refresh 토큰 폐기 */
+    accessBlocked?: boolean;
+    /** 차단 시 또는 이미 차단된 계정의 사유 수정. 빈 문자열은 null 저장 */
+    accessBlockReason?: string | null;
+}
+
+function normalizeAccessBlockReason(raw: string | null | undefined): string | null {
+    if (raw === undefined || raw === null) return null;
+    const s = String(raw).trim();
+    return s.length > 0 ? s : null;
+}
+
+/** `canAccessProject` / GET projects 목록과 동일 — 연결 팀 팀원이면 공개 프로젝트 접근 */
+function adminProjectWhereUserInLinkedTeams(userId: string) {
+    return {
+        OR: [
+            { team: { members: { some: { userId } } } },
+            {
+                projectTeams: {
+                    some: {
+                        team: { members: { some: { userId } } },
+                    },
+                },
+            },
+        ],
+    };
+}
+
+/** 관리자 사용자 상세 — 직접 멤버 + 팀 연결만으로 보이는 공개 프로젝트(멤버 행 없음) */
+async function fetchAdminUserParticipatingProjects(prisma: PrismaClient, userId: string) {
+    const [memberRows, teamPublicRows] = await Promise.all([
+        prisma.projectMember.findMany({
+            where: { userId },
+            select: {
+                role: true,
+                joinedAt: true,
+                project: { select: { id: true, name: true, description: true } },
+            },
+            orderBy: { joinedAt: "desc" },
+        }),
+        prisma.project.findMany({
+            where: {
+                isPublic: true,
+                members: { none: { userId } },
+                ...adminProjectWhereUserInLinkedTeams(userId),
+            },
+            select: { id: true, name: true, description: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+        }),
+    ]);
+
+    const memberProjectIds = new Set(memberRows.map((m) => m.project.id));
+    const fromTeamOnly = teamPublicRows.filter((p) => !memberProjectIds.has(p.id));
+
+    const merged = [
+        ...memberRows.map((m) => ({
+            role: m.role,
+            joinedAt: m.joinedAt,
+            project: m.project,
+            participationSource: "member" as const,
+        })),
+        ...fromTeamOnly.map((p) => ({
+            role: "MEMBER" as const,
+            joinedAt: p.createdAt,
+            project: {
+                id: p.id,
+                name: p.name,
+                description: p.description,
+            },
+            participationSource: "team_public" as const,
+        })),
+    ];
+
+    merged.sort((a, b) => b.joinedAt.getTime() - a.joinedAt.getTime());
+    return merged;
 }
 
 export function createAdminController(app: FastifyInstance) {
@@ -39,12 +118,20 @@ export function createAdminController(app: FastifyInstance) {
                 email: true,
                 name: true,
                 systemRole: true,
+                accessBlocked: true,
                 createdAt: true,
                 _count: { select: { memberships: true } },
                 memberships: {
                     select: {
                         project: { select: { name: true } },
                     },
+                },
+                teamMemberships: {
+                    select: {
+                        role: true,
+                        team: { select: { id: true, name: true } },
+                    },
+                    orderBy: { joinedAt: "desc" },
                 },
             },
             orderBy: { createdAt: "desc" },
@@ -71,18 +158,35 @@ export function createAdminController(app: FastifyInstance) {
 
         const hashed = await bcrypt.hash(password, 12);
         const user = await app.prisma.user.create({
-            data: { id: generatePublicId(), email, password: hashed, name, systemRole },
+            data: {
+                id: generatePublicId(),
+                email,
+                password: hashed,
+                name,
+                systemRole,
+                authProvider: "LOCAL",
+            },
             select: {
                 id: true,
                 email: true,
                 name: true,
                 systemRole: true,
+                accessBlocked: true,
+                accessBlockReason: true,
+                accessBlockedAt: true,
                 createdAt: true,
                 _count: { select: { memberships: true } },
                 memberships: {
                     select: {
                         project: { select: { name: true } },
                     },
+                },
+                teamMemberships: {
+                    select: {
+                        role: true,
+                        team: { select: { id: true, name: true } },
+                    },
+                    orderBy: { joinedAt: "desc" },
                 },
             },
         });
@@ -118,12 +222,17 @@ export function createAdminController(app: FastifyInstance) {
                 email: true,
                 name: true,
                 systemRole: true,
+                accessBlocked: true,
+                accessBlockReason: true,
+                accessBlockedAt: true,
                 createdAt: true,
-                memberships: {
+                teamMemberships: {
                     select: {
                         role: true,
                         joinedAt: true,
-                        project: { select: { id: true, name: true, description: true } },
+                        team: {
+                            select: { id: true, name: true, shortDescription: true },
+                        },
                     },
                     orderBy: { joinedAt: "desc" },
                 },
@@ -135,7 +244,8 @@ export function createAdminController(app: FastifyInstance) {
             return reply.code(404).send(notFound(t(request.lang, MSG.ADMIN_USER_NOT_FOUND)));
         }
 
-        return reply.send(ok(user, t(request.lang, MSG.ADMIN_USER_FETCHED)));
+        const memberships = await fetchAdminUserParticipatingProjects(app.prisma, userId);
+        return reply.send(ok({ ...user, memberships }, t(request.lang, MSG.ADMIN_USER_FETCHED)));
     }
 
     async function updateUser(
@@ -143,18 +253,59 @@ export function createAdminController(app: FastifyInstance) {
         reply: FastifyReply,
     ) {
         const { userId } = request.params;
-        const { name, systemRole, password } = request.body;
+        const { name, systemRole, password, accessBlocked, accessBlockReason } = request.body;
         const lang = request.lang;
 
-        const exists = await app.prisma.user.findUnique({ where: { id: userId } });
+        const exists = await app.prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, accessBlocked: true },
+        });
         if (!exists) {
             return reply.code(404).send(notFound(t(lang, MSG.ADMIN_USER_NOT_FOUND)));
+        }
+
+        if (accessBlockReason !== undefined && accessBlockReason !== null) {
+            const len = String(accessBlockReason).trim().length;
+            if (len > ACCESS_BLOCK_REASON_MAX_LEN) {
+                return reply
+                    .code(400)
+                    .send(badRequest(t(lang, MSG.ADMIN_USER_BLOCK_REASON_TOO_LONG)));
+            }
+        }
+
+        if (accessBlocked === true && userId === request.userId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.ADMIN_USER_SELF_BLOCK)));
+        }
+
+        if (
+            accessBlockReason !== undefined &&
+            accessBlocked === undefined &&
+            !exists.accessBlocked
+        ) {
+            return reply.code(400).send(badRequest(t(lang, MSG.ADMIN_USER_BLOCK_REASON_NO_BLOCK)));
         }
 
         const data: Record<string, unknown> = {};
         if (name !== undefined) data.name = name;
         if (systemRole !== undefined) data.systemRole = systemRole;
         if (password) data.password = await bcrypt.hash(password, 12);
+
+        if (accessBlocked === true) {
+            data.accessBlocked = true;
+            data.accessBlockedAt = new Date();
+            if (accessBlockReason !== undefined) {
+                data.accessBlockReason = normalizeAccessBlockReason(accessBlockReason);
+            }
+            await revokeAllRefreshTokens(userId, app.redis);
+        }
+        if (accessBlocked === false) {
+            data.accessBlocked = false;
+            data.accessBlockReason = null;
+            data.accessBlockedAt = null;
+        }
+        if (accessBlockReason !== undefined && accessBlocked === undefined && exists.accessBlocked) {
+            data.accessBlockReason = normalizeAccessBlockReason(accessBlockReason);
+        }
 
         const updated = await app.prisma.user.update({
             where: { id: userId },
@@ -164,17 +315,26 @@ export function createAdminController(app: FastifyInstance) {
                 email: true,
                 name: true,
                 systemRole: true,
+                accessBlocked: true,
+                accessBlockReason: true,
+                accessBlockedAt: true,
                 createdAt: true,
                 _count: { select: { memberships: true } },
-                memberships: {
+                teamMemberships: {
                     select: {
-                        project: { select: { name: true } },
+                        role: true,
+                        joinedAt: true,
+                        team: {
+                            select: { id: true, name: true, shortDescription: true },
+                        },
                     },
+                    orderBy: { joinedAt: "desc" },
                 },
             },
         });
 
-        return reply.send(ok(updated, t(lang, MSG.ADMIN_USER_UPDATED)));
+        const memberships = await fetchAdminUserParticipatingProjects(app.prisma, userId);
+        return reply.send(ok({ ...updated, memberships }, t(lang, MSG.ADMIN_USER_UPDATED)));
     }
 
     return { listUsers, createUser, getUser, updateUser, updateUserRole };

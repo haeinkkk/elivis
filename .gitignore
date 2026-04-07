@@ -32,3 +32,6 @@ Thumbs.db
 # Debug
 npm-debug.log*
 pnpm-debug.log*
+
+# Runtime system logs (NDJSON under repo root by default)
+.log/

@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import { randomUUID } from "crypto";
 import { mkdirSync } from "fs";
 import path from "path";
 
@@ -24,6 +25,7 @@ import { uploadRoutes } from "./routes/upload.routes";
 import { createStorageService } from "./services/storage.service";
 import { initSetupToken } from "./services/setup.service";
 import { languageMiddleware } from "./middleware/language";
+import { appendSystemEvent, createApiServerLogger, logHttpRequestSummary } from "./services/system-log.service";
 
 // ── 설정 상수 ─────────────────────────────────────────────────────────────────
 
@@ -57,8 +59,47 @@ export const storageService = createStorageService(UPLOADS_DIR);
 
 const DIVIDER = "─".repeat(58);
 
+process.on("uncaughtException", (err) => {
+  appendSystemEvent(60, err.message, {
+    event: "uncaughtException",
+    name: err.name,
+    stack: err.stack,
+  });
+  console.error(err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : undefined;
+  appendSystemEvent(50, msg, { event: "unhandledRejection", stack });
+});
+
 async function main() {
-  const app = Fastify({ logger: true });
+  const app = Fastify({
+    // Fastify 5: 기존 Pino 인스턴스는 loggerInstance (logger 는 옵션 객체만)
+    loggerInstance: createApiServerLogger(),
+    disableRequestLogging: true,
+    genReqId: () => randomUUID(),
+  });
+
+  app.addHook("onResponse", (request, reply, done) => {
+    logHttpRequestSummary(request, reply, reply.elapsedTime ?? 0);
+    done();
+  });
+
+  app.addHook("onError", (request, _reply, error, done) => {
+    request.log.error(
+      {
+        err: error,
+        event: "request_error",
+        reqId: request.id,
+        path: request.url,
+        method: request.method,
+      },
+      error.message,
+    );
+    done();
+  });
 
   await app.register(cors, {
     origin: corsOrigin.split(",").map((o) => o.trim()),
@@ -127,6 +168,8 @@ ${DIVIDER}
 }
 
 main().catch((err) => {
+  const e = err instanceof Error ? err : new Error(String(err));
+  appendSystemEvent(60, e.message, { event: "main_reject", stack: e.stack, name: e.name });
   console.error(err);
   process.exit(1);
 });

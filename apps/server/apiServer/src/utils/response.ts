@@ -48,6 +48,18 @@ export function forbidden(message: string): ApiResponse<null> {
     return { code: 403, message, data: null };
 }
 
+/** 403 — 계정 접근 차단 (클라이언트가 `data.accessBlocked`로 구분) */
+export function forbiddenAccessBlocked(
+    message: string,
+    accessBlockReason: string | null,
+): ApiResponse<{ accessBlocked: true; accessBlockReason: string | null }> {
+    return {
+        code: 403,
+        message,
+        data: { accessBlocked: true, accessBlockReason },
+    };
+}
+
 /** 404 Not Found */
 export function notFound(message: string): ApiResponse<null> {
     return { code: 404, message, data: null };

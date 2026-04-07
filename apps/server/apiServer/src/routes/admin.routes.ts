@@ -8,11 +8,25 @@ import type {
     UserParams,
     UpdateUserBody,
 } from "../controllers/admin.controller";
+import {
+    createAdminAuthSettingsController,
+    type LdapTestBody,
+    type PatchAuthSettingsBody,
+} from "../controllers/admin-auth-settings.controller";
+import {
+    createSmtpSettingsController,
+    type PatchSmtpBody,
+    type TestSmtpBody,
+} from "../controllers/smtp-settings.controller";
+import { createSystemLogsController, type SystemLogsQuery } from "../controllers/system-logs.controller";
 import { authenticateAdmin, authenticateUser } from "../middleware/auth";
 
 export async function adminRoutes(app: FastifyInstance) {
     const { listUsers, createUser, getUser, updateUser, updateUserRole } =
         createAdminController(app);
+    const { getAuthSettings, patchAuthSettings, postLdapTest } = createAdminAuthSettingsController(app);
+    const { getSmtp, patchSmtp, testSmtp } = createSmtpSettingsController(app);
+    const { getSystemLogs } = createSystemLogsController(app);
 
     const guard = { preHandler: [authenticateUser, authenticateAdmin] };
 
@@ -25,4 +39,14 @@ export async function adminRoutes(app: FastifyInstance) {
     app.patch<{ Params: UpdateRoleParams; Body: UpdateRoleBody }>(
         "/admin/users/:userId/role",                          guard, updateUserRole,
     );
+
+    app.get("/admin/auth-settings", guard, getAuthSettings);
+    app.patch<{ Body: PatchAuthSettingsBody }>("/admin/auth-settings", guard, patchAuthSettings);
+    app.post<{ Body: LdapTestBody }>("/admin/auth-settings/ldap-test", guard, postLdapTest);
+
+    app.get("/admin/smtp", guard, getSmtp);
+    app.patch<{ Body: PatchSmtpBody }>("/admin/smtp", guard, patchSmtp);
+    app.post<{ Body: TestSmtpBody }>("/admin/smtp/test", guard, testSmtp);
+
+    app.get<{ Querystring: SystemLogsQuery }>("/admin/system-logs", guard, getSystemLogs);
 }

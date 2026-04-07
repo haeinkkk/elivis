@@ -5,9 +5,10 @@ import type { LoginBody, RefreshBody, SignupBody } from "../controllers/auth.con
 import { authenticateUser } from "../middleware/auth";
 
 export async function authRoutes(app: FastifyInstance) {
-    const { signup, login, refresh, logout, logoutAll } = createAuthController(app);
+    const { getAuthConfig, signup, login, refresh, logout, logoutAll } = createAuthController(app);
 
     // 인증 불필요
+    app.get("/auth/config", getAuthConfig);
     app.post<{ Body: SignupBody }>("/auth/signup", signup);
     app.post<{ Body: LoginBody }>("/auth/login", login);
     app.post<{ Body: RefreshBody }>("/auth/refresh", refresh);
