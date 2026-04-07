@@ -7,8 +7,10 @@ import {
     isSuperAdmin,
 } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import path from "node:path";
 import { t } from "@repo/i18n";
 
+import { recordHistory } from "../services/history.service";
 import { MSG } from "../utils/messages";
 import { badRequest, created, forbidden, notFound, ok } from "../utils/response";
 
@@ -47,6 +49,72 @@ export interface UpdateProjectBody {
 export interface DeleteProjectBody {
     confirmName: string;
 }
+
+export interface ProjectWikiCreateBody {
+    slug: string;
+    title: string;
+    contentMd?: string;
+}
+
+export interface ProjectWikiUpdateBody {
+    title?: string;
+    contentMd?: string | null;
+}
+
+export interface ProjectWikiReorderBody {
+    /** 프로젝트 내 전체 문서 slug를 새 순서대로 나열 */
+    slugs: string[];
+}
+
+export interface WikiPageParams {
+    projectId: string;
+    wikiSlug: string;
+}
+
+const MAX_PROJECT_WIKI_MD = 400_000;
+const MAX_WIKI_TITLE_LEN = 200;
+const WIKI_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,62}$/;
+
+const WIKI_MEDIA_IMAGE_MIMES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+]);
+const WIKI_MEDIA_VIDEO_MIMES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const WIKI_MEDIA_IMAGE_MAX_BYTES = 20 * 1024 * 1024;
+const WIKI_MEDIA_VIDEO_MAX_BYTES =
+    (Number(process.env.WIKI_UPLOAD_MAX_FILE_SIZE_MB) || 50) * 1024 * 1024;
+
+function wikiMediaFileExtension(mime: string, filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    if (ext && /^\.[a-z0-9.]+$/i.test(ext)) return ext;
+    const map: Record<string, string> = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/gif": ".gif",
+        "image/webp": ".webp",
+        "video/mp4": ".mp4",
+        "video/webm": ".webm",
+        "video/quicktime": ".mov",
+    };
+    return map[mime] ?? ".bin";
+}
+
+function normalizeWikiSlug(raw: string): string {
+    try {
+        return decodeURIComponent(raw);
+    } catch {
+        return raw;
+    }
+}
+
+const WIKI_USER_SELECT = {
+    id: true,
+    name: true,
+    email: true,
+    avatarUrl: true,
+} as const;
 
 const PROJECT_DETAIL_INCLUDE = {
     team: { select: { id: true, name: true } },
@@ -351,6 +419,35 @@ export function createProjectController(app: FastifyInstance) {
             return created_;
         });
 
+        recordHistory(app, {
+            projectId,
+            userId: request.userId,
+            action: "CREATED",
+            resourceType: "PROJECT",
+            resourceId: projectId,
+            resourceName: name.trim(),
+        });
+
+        if (participantIds.length > 0) {
+            const invitedUsers = await app.prisma.user.findMany({
+                where: { id: { in: participantIds } },
+                select: { id: true, name: true, email: true },
+            });
+            const byId = new Map(invitedUsers.map((u) => [u.id, u]));
+            for (const uid of participantIds) {
+                const u = byId.get(uid);
+                recordHistory(app, {
+                    projectId,
+                    userId: request.userId,
+                    action: "CREATED",
+                    resourceType: "PROJECT_MEMBER",
+                    resourceId: uid,
+                    resourceName: u?.name?.trim() || u?.email || uid,
+                    after: { atProjectCreation: true },
+                });
+            }
+        }
+
         return reply.code(201).send(created(project, t(lang, MSG.PROJECT_CREATED)));
     }
 
@@ -529,7 +626,11 @@ export function createProjectController(app: FastifyInstance) {
         const { userId, role = "MEMBER" } = request.body;
         const lang = request.lang;
 
-        const member = await app.prisma.$transaction(async (tx) => {
+        const { m: member, before: memberBefore } = await app.prisma.$transaction(async (tx) => {
+            const before = await tx.projectMember.findUnique({
+                where: { userId_projectId: { userId, projectId } },
+                select: { role: true },
+            });
             const m = await tx.projectMember.upsert({
                 where: { userId_projectId: { userId, projectId } },
                 update: { role },
@@ -613,10 +714,105 @@ export function createProjectController(app: FastifyInstance) {
                 });
             }
 
-            return m;
+            return { m, before };
         });
 
+        const targetUser = await app.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true },
+        });
+        const targetLabel = targetUser?.name?.trim() || targetUser?.email || userId;
+
+        if (!memberBefore) {
+            recordHistory(app, {
+                projectId,
+                userId: request.userId,
+                action: "CREATED",
+                resourceType: "PROJECT_MEMBER",
+                resourceId: userId,
+                resourceName: targetLabel,
+            });
+        } else if (memberBefore.role !== role) {
+            recordHistory(app, {
+                projectId,
+                userId: request.userId,
+                action: "UPDATED",
+                resourceType: "PROJECT_MEMBER",
+                resourceId: userId,
+                resourceName: targetLabel,
+                before: { role: memberBefore.role },
+                after: { role },
+            });
+        }
+
         return reply.code(201).send(created(member, t(lang, MSG.PROJECT_MEMBER_ADDED)));
+    }
+
+    /** GET /api/projects/:projectId/activity — 프로젝트 활동 로그 (리더 전용) */
+    async function getProjectActivity(
+        request: FastifyRequest<{ Params: ProjectParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+
+        const project = await app.prisma.project.findUnique({
+            where: { id: projectId },
+            select: { id: true },
+        });
+        if (!project) {
+            return reply.code(404).send(notFound(t(lang, MSG.PROJECT_NOT_FOUND)));
+        }
+
+        const perm = await checkProjectPermission(request.userId, projectId);
+        const admin = await isSuperAdmin(request.userId);
+        if (!perm.isMember) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+        if (!admin && !perm.isLeader) {
+            return reply.code(403).send(forbidden(t(lang, MSG.PROJECT_LEADER_ONLY)));
+        }
+
+        const rows = await app.prisma.projectHistory.findMany({
+            where: {
+                projectId,
+                OR: [
+                    { AND: [{ resourceType: "PROJECT" }, { action: "CREATED" }] },
+                    {
+                        AND: [
+                            { resourceType: "PROJECT_MEMBER" },
+                            { action: { in: ["CREATED", "UPDATED"] } },
+                        ],
+                    },
+                    { resourceType: "WIKI_PAGE" },
+                    { AND: [{ resourceType: "TASK" }, { action: { in: ["CREATED", "DELETED"] } }] },
+                ],
+            },
+            orderBy: { createdAt: "desc" },
+            take: 200,
+            include: {
+                user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+            },
+        });
+
+        const items = rows.map((row) => ({
+            id: row.id,
+            action: row.action,
+            resourceType: row.resourceType,
+            resourceId: row.resourceId,
+            resourceName: row.resourceName,
+            before: row.before,
+            after: row.after,
+            createdAt: row.createdAt.toISOString(),
+            actor: {
+                id: row.user.id,
+                name: row.user.name,
+                email: row.user.email,
+                avatarUrl: row.user.avatarUrl,
+            },
+        }));
+
+        return reply.send(ok({ items }, t(lang, MSG.PROJECT_ACTIVITY_FETCHED)));
     }
 
     /** GET /api/projects/:projectId/tasks — 프로젝트 소속 모든 팀원의 업무 목록 */
@@ -786,5 +982,474 @@ export function createProjectController(app: FastifyInstance) {
         return reply.send(ok(result, t(lang, MSG.WORKSPACE_TASKS_FETCHED)));
     }
 
-    return { createProject, getProject, updateProject, deleteProject, addMember, getProjectTasks };
+    async function assertTeamWikiReadable(
+        userId: string,
+        projectId: string,
+        lang: string,
+        reply: FastifyReply,
+    ): Promise<
+        | { ok: false }
+        | {
+              ok: true;
+              canWrite: boolean;
+          }
+    > {
+        const project = await app.prisma.project.findUnique({
+            where: { id: projectId },
+            select: {
+                id: true,
+                teamId: true,
+                _count: { select: { projectTeams: true } },
+            },
+        });
+        if (!project) {
+            reply.code(404).send(notFound(t(lang, MSG.PROJECT_NOT_FOUND)));
+            return { ok: false };
+        }
+        const isTeamProject = Boolean(project.teamId || project._count.projectTeams > 0);
+        if (!isTeamProject) {
+            reply.code(404).send(notFound(t(lang, MSG.PROJECT_WIKI_TEAM_ONLY)));
+            return { ok: false };
+        }
+
+        const allowed = await canAccessProject(userId, projectId);
+        if (!allowed) {
+            reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+            return { ok: false };
+        }
+
+        const [admin, perm] = await Promise.all([
+            isSuperAdmin(userId),
+            checkProjectPermission(userId, projectId),
+        ]);
+        const canWrite = admin || perm.isMember;
+
+        return { ok: true, canWrite };
+    }
+
+    async function maybeSeedWikiHome(projectId: string, userId: string) {
+        const count = await app.prisma.projectWikiPage.count({ where: { projectId } });
+        if (count === 0) {
+            const pageId = generatePublicId();
+            await app.prisma.projectWikiPage.create({
+                data: {
+                    id: pageId,
+                    projectId,
+                    slug: "home",
+                    title: "홈",
+                    contentMd: "",
+                    order: 0,
+                    updatedById: userId,
+                },
+            });
+            recordHistory(app, {
+                projectId,
+                userId,
+                action: "CREATED",
+                resourceType: "WIKI_PAGE",
+                resourceId: pageId,
+                resourceName: "홈",
+                after: { slug: "home" },
+            });
+        }
+    }
+
+    async function listProjectWikiPages(
+        request: FastifyRequest<{ Params: ProjectParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+
+        if (gate.canWrite) {
+            await maybeSeedWikiHome(projectId, request.userId);
+        }
+
+        const rows = await app.prisma.projectWikiPage.findMany({
+            where: { projectId },
+            include: { updatedBy: { select: WIKI_USER_SELECT } },
+            orderBy: [{ order: "asc" }, { slug: "asc" }],
+        });
+
+        const pages = rows.map((p) => ({
+            slug: p.slug,
+            title: p.title,
+            updatedAt: p.updatedAt.toISOString(),
+            updatedBy: p.updatedBy,
+        }));
+
+        return reply.send(ok({ pages }, t(lang, MSG.PROJECT_WIKI_PAGES_FETCHED)));
+    }
+
+    async function getProjectWikiPage(
+        request: FastifyRequest<{ Params: WikiPageParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const slug = normalizeWikiSlug(request.params.wikiSlug);
+        const lang = request.lang;
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+
+        if (gate.canWrite) {
+            await maybeSeedWikiHome(projectId, request.userId);
+        }
+
+        const page = await app.prisma.projectWikiPage.findUnique({
+            where: { projectId_slug: { projectId, slug } },
+            include: { updatedBy: { select: WIKI_USER_SELECT } },
+        });
+
+        if (!page) {
+            return reply.code(404).send(notFound(t(lang, MSG.PROJECT_WIKI_PAGE_NOT_FOUND)));
+        }
+
+        return reply.send(
+            ok(
+                {
+                    slug: page.slug,
+                    title: page.title,
+                    contentMd: page.contentMd,
+                    updatedAt: page.updatedAt.toISOString(),
+                    updatedBy: page.updatedBy,
+                },
+                t(lang, MSG.PROJECT_WIKI_PAGE_FETCHED),
+            ),
+        );
+    }
+
+    async function createProjectWikiPage(
+        request: FastifyRequest<{ Params: ProjectParams; Body: ProjectWikiCreateBody }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+        const body = request.body ?? {};
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+        if (!gate.canWrite) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+
+        const slugRaw = String(body.slug ?? "").trim().toLowerCase();
+        if (!WIKI_SLUG_RE.test(slugRaw)) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_SLUG_INVALID)));
+        }
+
+        const title = String(body.title ?? "").trim();
+        if (!title) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_TITLE_REQUIRED)));
+        }
+        if (title.length > MAX_WIKI_TITLE_LEN) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_TITLE_REQUIRED)));
+        }
+
+        const md = body.contentMd !== undefined && body.contentMd !== null ? String(body.contentMd) : "";
+        if (md.length > MAX_PROJECT_WIKI_MD) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_BODY_TOO_LARGE)));
+        }
+
+        const existing = await app.prisma.projectWikiPage.findUnique({
+            where: { projectId_slug: { projectId, slug: slugRaw } },
+            select: { id: true },
+        });
+        if (existing) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_SLUG_DUPLICATE)));
+        }
+
+        const maxRow = await app.prisma.projectWikiPage.aggregate({
+            where: { projectId },
+            _max: { order: true },
+        });
+        const nextOrder = (maxRow._max.order ?? -1) + 1;
+
+        const page = await app.prisma.projectWikiPage.create({
+            data: {
+                id: generatePublicId(),
+                projectId,
+                slug: slugRaw,
+                title,
+                contentMd: md,
+                order: nextOrder,
+                updatedById: request.userId,
+            },
+            include: { updatedBy: { select: WIKI_USER_SELECT } },
+        });
+
+        recordHistory(app, {
+            projectId,
+            userId: request.userId,
+            action: "CREATED",
+            resourceType: "WIKI_PAGE",
+            resourceId: page.id,
+            resourceName: title,
+            after: { slug: slugRaw },
+        });
+
+        return reply.code(201).send(
+            created(
+                {
+                    slug: page.slug,
+                    title: page.title,
+                    contentMd: page.contentMd,
+                    updatedAt: page.updatedAt.toISOString(),
+                    updatedBy: page.updatedBy,
+                },
+                t(lang, MSG.PROJECT_WIKI_PAGE_CREATED),
+            ),
+        );
+    }
+
+    async function patchProjectWikiPage(
+        request: FastifyRequest<{ Params: WikiPageParams; Body: ProjectWikiUpdateBody }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const slug = normalizeWikiSlug(request.params.wikiSlug);
+        const lang = request.lang;
+        const body = request.body ?? {};
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+        if (!gate.canWrite) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+
+        const existing = await app.prisma.projectWikiPage.findUnique({
+            where: { projectId_slug: { projectId, slug } },
+        });
+        if (!existing) {
+            return reply.code(404).send(notFound(t(lang, MSG.PROJECT_WIKI_PAGE_NOT_FOUND)));
+        }
+
+        const nextTitle =
+            body.title !== undefined ? String(body.title).trim() : existing.title;
+        if (body.title !== undefined && !nextTitle) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_TITLE_REQUIRED)));
+        }
+        if (nextTitle.length > MAX_WIKI_TITLE_LEN) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_TITLE_REQUIRED)));
+        }
+
+        let nextMd = existing.contentMd;
+        if (body.contentMd !== undefined) {
+            nextMd = body.contentMd === null ? "" : String(body.contentMd);
+        }
+        if (nextMd.length > MAX_PROJECT_WIKI_MD) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_BODY_TOO_LARGE)));
+        }
+
+        const page = await app.prisma.projectWikiPage.update({
+            where: { projectId_slug: { projectId, slug } },
+            data: {
+                title: nextTitle,
+                contentMd: nextMd,
+                updatedById: request.userId,
+            },
+            include: { updatedBy: { select: WIKI_USER_SELECT } },
+        });
+
+        const changed =
+            nextTitle !== existing.title || nextMd !== existing.contentMd;
+        if (changed) {
+            recordHistory(app, {
+                projectId,
+                userId: request.userId,
+                action: "UPDATED",
+                resourceType: "WIKI_PAGE",
+                resourceId: page.id,
+                resourceName: nextTitle,
+                before: { title: existing.title, slug: existing.slug },
+                after: { title: nextTitle, slug: page.slug },
+            });
+        }
+
+        return reply.send(
+            ok(
+                {
+                    slug: page.slug,
+                    title: page.title,
+                    contentMd: page.contentMd,
+                    updatedAt: page.updatedAt.toISOString(),
+                    updatedBy: page.updatedBy,
+                },
+                t(lang, MSG.PROJECT_WIKI_PAGE_SAVED),
+            ),
+        );
+    }
+
+    async function deleteProjectWikiPage(
+        request: FastifyRequest<{ Params: WikiPageParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const slug = normalizeWikiSlug(request.params.wikiSlug);
+        const lang = request.lang;
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+        if (!gate.canWrite) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+
+        const existing = await app.prisma.projectWikiPage.findUnique({
+            where: { projectId_slug: { projectId, slug } },
+            select: { id: true, title: true, slug: true },
+        });
+        if (!existing) {
+            return reply.code(404).send(notFound(t(lang, MSG.PROJECT_WIKI_PAGE_NOT_FOUND)));
+        }
+
+        const total = await app.prisma.projectWikiPage.count({ where: { projectId } });
+        if (total <= 1) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_LAST_PAGE)));
+        }
+
+        await app.prisma.projectWikiPage.delete({
+            where: { projectId_slug: { projectId, slug } },
+        });
+
+        recordHistory(app, {
+            projectId,
+            userId: request.userId,
+            action: "DELETED",
+            resourceType: "WIKI_PAGE",
+            resourceId: existing.id,
+            resourceName: existing.title,
+            before: { slug: existing.slug, title: existing.title },
+        });
+
+        return reply.send(ok({ slug }, t(lang, MSG.PROJECT_WIKI_PAGE_DELETED)));
+    }
+
+    async function reorderProjectWikiPages(
+        request: FastifyRequest<{ Params: ProjectParams; Body: ProjectWikiReorderBody }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+        const raw = request.body?.slugs;
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+        if (!gate.canWrite) {
+            return reply.code(403).send(forbidden(t(lang, MSG.FORBIDDEN_NOT_MEMBER)));
+        }
+
+        if (!Array.isArray(raw) || raw.length === 0) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_REORDER_INVALID)));
+        }
+
+        const normalized = raw.map((s) => String(s ?? "").trim().toLowerCase());
+        const seen = new Set<string>();
+        for (const s of normalized) {
+            if (!s || !WIKI_SLUG_RE.test(s) || seen.has(s)) {
+                return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_REORDER_INVALID)));
+            }
+            seen.add(s);
+        }
+
+        const existing = await app.prisma.projectWikiPage.findMany({
+            where: { projectId },
+            select: { slug: true },
+        });
+        if (existing.length !== normalized.length) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_REORDER_INVALID)));
+        }
+        const dbSet = new Set(existing.map((r) => r.slug));
+        for (const s of normalized) {
+            if (!dbSet.has(s)) {
+                return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_REORDER_INVALID)));
+            }
+        }
+        for (const s of dbSet) {
+            if (!seen.has(s)) {
+                return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_REORDER_INVALID)));
+            }
+        }
+
+        await app.prisma.$transaction(
+            normalized.map((slug, index) =>
+                app.prisma.projectWikiPage.update({
+                    where: { projectId_slug: { projectId, slug } },
+                    data: { order: index },
+                }),
+            ),
+        );
+
+        return reply.send(ok({ slugs: normalized }, t(lang, MSG.PROJECT_WIKI_REORDERED)));
+    }
+
+    /** POST /api/projects/:projectId/wiki/media (multipart, field `file`) */
+    async function uploadProjectWikiMedia(
+        request: FastifyRequest<{ Params: ProjectParams }>,
+        reply: FastifyReply,
+    ) {
+        const { projectId } = request.params;
+        const lang = request.lang;
+
+        const gate = await assertTeamWikiReadable(request.userId, projectId, lang, reply);
+        if (!gate.ok) return;
+        if (!gate.canWrite) {
+            return reply.code(403).send(forbidden(t(lang, MSG.PROJECT_WIKI_MEDIA_FORBIDDEN)));
+        }
+
+        const file = await request.file();
+        if (!file) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_MEDIA_NO_FILE)));
+        }
+
+        const buf = await file.toBuffer();
+        const mime = file.mimetype;
+        if (!WIKI_MEDIA_IMAGE_MIMES.has(mime) && !WIKI_MEDIA_VIDEO_MIMES.has(mime)) {
+            return reply.code(400).send(badRequest(t(lang, MSG.PROJECT_WIKI_MEDIA_TYPE)));
+        }
+
+        const max = WIKI_MEDIA_IMAGE_MIMES.has(mime)
+            ? WIKI_MEDIA_IMAGE_MAX_BYTES
+            : WIKI_MEDIA_VIDEO_MAX_BYTES;
+        if (buf.length > max) {
+            return reply.code(413).send(badRequest(t(lang, MSG.PROJECT_WIKI_MEDIA_TOO_LARGE)));
+        }
+
+        const { storageService } = await import("../index.js");
+        const id = generatePublicId();
+        const ext = wikiMediaFileExtension(mime, file.filename);
+        const key = `wiki/${projectId}/${id}${ext}`;
+        const url = await storageService.upload(key, buf, mime);
+
+        return reply.code(201).send(
+            created(
+                {
+                    url,
+                    mimeType: mime,
+                    fileName: file.filename,
+                    size: buf.length,
+                },
+                t(lang, MSG.PROJECT_WIKI_MEDIA_UPLOADED),
+            ),
+        );
+    }
+
+    return {
+        createProject,
+        getProject,
+        updateProject,
+        deleteProject,
+        addMember,
+        getProjectActivity,
+        getProjectTasks,
+        listProjectWikiPages,
+        getProjectWikiPage,
+        createProjectWikiPage,
+        patchProjectWikiPage,
+        deleteProjectWikiPage,
+        reorderProjectWikiPages,
+        uploadProjectWikiMedia,
+    };
 }

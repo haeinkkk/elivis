@@ -2,23 +2,38 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
-import { addProjectFavoriteAction, removeProjectFavoriteAction } from "@/app/actions/projects";
+import {
+    addProjectFavoriteAction,
+    createProjectWikiPageAction,
+    deleteProjectWikiPageAction,
+    getProjectActivityLogAction,
+    getProjectWikiPageAction,
+    listProjectWikiPagesAction,
+    removeProjectFavoriteAction,
+    reorderProjectWikiPagesAction,
+    updateProjectWikiPageAction,
+    uploadProjectWikiMediaAction,
+    type ApiProjectActivityItem,
+} from "@/app/actions/projects";
+import { getApiBaseUrl } from "@/lib/http/api-base-url";
+import { formatProjectActivityLine } from "@/lib/project-activity-format";
 import { createTaskRequestAction } from "@/app/actions/taskRequests";
 import type { Project } from "@/lib/types/project";
 import { projectSettingsActions } from "@/lib/ui/project-settings-actions";
 import { workspaceTaskPanelActions } from "@/lib/ui/workspace-task-panel-actions";
 import {
-    MarkdownContent,
     ProjectCalendarTab,
     ProjectFavoriteButton,
     ProjectOverviewTab,
     ProjectParticipantAvatarStack,
     ProjectPerformanceTab,
+    ProjectSettingsActivityTab,
     ProjectSettingsProjectTab,
     ProjectSettingsSecurityTab,
     ProjectTasksTab,
+    ProjectWikiTab,
     UserAvatar,
     type ApiProjectTasksItem,
 } from "@repo/ui";
@@ -26,13 +41,15 @@ import {
 type ProjectTab = "overview" | "list" | "calendar" | "wiki" | "performance" | "settings";
 
 /** 팀 상세(Settings)와 동일: 모바일 가로 스크롤 / lg 세로 사이드바 */
-type ProjectSettingsSubTab = "project" | "security";
+type ProjectSettingsSubTab = "project" | "security" | "activity";
 
 const PROJECT_SETTINGS_ICONS: Record<ProjectSettingsSubTab, string> = {
     project:
         "M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z",
     security:
         "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z",
+    activity:
+        "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
 };
 
 function projectViewerRoleLabel(role: string | undefined, tp: (key: string) => string): string {
@@ -53,6 +70,7 @@ export function ProjectDetailPageClient({
     currentUserId?: string;
 }) {
     const tp = useTranslations("projects.detail");
+    const locale = useLocale();
     const params = useParams();
     const router = useRouter();
     const id = typeof params.id === "string" ? params.id : "";
@@ -61,7 +79,7 @@ export function ProjectDetailPageClient({
     const [project, setProject] = useState<Project>(initialProject);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
 
-    const mainTabs = [
+    const allMainTabs = [
         { id: "overview" as const, label: tp("tabs.overview") },
         { id: "list" as const, label: tp("tabs.list") },
         { id: "calendar" as const, label: tp("tabs.calendar") },
@@ -70,22 +88,71 @@ export function ProjectDetailPageClient({
         { id: "settings" as const, label: tp("tabs.settings") },
     ] satisfies { id: ProjectTab; label: string }[];
 
+    const mainTabs =
+        project.projectType === "team"
+            ? allMainTabs
+            : allMainTabs.filter((t) => t.id !== "wiki");
+
     const visibleTabs =
         project.projectType === "team" && project.viewerRole !== "LEADER"
             ? mainTabs.filter((t) => t.id !== "performance" && t.id !== "settings")
             : mainTabs;
 
-    const settingsSubTabs = (["project", "security"] as const).map((sid) => ({
+    const settingsSubTabs = (["project", "security", "activity"] as const).map((sid) => ({
         id: sid,
         label: tp(`settingsSub.${sid}`),
         icon: PROJECT_SETTINGS_ICONS[sid],
     }));
+
+    const [activityLogError, setActivityLogError] = useState<string | null>(null);
+    const [activityLogLoading, setActivityLogLoading] = useState(false);
+    const [activityLogItems, setActivityLogItems] = useState<ApiProjectActivityItem[]>([]);
+
+    const activityRowsFmt = new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    });
+    const activityRows = activityLogItems.map((item) => ({
+        id: item.id,
+        actorId: item.actor.id,
+        actorName: item.actor.name?.trim() || item.actor.email,
+        actorEmail: item.actor.email,
+        actorAvatarUrl: item.actor.avatarUrl,
+        line: formatProjectActivityLine(item, tp),
+        createdAtIso: item.createdAt,
+        createdAtLabel: activityRowsFmt.format(new Date(item.createdAt)),
+    }));
+
+    useEffect(() => {
+        if (activeTab !== "settings" || settingsSubTab !== "activity" || !id) {
+            return;
+        }
+        let cancelled = false;
+        setActivityLogLoading(true);
+        setActivityLogError(null);
+        void getProjectActivityLogAction(id).then((r) => {
+            if (cancelled) return;
+            setActivityLogLoading(false);
+            if (r.ok) {
+                setActivityLogItems(r.items);
+            } else {
+                setActivityLogItems([]);
+                setActivityLogError(r.message);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTab, settingsSubTab, id]);
 
     useEffect(() => {
         if (project.projectType === "team" && project.viewerRole !== "LEADER") {
             if (activeTab === "performance" || activeTab === "settings") {
                 setActiveTab("overview");
             }
+        }
+        if (project.projectType !== "team" && activeTab === "wiki") {
+            setActiveTab("overview");
         }
     }, [project, activeTab]);
 
@@ -104,7 +171,11 @@ export function ProjectDetailPageClient({
     }
 
     return (
-        <div className="flex min-h-full w-full flex-col">
+        <div
+            className={`flex w-full flex-col ${
+                activeTab === "wiki" ? "min-h-0 flex-1" : "min-h-full"
+            }`}
+        >
             {/* 상단: 뒤로가기 + 프로젝트명 + 멤버 아바타 스택 */}
             <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
@@ -257,7 +328,13 @@ export function ProjectDetailPageClient({
 
             {/* 탭별 콘텐츠 */}
             <div
-                className={`min-h-0 flex-1 ${activeTab === "list" || activeTab === "calendar" ? "" : "p-4 sm:p-5 md:p-6"}`}
+                className={`min-h-0 flex-1 ${
+                    activeTab === "wiki" ? "flex min-h-0 flex-col" : ""
+                } ${
+                    activeTab === "list" || activeTab === "calendar" || activeTab === "wiki"
+                        ? ""
+                        : "p-4 sm:p-5 md:p-6"
+                }`}
             >
                 {activeTab === "overview" && (
                     <ProjectOverviewTab
@@ -296,16 +373,39 @@ export function ProjectDetailPageClient({
                     />
                 )}
 
-                {activeTab === "wiki" && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-6">
-                        <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
-                            {tp("wikiDemoTitle")}
-                        </h2>
-                        <p className="mt-1 text-sm text-stone-500">{tp("wikiDemoLead")}</p>
-                        <div className="mt-6 rounded-lg border border-stone-100 bg-stone-50/50 p-5 sm:p-6">
-                            <MarkdownContent markdown={tp("wikiDemoMarkdown")} />
-                        </div>
-                        <p className="mt-4 text-xs text-stone-400">{tp("wikiDemoFootnote")}</p>
+                {activeTab === "wiki" && project.projectType === "team" && (
+                    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col bg-white">
+                        <ProjectWikiTab
+                            projectId={id}
+                            canEdit={Boolean(
+                                currentUserId &&
+                                    project.participants.some((p) => p.id === currentUserId),
+                            )}
+                            wikiAssetBaseUrl={getApiBaseUrl().replace(/\/$/, "")}
+                            wikiMediaUpload={
+                                currentUserId &&
+                                project.participants.some((p) => p.id === currentUserId)
+                                    ? (file: File) => uploadProjectWikiMediaAction(id, file)
+                                    : undefined
+                            }
+                            listPages={() => listProjectWikiPagesAction(id)}
+                            getPage={(slug: string) => getProjectWikiPageAction(id, slug)}
+                            createPage={(input: {
+                                slug: string;
+                                title: string;
+                                contentMd: string;
+                            }) => createProjectWikiPageAction(id, input)}
+                            updatePage={(
+                                slug: string,
+                                input: { title: string; contentMd: string },
+                            ) => updateProjectWikiPageAction(id, slug, input)}
+                            deletePage={(slug: string) =>
+                                deleteProjectWikiPageAction(id, slug)
+                            }
+                            reorderPages={(slugs: string[]) =>
+                                reorderProjectWikiPagesAction(id, slugs)
+                            }
+                        />
                     </div>
                 )}
 
@@ -362,13 +462,24 @@ export function ProjectDetailPageClient({
                                         addProjectMember: projectSettingsActions.addProjectMember,
                                     }}
                                 />
-                            ) : (
+                            ) : settingsSubTab === "security" ? (
                                 <ProjectSettingsSecurityTab
                                     project={project}
                                     settingsActions={{
                                         deleteProject: projectSettingsActions.deleteProject,
                                     }}
                                     onAfterProjectDelete={() => router.push("/projects")}
+                                />
+                            ) : activityLogLoading ? (
+                                <p className="text-sm text-stone-500">{tp("activity.loading")}</p>
+                            ) : activityLogError ? (
+                                <p className="text-sm text-red-600">{activityLogError}</p>
+                            ) : (
+                                <ProjectSettingsActivityTab
+                                    title={tp("activity.title")}
+                                    subtitle={tp("activity.subtitle")}
+                                    emptyMessage={tp("activity.empty")}
+                                    rows={activityRows}
                                 />
                             )}
                         </div>

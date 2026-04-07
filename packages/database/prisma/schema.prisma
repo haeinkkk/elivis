@@ -94,6 +94,9 @@ enum ProjectHistoryResourceType {
   TASK_ATTACHMENT  /// 업무 첨부파일
   WORKSPACE_STATUS   /// 워크스페이스 상태 태그
   WORKSPACE_PRIORITY /// 워크스페이스 우선순위 태그
+  PROJECT          /// 프로젝트 자체 (생성 등)
+  PROJECT_MEMBER   /// 프로젝트 멤버십
+  WIKI_PAGE        /// 팀 프로젝트 위키 문서
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -131,6 +134,7 @@ model User {
   projectHistories    ProjectHistory[]
   taskRequestsFrom    WorkspaceTaskRequest[] @relation("TaskRequestFrom")
   taskRequestsTo      WorkspaceTaskRequest[] @relation("TaskRequestTo")
+  projectWikiPagesUpdated ProjectWikiPage[] @relation("ProjectWikiPageUpdatedBy")
 }
 
 model Project {
@@ -159,8 +163,33 @@ model Project {
   histories    ProjectHistory[]
   favorites    ProjectFavorite[]
   taskRequests WorkspaceTaskRequest[]
+  wikiPages    ProjectWikiPage[]
 
   @@index([teamId])
+}
+
+/// 팀 프로젝트 위키 문서 (프로젝트당 여러 페이지, 슬러그로 구분)
+model ProjectWikiPage {
+  id          String   @id
+  projectId   String
+  /// URL·링크용 소문자 영숫자·하이픈 (프로젝트 내 유일)
+  slug        String
+  title       String
+  /// GFM 마크다운 본문
+  contentMd   String   @default("")
+  /// 사이드바 표시 순서 (작을수록 상단). 드래그로 재정렬 시 갱신
+  order       Int      @default(0)
+  updatedById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  updatedBy User    @relation("ProjectWikiPageUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([projectId, slug])
+  @@index([projectId])
+  @@index([projectId, order])
+  @@index([updatedById])
 }
 
 /// 프로젝트 즐겨찾기 (계정별 최대 10개)

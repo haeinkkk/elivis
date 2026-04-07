@@ -3,6 +3,8 @@ export { NotificationTypeIcon } from "./NotificationTypeIcon";
 export type { NotificationTypeIconProps, NotificationTypeIconSize } from "./NotificationTypeIcon";
 
 export { MarkdownContent } from "./MarkdownContent";
+export { ConfirmModal } from "./ConfirmModal";
+export type { ConfirmModalProps } from "./ConfirmModal";
 export { TopLoadingBar } from "./TopLoadingBar";
 export { UserAvatar, getAvatarColor, getInitials, toAvatarSrc } from "./UserAvatar";
 
@@ -117,6 +119,17 @@ export type {
 } from "./types/team-fields-actions";
 
 export { ProjectTasksTab } from "./project/ProjectTasksTab";
+export { ProjectWikiTab } from "./project/ProjectWikiTab";
+export type {
+    ApiProjectWikiListItem,
+    ApiProjectWikiListPayload,
+    ApiProjectWikiPageDetail,
+    ApiProjectWikiUser,
+    ProjectWikiDeleteResult,
+    ProjectWikiListResult,
+    ProjectWikiPageResult,
+    ProjectWikiReorderResult,
+} from "./types/project-wiki-api";
 export { default as ProjectCalendarTab } from "./project/ProjectCalendarTab";
 export { ProjectAddMemberModal } from "./project/ProjectAddMemberModal";
 export { TaskRequestModal } from "./project/TaskRequestModal";
@@ -124,6 +137,10 @@ export {
     ProjectSettingsProjectTab,
     ProjectSettingsSecurityTab,
 } from "./project/ProjectSettingsPanels";
+export {
+    ProjectSettingsActivityTab,
+    type ProjectActivityRow,
+} from "./project/ProjectSettingsActivityTab";
 export {
     ProjectDonutChart,
     ProjectOverviewTab,

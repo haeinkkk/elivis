@@ -339,30 +339,6 @@ export function ProjectSettingsSecurityTab({
     return (
         <div className="space-y-10">
             <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">커스텀 필드</h2>
-                <p className="text-sm text-stone-500">업무에 쓸 추가 필드를 정의합니다.</p>
-                <div className="mt-4">
-                    <div className="flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm text-stone-600">
-                        커스텀 필드 (데모)
-                    </div>
-                </div>
-            </div>
-
-            <div className="h-px bg-stone-100" />
-
-            <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">자동화 규칙</h2>
-                <p className="text-sm text-stone-500">조건에 따라 알림·상태 변경을 실행합니다.</p>
-                <div className="mt-4">
-                    <div className="flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm text-stone-600">
-                        자동화 규칙 (데모)
-                    </div>
-                </div>
-            </div>
-
-            <div className="h-px bg-stone-100" />
-
-            <div>
                 <h2 className="mb-1 text-base font-semibold text-stone-800">프로젝트 삭제</h2>
                 <p className="text-sm text-stone-500">
                     삭제하면 복구할 수 없습니다. 프로젝트에 연결된 업무 등이 함께 삭제됩니다.

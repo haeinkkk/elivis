@@ -59,10 +59,10 @@ Built by me — updates and behind-the-scenes on these channels too.
 ## Key features
 
 - Create **teams**, invite members, and discuss on a per-team **community board**.
-- Create **projects**, manage members and roles; each person gets a **workspace** (personal task board).
-- Tasks support **statuses and priorities**, comments, attachments, notes, and **task requests** (accept / reject).
-- **Notifications**: list and mark read over REST; **Socket.IO** delivers live updates.
-- On first boot with an **empty database**, the API prints a one-time **setup token** for the initial admin.
+- Create **projects**, manage members and roles; each person gets a **personal workspace** (my work board).
+- Team members **capture, create, and manage** work in their **personal workspace**.
+- Tasks support **status and priority**, comments, attachments, notes, and **task requests** (accept / reject).
+- Team leads can review **work-overload indicators** and **balance** work across members.
 
 For architecture, API details, and build options, see **[`docs/en/`](docs/en/README.md)**.
 

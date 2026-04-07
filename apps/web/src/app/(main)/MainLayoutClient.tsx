@@ -132,7 +132,7 @@ export function MainLayoutClient({
                             }}
                             onSelectLocale={(locale) => void setLanguageAction(locale)}
                         />
-                        <main className="relative z-0 min-h-0 flex-1 overflow-auto">
+                        <main className="relative z-0 flex min-h-0 flex-1 flex-col overflow-auto">
                             {children}
                         </main>
                     </div>

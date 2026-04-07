@@ -35,6 +35,11 @@ const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 export const UPLOAD_MAX_FILE_SIZE =
   (Number(process.env.UPLOAD_MAX_FILE_SIZE_MB) || 2) * 1024 * 1024;
 
+/** 위키 영상 등 — 멀티파트 전역 상한(바이트). WIKI_UPLOAD_MAX_FILE_SIZE_MB 기본 50MB */
+const WIKI_UPLOAD_MAX_BYTES =
+  (Number(process.env.WIKI_UPLOAD_MAX_FILE_SIZE_MB) || 50) * 1024 * 1024;
+export const MULTIPART_MAX_FILE_SIZE = Math.max(UPLOAD_MAX_FILE_SIZE, WIKI_UPLOAD_MAX_BYTES);
+
 /** 로컬 스토리지 루트 디렉토리 (서버 cwd 기준) */
 export const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 
@@ -62,7 +67,7 @@ async function main() {
 
   // ── 파일 업로드 ────────────────────────────────────────────────────────────
   await app.register(multipart, {
-    limits: { fileSize: UPLOAD_MAX_FILE_SIZE },
+    limits: { fileSize: MULTIPART_MAX_FILE_SIZE },
   });
 
   // ── 로컬 스토리지 정적 서빙 (/uploads/) ────────────────────────────────────

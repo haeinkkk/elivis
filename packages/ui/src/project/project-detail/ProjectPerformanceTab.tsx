@@ -10,7 +10,11 @@ import type {
     ApiWorkspaceStatus,
     ApiWorkspaceTask,
 } from "../../types/workspace-api";
-import type { ProjectDetailModel, ProjectDetailParticipant } from "../../types/project-detail";
+import type {
+    ProjectDetailModel,
+    ProjectDetailParticipant,
+    ProjectDetailViewerRole,
+} from "../../types/project-detail";
 import type { WorkspaceTaskDetailActions } from "../../types/workspace-task-detail-actions";
 import TaskDetailPanel from "../../workspace/TaskDetailPanel";
 import { ProjectPerformanceMemberDetailPanel } from "./ProjectPerformanceMemberDetailPanel";
@@ -81,6 +85,39 @@ type PerformanceTaskPanelSelection = {
     priorities: ApiWorkspacePriority[];
 };
 
+function participantSortRank(role?: ProjectDetailViewerRole): number {
+    if (role === "LEADER") return 0;
+    if (role === "DEPUTY_LEADER") return 1;
+    return 2;
+}
+
+function memberTaskStats(
+    tasks: ApiWorkspaceTask[],
+    memberId: string,
+    todayStart: Date,
+): { assigned: number; done: number; inProgress: number; overdue: number } {
+    const list = tasks.filter((t) => t.assignee?.id === memberId);
+    let done = 0;
+    let overdue = 0;
+    for (const task of list) {
+        if (task.status.semantic === "DONE") {
+            done++;
+            continue;
+        }
+        if (task.dueDate) {
+            const due = new Date(task.dueDate);
+            due.setHours(0, 0, 0, 0);
+            if (due.getTime() < todayStart.getTime()) overdue++;
+        }
+    }
+    return {
+        assigned: list.length,
+        done,
+        inProgress: list.length - done,
+        overdue,
+    };
+}
+
 function buildTaskPanelLookup(items: ApiProjectTasksItem[]): Map<string, PerformanceTaskPanelSelection> {
     const m = new Map<string, PerformanceTaskPanelSelection>();
     for (const item of items) {
@@ -111,6 +148,7 @@ export function ProjectPerformanceTab({
     currentUserId?: string;
 }) {
     const t = useTranslations("projects.detail.performance");
+    const tDetail = useTranslations("projects.detail");
     const [detail, setDetail] = useState<DetailTarget>(null);
     /** 닫힘 트랜지션 후 detail 제거 — 슬라이드 아웃 재생용 */
     const [panelOpen, setPanelOpen] = useState(false);
@@ -148,6 +186,18 @@ export function ProjectPerformanceTab({
         d.setHours(0, 0, 0, 0);
         return d;
     })();
+
+    const sortedParticipants = [...project.participants].sort((a, b) => {
+        const ra = participantSortRank(a.role);
+        const rb = participantSortRank(b.role);
+        if (ra !== rb) return ra - rb;
+        return a.name.localeCompare(b.name, "ko");
+    });
+
+    function roleLabel(role?: ProjectDetailViewerRole) {
+        if (!role) return "—";
+        return tDetail(`viewerRoles.${role}`);
+    }
 
     const memberWorkloadRows = project.participants.map((p) => {
         const assigned = allTasks.filter((task) => task.assignee?.id === p.id);
@@ -222,6 +272,84 @@ export function ProjectPerformanceTab({
                 <h2 className="text-lg font-semibold text-stone-800">{t("title")}</h2>
                 <p className="mt-1 text-sm text-stone-500">{t("subtitle")}</p>
             </div>
+
+            {sortedParticipants.length > 0 ? (
+                <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+                    <h3 className="text-base font-semibold text-stone-800">{t("memberWorkTableTitle")}</h3>
+                    <p className="mt-1 text-sm text-stone-500">{t("memberWorkTableSubtitle")}</p>
+                    <div className="mt-4 overflow-x-auto rounded-xl border border-stone-100">
+                        <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+                            <thead>
+                                <tr className="border-b border-stone-200 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                                    <th scope="col" className="px-4 py-3">
+                                        {t("colRole")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3">
+                                        {t("colMember")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3">
+                                        {t("colEmail")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3 text-right tabular-nums">
+                                        {t("colAssigned")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3 text-right tabular-nums">
+                                        {t("colDone")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3 text-right tabular-nums">
+                                        {t("colProgress")}
+                                    </th>
+                                    <th scope="col" className="px-4 py-3 text-right tabular-nums">
+                                        {t("colOverdue")}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sortedParticipants.map((p) => {
+                                    const st = memberTaskStats(allTasks, p.id, today);
+                                    return (
+                                        <tr
+                                            key={p.id}
+                                            className="cursor-pointer border-b border-stone-100 transition-colors last:border-b-0 hover:bg-stone-50/80"
+                                            onClick={() => setDetail({ kind: "member", id: p.id })}
+                                        >
+                                            <td className="whitespace-nowrap px-4 py-3 text-stone-700">
+                                                {roleLabel(p.role)}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <UserAvatar
+                                                        userId={p.id}
+                                                        label={p.name}
+                                                        avatarUrl={p.avatarUrl ?? null}
+                                                        sizeClass="h-8 w-8 text-xs"
+                                                    />
+                                                    <span className="font-medium text-stone-900">{p.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="max-w-[12rem] truncate px-4 py-3 text-stone-600">
+                                                {p.userId}
+                                            </td>
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                                {st.assigned}
+                                            </td>
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                                {st.done}
+                                            </td>
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                                {st.inProgress}
+                                            </td>
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                                {st.overdue}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            ) : null}
 
             <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
                 <h3 className="text-base font-semibold text-stone-800">{t("workloadTitle")}</h3>
