@@ -12,6 +12,7 @@ export type NotificationEventType =
   | "TASK_REQUEST_RECEIVED"
   | "TASK_REQUEST_ACCEPTED"
   | "TASK_REQUEST_REJECTED"
+  | "TEAM_JOIN_REQUEST"
   | "MENTION"
   | "SYSTEM";
 

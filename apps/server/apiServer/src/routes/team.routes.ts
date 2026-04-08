@@ -17,6 +17,10 @@ export async function teamRoutes(app: FastifyInstance) {
         listTeams,
         updateMyTeamPins,
         getTeam,
+        requestTeamJoin,
+        listTeamJoinRequests,
+        acceptTeamJoinRequest,
+        rejectTeamJoinRequest,
         addTeamMember,
         removeTeamMember,
         delegateLeader,
@@ -47,6 +51,31 @@ export async function teamRoutes(app: FastifyInstance) {
     );
 
     app.get<{ Params: { id: string } }>("/teams/:id", { preHandler: [authenticateUser] }, getTeam);
+
+    /** 비멤버 → 팀장에게 가입 신청 알림 */
+    app.post<{ Params: { id: string } }>(
+        "/teams/:id/join-request",
+        { preHandler: [authenticateUser] },
+        requestTeamJoin,
+    );
+
+    app.get<{ Params: { id: string } }>(
+        "/teams/:id/join-requests",
+        { preHandler: [authenticateUser] },
+        listTeamJoinRequests,
+    );
+
+    app.post<{ Params: { id: string; applicantUserId: string } }>(
+        "/teams/:id/join-requests/:applicantUserId/accept",
+        { preHandler: [authenticateUser] },
+        acceptTeamJoinRequest,
+    );
+
+    app.delete<{ Params: { id: string; applicantUserId: string } }>(
+        "/teams/:id/join-requests/:applicantUserId",
+        { preHandler: [authenticateUser] },
+        rejectTeamJoinRequest,
+    );
 
     /** 팀 소개 등 수정 — PUT·PATCH 둘 다 허용 (프록시/클라이언트 호환) */
     app.put<{ Params: { id: string }; Body: UpdateTeamBody }>(

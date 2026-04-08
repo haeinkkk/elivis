@@ -1,14 +1,20 @@
-import { generateTeamId, Prisma } from "@repo/database";
+import { generatePublicId, generateTeamId, Prisma } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { t } from "@repo/i18n";
+import {
+    t,
+    teamJoinRequestLeaderNotification,
+    teamJoinRequestResultForApplicant,
+} from "@repo/i18n";
 import sharp from "sharp";
 
 import { storageService } from "../index";
 import { MSG } from "../utils/messages";
+import { publishNotification } from "../utils/notify";
 import {
     type ProjectRowForMemberDisplay,
     withProjectDisplayMemberCounts,
 } from "../utils/project-display-member-count";
+import { ensureWorkspacesForNewTeamMember } from "../utils/ensure-workspaces-for-team-member";
 import { badRequest, conflict, created, forbidden, notFound, ok } from "../utils/response";
 
 /** 팀 배너 가로형 썸네일 (px) */
@@ -76,6 +82,14 @@ export interface DelegateLeaderBody {
 }
 
 const INTRO_LAYOUT_JSON_MAX = 65536;
+
+class TeamJoinRequestAcceptNotFound extends Error {
+    override name = "TeamJoinRequestAcceptNotFound";
+}
+
+class TeamJoinRequestAcceptAlreadyMember extends Error {
+    override name = "TeamJoinRequestAcceptAlreadyMember";
+}
 
 function isValidIntroLayoutJsonString(s: string): boolean {
     try {
@@ -221,6 +235,9 @@ export function createTeamController(app: FastifyInstance) {
                             role: "MEMBER" as const,
                         })) as never,
                     });
+                    for (const uid of extraIds) {
+                        await ensureWorkspacesForNewTeamMember(tx, createdTeam.id, uid);
+                    }
                 }
 
                 return tx.team.findUnique({
@@ -518,7 +535,10 @@ export function createTeamController(app: FastifyInstance) {
             const projects = await withProjectDisplayMemberCounts(app.prisma, projectRows);
 
             return reply.send(
-                ok({ ...memberTeam, projects, viewerRole }, t(lang, MSG.TEAM_DETAIL_FETCHED)),
+                ok(
+                    { ...memberTeam, projects, viewerRole, joinRequestPending: false },
+                    t(lang, MSG.TEAM_DETAIL_FETCHED),
+                ),
             );
         }
 
@@ -544,6 +564,13 @@ export function createTeamController(app: FastifyInstance) {
             return reply.code(404).send(notFound(t(lang, MSG.TEAM_NOT_FOUND)));
         }
 
+        const joinRow = await app.prisma.teamJoinRequest.findUnique({
+            where: {
+                teamId_applicantUserId: { teamId, applicantUserId: request.userId },
+            },
+            select: { id: true },
+        });
+
         return reply.send(
             ok(
                 {
@@ -551,9 +578,267 @@ export function createTeamController(app: FastifyInstance) {
                     members: [],
                     projects: [],
                     viewerRole: null,
+                    joinRequestPending: joinRow != null,
                 },
                 t(lang, MSG.TEAM_DETAIL_FETCHED),
             ),
+        );
+    }
+
+    async function requestTeamJoin(
+        request: FastifyRequest<{ Params: { id: string } }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const lang = request.lang;
+        const userId = request.userId;
+
+        const visibleTeam = await app.prisma.team.findFirst({
+            where: { id: teamId, hiddenFromUsers: false },
+            select: { id: true, name: true, createdById: true },
+        });
+        if (!visibleTeam) {
+            return reply.code(404).send(notFound(t(lang, MSG.TEAM_NOT_FOUND)));
+        }
+
+        const isMember = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId } },
+            select: { userId: true },
+        });
+        if (isMember) {
+            return reply.code(409).send(conflict(t(lang, MSG.TEAM_MEMBER_ALREADY)));
+        }
+
+        const existing = await app.prisma.teamJoinRequest.findUnique({
+            where: { teamId_applicantUserId: { teamId, applicantUserId: userId } },
+        });
+        if (existing) {
+            return reply
+                .code(409)
+                .send(conflict(t(lang, MSG.TEAM_JOIN_REQUEST_ALREADY_PENDING)));
+        }
+
+        const leaders = await app.prisma.teamMember.findMany({
+            where: { teamId, role: "LEADER" },
+            select: { userId: true },
+        });
+        const notifyUserIds =
+            leaders.length > 0 ? leaders.map((l) => l.userId) : [visibleTeam.createdById];
+
+        const applicant = await app.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true },
+        });
+        const applicantName =
+            applicant?.name?.trim() ||
+            applicant?.email?.split("@")[0] ||
+            applicant?.email ||
+            "User";
+
+        await app.prisma.teamJoinRequest.create({
+            data: {
+                id: generatePublicId(12),
+                teamId,
+                applicantUserId: userId,
+            },
+        });
+
+        const { title, message } = teamJoinRequestLeaderNotification(
+            lang,
+            visibleTeam.name,
+            applicantName,
+        );
+
+        for (const leaderId of notifyUserIds) {
+            if (leaderId === userId) continue;
+            void publishNotification(app.redis, {
+                userId: leaderId,
+                type: "TEAM_JOIN_REQUEST",
+                title,
+                message,
+                data: { teamId, applicantUserId: userId },
+            }).catch((err) =>
+                app.log.error({ err }, "Failed to publish team join request notification"),
+            );
+        }
+
+        return reply
+            .code(201)
+            .send(created({ teamId }, t(lang, MSG.TEAM_JOIN_REQUEST_SUBMITTED)));
+    }
+
+    async function listTeamJoinRequests(
+        request: FastifyRequest<{ Params: { id: string } }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const lang = request.lang;
+
+        const leader = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: request.userId } },
+        });
+        if (!leader || leader.role !== "LEADER") {
+            return reply.code(403).send(forbidden(t(lang, MSG.TEAM_MEMBER_ADD_FORBIDDEN)));
+        }
+
+        const teamExists = await app.prisma.team.findUnique({
+            where: { id: teamId },
+            select: { id: true },
+        });
+        if (!teamExists) {
+            return reply.code(404).send(notFound(t(lang, MSG.TEAM_NOT_FOUND)));
+        }
+
+        const rows = await app.prisma.teamJoinRequest.findMany({
+            where: { teamId },
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                createdAt: true,
+                applicant: {
+                    select: { id: true, email: true, name: true, avatarUrl: true },
+                },
+            },
+        });
+
+        return reply.send(ok({ requests: rows }, t(lang, MSG.TEAM_JOIN_LIST_FETCHED)));
+    }
+
+    async function acceptTeamJoinRequest(
+        request: FastifyRequest<{ Params: { id: string; applicantUserId: string } }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const applicantUserId = request.params.applicantUserId?.trim();
+        const lang = request.lang;
+
+        if (!applicantUserId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_MEMBER_INVALID)));
+        }
+
+        const leader = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: request.userId } },
+        });
+        if (!leader || leader.role !== "LEADER") {
+            return reply.code(403).send(forbidden(t(lang, MSG.TEAM_MEMBER_ADD_FORBIDDEN)));
+        }
+
+        try {
+            await app.prisma.$transaction(async (tx) => {
+                const jr = await tx.teamJoinRequest.findUnique({
+                    where: {
+                        teamId_applicantUserId: { teamId, applicantUserId },
+                    },
+                });
+                if (!jr) {
+                    throw new TeamJoinRequestAcceptNotFound();
+                }
+
+                const existing = await tx.teamMember.findUnique({
+                    where: { teamId_userId: { teamId, userId: applicantUserId } },
+                });
+                if (existing) {
+                    await tx.teamJoinRequest.delete({ where: { id: jr.id } });
+                    throw new TeamJoinRequestAcceptAlreadyMember();
+                }
+
+                await tx.teamMember.create({
+                    data: {
+                        teamId,
+                        userId: applicantUserId,
+                        role: "MEMBER",
+                    } as never,
+                });
+                await ensureWorkspacesForNewTeamMember(tx, teamId, applicantUserId);
+                await tx.teamJoinRequest.delete({ where: { id: jr.id } });
+            });
+        } catch (e) {
+            if (e instanceof TeamJoinRequestAcceptNotFound) {
+                return reply.code(404).send(notFound(t(lang, MSG.TEAM_JOIN_REQUEST_NOT_FOUND)));
+            }
+            if (e instanceof TeamJoinRequestAcceptAlreadyMember) {
+                return reply.code(409).send(conflict(t(lang, MSG.TEAM_MEMBER_ALREADY)));
+            }
+            throw e;
+        }
+
+        const team = await app.prisma.team.findUnique({
+            where: { id: teamId },
+            select: { name: true },
+        });
+        if (team) {
+            const { title, message } = teamJoinRequestResultForApplicant(
+                lang,
+                team.name,
+                "accept",
+            );
+            void publishNotification(app.redis, {
+                userId: applicantUserId,
+                type: "SYSTEM",
+                title,
+                message,
+                data: { teamId },
+            }).catch((err) =>
+                app.log.error({ err }, "Failed to publish team join accept notification"),
+            );
+        }
+
+        return reply.send(
+            ok({ teamId, userId: applicantUserId }, t(lang, MSG.TEAM_JOIN_ACCEPTED)),
+        );
+    }
+
+    async function rejectTeamJoinRequest(
+        request: FastifyRequest<{ Params: { id: string; applicantUserId: string } }>,
+        reply: FastifyReply,
+    ) {
+        const teamId = request.params.id;
+        const applicantUserId = request.params.applicantUserId?.trim();
+        const lang = request.lang;
+
+        if (!applicantUserId) {
+            return reply.code(400).send(badRequest(t(lang, MSG.TEAM_MEMBER_INVALID)));
+        }
+
+        const leader = await app.prisma.teamMember.findUnique({
+            where: { teamId_userId: { teamId, userId: request.userId } },
+        });
+        if (!leader || leader.role !== "LEADER") {
+            return reply.code(403).send(forbidden(t(lang, MSG.TEAM_MEMBER_ADD_FORBIDDEN)));
+        }
+
+        const jr = await app.prisma.teamJoinRequest.findUnique({
+            where: { teamId_applicantUserId: { teamId, applicantUserId } },
+        });
+        if (!jr) {
+            return reply.code(404).send(notFound(t(lang, MSG.TEAM_JOIN_REQUEST_NOT_FOUND)));
+        }
+
+        await app.prisma.teamJoinRequest.delete({ where: { id: jr.id } });
+
+        const team = await app.prisma.team.findUnique({
+            where: { id: teamId },
+            select: { name: true },
+        });
+        if (team) {
+            const { title, message } = teamJoinRequestResultForApplicant(
+                lang,
+                team.name,
+                "reject",
+            );
+            void publishNotification(app.redis, {
+                userId: applicantUserId,
+                type: "SYSTEM",
+                title,
+                message,
+                data: { teamId },
+            }).catch((err) =>
+                app.log.error({ err }, "Failed to publish team join reject notification"),
+            );
+        }
+
+        return reply.send(
+            ok({ teamId, userId: applicantUserId }, t(lang, MSG.TEAM_JOIN_REJECTED)),
         );
     }
 
@@ -585,12 +870,18 @@ export function createTeamController(app: FastifyInstance) {
         }
 
         try {
-            await app.prisma.teamMember.create({
-                data: {
-                    teamId,
-                    userId: targetUserId,
-                    role: "MEMBER",
-                } as never,
+            await app.prisma.$transaction(async (tx) => {
+                await tx.teamMember.create({
+                    data: {
+                        teamId,
+                        userId: targetUserId,
+                        role: "MEMBER",
+                    } as never,
+                });
+                await ensureWorkspacesForNewTeamMember(tx, teamId, targetUserId);
+                await tx.teamJoinRequest.deleteMany({
+                    where: { teamId, applicantUserId: targetUserId },
+                });
             });
         } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
@@ -641,6 +932,10 @@ export function createTeamController(app: FastifyInstance) {
         // TeamMember만 삭제 (Workspace는 보존)
         await app.prisma.teamMember.delete({
             where: { teamId_userId: { teamId, userId: targetUserId } },
+        });
+
+        await app.prisma.teamJoinRequest.deleteMany({
+            where: { teamId, applicantUserId: targetUserId },
         });
 
         return reply.send(ok({ teamId, userId: targetUserId }, t(lang, MSG.TEAM_MEMBER_REMOVED)));
@@ -942,6 +1237,10 @@ export function createTeamController(app: FastifyInstance) {
         listTeams,
         updateMyTeamPins,
         getTeam,
+        requestTeamJoin,
+        listTeamJoinRequests,
+        acceptTeamJoinRequest,
+        rejectTeamJoinRequest,
         addTeamMember,
         removeTeamMember,
         delegateLeader,

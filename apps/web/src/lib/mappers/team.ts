@@ -50,6 +50,13 @@ export type ApiTeamFavoriteItem = {
     };
 };
 
+/** GET /api/teams/:id/join-requests 응답 `data.requests` 한 행 */
+export type ApiTeamJoinRequestRow = {
+    id: string;
+    createdAt: string;
+    applicant: { id: string; email: string; name: string | null; avatarUrl: string | null };
+};
+
 /** GET /api/teams/:id 응답 `data` — 팀 상세 API와 동일한 JSON 형태 */
 
 export type ApiTeamMemberRow = {
@@ -81,5 +88,6 @@ export type ApiTeamDetail = {
     members: ApiTeamMemberRow[];
     projects: ApiTeamProjectRow[];
     viewerRole: "LEADER" | "MEMBER" | null;
+    joinRequestPending?: boolean;
     _count?: { members: number };
 };

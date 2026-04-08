@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { checkTeamFavoriteAction } from "@/app/actions/teams";
 import { fetchTeamById } from "@/lib/server/teams.server";
@@ -35,11 +36,13 @@ export default async function TeamDetailPage({
     const isSuperAdmin = user?.systemRole === "SUPER_ADMIN";
 
     return (
-        <TeamDetailPageClient
-            team={result.team}
-            isFavorite={isFavorite}
-            isSuperAdmin={isSuperAdmin}
-            myUserId={user?.id ?? ""}
-        />
+        <Suspense fallback={null}>
+            <TeamDetailPageClient
+                team={result.team}
+                isFavorite={isFavorite}
+                isSuperAdmin={isSuperAdmin}
+                myUserId={user?.id ?? ""}
+            />
+        </Suspense>
     );
 }

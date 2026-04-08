@@ -29,5 +29,7 @@ export type TeamDetail = {
     members: TeamMemberRow[];
     projects: TeamProjectRow[];
     viewerRole: "LEADER" | "MEMBER" | null;
+    /** 공개 팀·비멤버일 때만: 이미 가입 신청을 보냈는지 */
+    joinRequestPending?: boolean;
     _count?: { members: number };
 };

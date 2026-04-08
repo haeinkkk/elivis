@@ -22,6 +22,7 @@ Elivis 백엔드는 **REST API**와 **실시간 알림 서버**로 나뉩니다.
 - [인증 흐름](#인증-흐름)
 - [권한 시스템(RBAC)](#권한-시스템rbac)
 - [초기 관리자 생성](#초기-관리자-생성)
+- [팀원 워크스페이스 백필](#팀원-워크스페이스-백필)
 - [프로덕션 빌드](#프로덕션-빌드)
 
 ---
@@ -50,6 +51,7 @@ apps/server/
 │   │   ├── middleware/       # auth, language 등
 │   │   ├── plugins/          # prisma, redis
 │   │   ├── services/
+│   │   ├── scripts/          # 일회성 운영 스크립트 (tsx로 실행)
 │   │   └── index.ts
 │   ├── Dockerfile
 │   └── package.json          # @repo/api-server
@@ -252,7 +254,9 @@ pnpm dev:notification  # 알림 서버만 → http://localhost:4001
 
 ### 워크스페이스 자동 생성
 
-프로젝트 생성 시 트랜잭션 안에서, 생성자 및 연결된 팀 멤버에게 `Workspace(projectId, userId)` 가 생성됩니다 (`@@unique([projectId, userId])`).
+- **프로젝트 생성 시**: 트랜잭션 안에서 생성자와 연결된 팀 멤버에게 `Workspace(projectId, userId)` 가 만들어집니다 (`@@unique([projectId, userId])`).
+- **팀원 추가·가입 수락 시**: 해당 팀에 연결된 프로젝트(직접 `teamId` 또는 `ProjectTeam` 다대다)마다, 아직 없으면 같은 규칙으로 워크스페이스와 기본 상태·우선순위가 시드됩니다.
+- **이전 데이터**: 팀원만 있고 워크스페이스가 없던 계정은 [팀원 워크스페이스 백필](#팀원-워크스페이스-백필) 스크립트로 보정할 수 있습니다.
 
 ---
 
@@ -342,6 +346,34 @@ curl -X POST http://localhost:4000/api/auth/signup \
 
 - 토큰은 메모리 보관, 재시작 시 변경
 - 첫 `SUPER_ADMIN` 생성 후 이 모드는 비활성화
+
+---
+
+## 팀원 워크스페이스 백필
+
+팀에 연결된 프로젝트가 있는데, 과거 버전에서 팀원으로만 추가되어 **워크스페이스 행이 없는** 사용자를 일괄 보정합니다. 이미 `(userId, projectId)` 워크스페이스가 있으면 건너뛰므로 **여러 번 실행해도 안전**합니다.
+
+| 항목 | 내용 |
+|------|------|
+| 스크립트 | `apps/server/apiServer/src/scripts/backfill-team-member-workspaces.ts` |
+| 구현 | `TeamMember` 행마다 `ensureWorkspacesForNewTeamMember`와 동일한 로직으로 시드 |
+| 환경 | 모노레포 루트 `.env`의 `DATABASE_URL` (패키지 스크립트가 `DOTENV_CONFIG_PATH`로 로드) |
+
+### 실행
+
+저장소 루트에서:
+
+```bash
+pnpm --filter @repo/api-server run backfill:team-member-workspaces
+```
+
+특정 팀만:
+
+```bash
+pnpm --filter @repo/api-server run backfill:team-member-workspaces -- --team <팀ID>
+```
+
+운영 DB에 직접 쓰므로, 적용 전 **백업** 또는 스테이징에서 검증하는 것을 권장합니다.
 
 ---
 

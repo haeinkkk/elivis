@@ -62,6 +62,11 @@ export function getWebMessages(locale: string): WebMessages {
  *   ja-JP, ja        → "ja"
  *   (없거나 그 외)   → "en"  ← 한국·일본 외 모든 국가는 영어
  */
+export {
+    teamJoinRequestLeaderNotification,
+    teamJoinRequestResultForApplicant,
+} from "./server-team-join-notify";
+
 export function parseLocale(raw: string | undefined | null): Locale {
   if (!raw) return AUTO_DETECT_FALLBACK;
 

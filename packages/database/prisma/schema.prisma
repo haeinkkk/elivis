@@ -66,6 +66,7 @@ enum NotificationType {
   TASK_REQUEST_RECEIVED  /// 업무 요청 받음
   TASK_REQUEST_ACCEPTED  /// 업무 요청 수락됨
   TASK_REQUEST_REJECTED  /// 업무 요청 거절됨
+  TEAM_JOIN_REQUEST      /// 팀 가입 신청 (팀장 수신)
 }
 
 /// 업무 요청 상태
@@ -187,6 +188,7 @@ model User {
   taskRequestsFrom    WorkspaceTaskRequest[] @relation("TaskRequestFrom")
   taskRequestsTo      WorkspaceTaskRequest[] @relation("TaskRequestTo")
   projectWikiPagesUpdated ProjectWikiPage[] @relation("ProjectWikiPageUpdatedBy")
+  teamJoinRequests    TeamJoinRequest[]
 }
 
 model Project {
@@ -320,6 +322,7 @@ model Team {
   projects  Project[]
   projectTeams ProjectTeam[]
   posts     TeamPost[]
+  joinRequests TeamJoinRequest[]
 
   @@unique([name])
   @@index([createdAt(sort: Desc)])
@@ -359,6 +362,20 @@ model TeamMember {
   @@index([teamId])
   @@index([userId])
   @@index([userId, pinnedOrder])
+}
+
+/// 비멤버가 팀 가입을 신청한 기록 (팀×신청자당 1건, 승인·탈퇴 시 삭제)
+model TeamJoinRequest {
+  id              String   @id
+  teamId          String
+  applicantUserId String
+  createdAt       DateTime @default(now())
+
+  team      Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  applicant User @relation(fields: [applicantUserId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, applicantUserId])
+  @@index([teamId])
 }
 
 model Task {

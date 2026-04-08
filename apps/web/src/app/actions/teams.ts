@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import type { ApiEnvelope } from "@/lib/http/api-envelope";
 import { getApiBaseUrl } from "@/lib/http/api-base-url";
@@ -10,6 +11,7 @@ import type {
     ApiTeamDetail,
     ApiTeamFavoriteItem,
     ApiTeamFieldsUpdated,
+    ApiTeamJoinRequestRow,
     ApiTeamListItem,
     ApiTeamsListData,
 } from "@/lib/mappers/team";
@@ -85,6 +87,106 @@ export async function addTeamMemberAction(
 
         revalidatePath("/teams");
         revalidatePath(`/teams/${teamId}`);
+        return { ok: true };
+    } catch {
+        return actionNetworkError();
+    }
+}
+
+export async function requestTeamJoinAction(
+    teamId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
+    const t = await getTranslations("teams.detail");
+    try {
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId.trim())}/join-request`,
+            { method: "POST", body: JSON.stringify({}) },
+        );
+
+        if (!res.ok) {
+            return actionFail(envelopeMessage(body, t("public.requestJoinFailed")));
+        }
+
+        revalidatePath("/teams");
+        revalidatePath(`/teams/${teamId.trim()}`);
+        return { ok: true };
+    } catch {
+        return actionNetworkError();
+    }
+}
+
+export async function listTeamJoinRequestsAction(
+    teamId: string,
+): Promise<{ ok: true; requests: ApiTeamJoinRequestRow[] } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
+    const t = await getTranslations("teams.detail.joinRequests");
+    try {
+        const { res, body } = await fetchApiEnvelope<{ requests: ApiTeamJoinRequestRow[] }>(
+            `/api/teams/${encodeURIComponent(teamId.trim())}/join-requests`,
+        );
+
+        if (!res.ok || body.data == null || !Array.isArray(body.data.requests)) {
+            return actionFail(envelopeMessage(body as never, t("errors.loadFailed")));
+        }
+
+        return { ok: true, requests: body.data.requests };
+    } catch {
+        return actionNetworkError();
+    }
+}
+
+export async function acceptTeamJoinRequestAction(
+    teamId: string,
+    applicantUserId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
+    const t = await getTranslations("teams.detail.joinRequests");
+    try {
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId.trim())}/join-requests/${encodeURIComponent(applicantUserId.trim())}/accept`,
+            { method: "POST", body: JSON.stringify({}) },
+        );
+
+        if (!res.ok) {
+            return actionFail(envelopeMessage(body, t("errors.acceptFailed")));
+        }
+
+        revalidatePath("/teams");
+        revalidatePath(`/teams/${teamId.trim()}`);
+        return { ok: true };
+    } catch {
+        return actionNetworkError();
+    }
+}
+
+export async function rejectTeamJoinRequestAction(
+    teamId: string,
+    applicantUserId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+    const denied = await requireActionSession();
+    if (denied) return denied;
+
+    const t = await getTranslations("teams.detail.joinRequests");
+    try {
+        const headers = await apiFetchHeadersWithoutContentType();
+        const { res, body } = await fetchApiEnvelope<unknown>(
+            `/api/teams/${encodeURIComponent(teamId.trim())}/join-requests/${encodeURIComponent(applicantUserId.trim())}`,
+            { method: "DELETE", headers },
+        );
+
+        if (!res.ok) {
+            return actionFail(envelopeMessage(body, t("errors.rejectFailed")));
+        }
+
+        revalidatePath("/teams");
+        revalidatePath(`/teams/${teamId.trim()}`);
         return { ok: true };
     } catch {
         return actionNetworkError();

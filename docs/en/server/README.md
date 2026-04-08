@@ -22,6 +22,7 @@ The Elivis backend splits into a **REST API** and a **real-time notification ser
 - [Auth flow](#auth-flow)
 - [RBAC](#rbac)
 - [Bootstrap SUPER_ADMIN](#bootstrap-super_admin)
+- [Team member workspace backfill](#team-member-workspace-backfill)
 - [Production builds](#production-builds)
 
 ---
@@ -50,6 +51,7 @@ apps/server/
 │   │   ├── middleware/       # auth, language, etc.
 │   │   ├── plugins/          # prisma, redis
 │   │   ├── services/
+│   │   ├── scripts/          # one-off ops scripts (run with tsx)
 │   │   └── index.ts
 │   ├── Dockerfile
 │   └── package.json          # @repo/api-server
@@ -252,7 +254,9 @@ For UI and ops notes, see [`docs/en/admin.md`](../admin.md).
 
 ### Auto-created workspaces
 
-When a project is created, `Workspace(projectId, userId)` rows are created in a transaction for the creator and linked team members (`@@unique([projectId, userId])`).
+- **On project create:** in a transaction, `Workspace(projectId, userId)` rows are created for the creator and linked team members (`@@unique([projectId, userId])`).
+- **On team membership (invite / join accept):** for every project linked to that team (direct `teamId` or `ProjectTeam` M2M), a workspace is seeded with default statuses and priorities if missing.
+- **Legacy data:** accounts that were team members without workspaces can be fixed with the [team member workspace backfill](#team-member-workspace-backfill) script.
 
 ---
 
@@ -342,6 +346,34 @@ curl -X POST http://localhost:4000/api/auth/signup \
 
 - Token is kept in memory; it changes on restart.
 - After the first `SUPER_ADMIN` exists, this mode is disabled.
+
+---
+
+## Team member workspace backfill
+
+Repairs users who were **team members only** (older releases) so they get `Workspace` rows for every project linked to their teams. Rows that already exist for `(userId, projectId)` are skipped — **safe to re-run**.
+
+| Item | Detail |
+|------|--------|
+| Script | `apps/server/apiServer/src/scripts/backfill-team-member-workspaces.ts` |
+| Logic | Same as `ensureWorkspacesForNewTeamMember` for each `TeamMember` |
+| Env | Root `.env` `DATABASE_URL` (package script sets `DOTENV_CONFIG_PATH`) |
+
+### Run
+
+From the repo root:
+
+```bash
+pnpm --filter @repo/api-server run backfill:team-member-workspaces
+```
+
+Single team only:
+
+```bash
+pnpm --filter @repo/api-server run backfill:team-member-workspaces -- --team <teamId>
+```
+
+Writes to the configured database; **back up** or test on staging before production.
 
 ---
 

@@ -17,6 +17,12 @@ export function getNotificationDeepLink(type: string, dataStr: string | null): s
         if (type === "PROJECT_MEMBER_ADDED" && data.projectId) {
             return `/projects/${data.projectId}`;
         }
+        if (type === "TEAM_JOIN_REQUEST" && data.teamId) {
+            return `/teams/${data.teamId}?tab=members&joinRequests=1`;
+        }
+        if (type === "SYSTEM" && data.teamId) {
+            return `/teams/${data.teamId}`;
+        }
     } catch {
         // ignore invalid JSON
     }
