@@ -22,6 +22,16 @@ export interface NotificationPayload {
   title: string;
   message?: string;
   data?: Record<string, string>;
+  /** 프로젝트 단위 알림 선호 조회·이메일 발송에 사용 */
+  projectId?: string;
+  /**
+   * 인앱 저장 + Socket.IO 실시간 전송. 생략 시 true(기존 동작).
+   */
+  push?: boolean;
+  /**
+   * SMTP가 켜져 있으면 사용자 로그인 이메일로 발송. 명시적으로 true일 때만.
+   */
+  email?: boolean;
 }
 
 /**

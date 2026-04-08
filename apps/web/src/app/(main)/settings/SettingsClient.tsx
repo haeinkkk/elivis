@@ -346,6 +346,42 @@ function inputClassName(): string {
     return "mt-1.5 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100";
 }
 
+function NotifySwitch({
+    enabled,
+    pending,
+    onToggle,
+    ariaOn,
+    ariaOff,
+}: {
+    enabled: boolean;
+    pending: boolean;
+    onToggle: () => void;
+    ariaOn: string;
+    ariaOff: string;
+}) {
+    return (
+        <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            disabled={pending}
+            aria-label={enabled ? ariaOn : ariaOff}
+            onClick={onToggle}
+            className={[
+                "relative h-7 w-12 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:opacity-50",
+                enabled ? "bg-emerald-600" : "bg-stone-300",
+            ].join(" ")}
+        >
+            <span
+                className={[
+                    "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform",
+                    enabled ? "left-5" : "left-0.5",
+                ].join(" ")}
+            />
+        </button>
+    );
+}
+
 function SecurityTab({ user }: { user: UserProfile | null }) {
     const t = useTranslations("settings.securityAccount");
     const initial: ChangePasswordState = {};
@@ -441,14 +477,14 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
         setProjects(data.projects);
     }
 
-    function toggleTeam(id: string, notifyEnabled: boolean) {
+    function toggleTeamPush(id: string, notifyPushEnabled: boolean) {
         const snapT = teams;
         const snapP = projects;
-        setTeams((rows) => rows.map((r) => (r.id === id ? { ...r, notifyEnabled } : r)));
+        setTeams((rows) => rows.map((r) => (r.id === id ? { ...r, notifyPushEnabled } : r)));
         setError(null);
         startTransition(async () => {
             const r = await patchNotificationPreferencesAction({
-                teams: [{ teamId: id, notifyEnabled }],
+                teams: [{ teamId: id, notifyPushEnabled }],
             });
             if (!r.ok) {
                 setTeams(snapT);
@@ -460,14 +496,52 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
         });
     }
 
-    function toggleProject(id: string, notifyEnabled: boolean) {
+    function toggleTeamEmail(id: string, notifyEmailEnabled: boolean) {
         const snapT = teams;
         const snapP = projects;
-        setProjects((rows) => rows.map((r) => (r.id === id ? { ...r, notifyEnabled } : r)));
+        setTeams((rows) => rows.map((r) => (r.id === id ? { ...r, notifyEmailEnabled } : r)));
         setError(null);
         startTransition(async () => {
             const r = await patchNotificationPreferencesAction({
-                projects: [{ projectId: id, notifyEnabled }],
+                teams: [{ teamId: id, notifyEmailEnabled }],
+            });
+            if (!r.ok) {
+                setTeams(snapT);
+                setProjects(snapP);
+                setError(r.message);
+                return;
+            }
+            applyServerData(r.data);
+        });
+    }
+
+    function toggleProjectPush(id: string, notifyPushEnabled: boolean) {
+        const snapT = teams;
+        const snapP = projects;
+        setProjects((rows) => rows.map((r) => (r.id === id ? { ...r, notifyPushEnabled } : r)));
+        setError(null);
+        startTransition(async () => {
+            const r = await patchNotificationPreferencesAction({
+                projects: [{ projectId: id, notifyPushEnabled }],
+            });
+            if (!r.ok) {
+                setTeams(snapT);
+                setProjects(snapP);
+                setError(r.message);
+                return;
+            }
+            applyServerData(r.data);
+        });
+    }
+
+    function toggleProjectEmail(id: string, notifyEmailEnabled: boolean) {
+        const snapT = teams;
+        const snapP = projects;
+        setProjects((rows) => rows.map((r) => (r.id === id ? { ...r, notifyEmailEnabled } : r)));
+        setError(null);
+        startTransition(async () => {
+            const r = await patchNotificationPreferencesAction({
+                projects: [{ projectId: id, notifyEmailEnabled }],
             });
             if (!r.ok) {
                 setTeams(snapT);
@@ -494,32 +568,37 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
                         {teams.map((row) => (
                             <li
                                 key={row.id}
-                                className="flex items-center justify-between gap-3 px-4 py-3"
+                                className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <span className="min-w-0 truncate text-sm text-stone-800">
+                                <span className="min-w-0 truncate text-sm font-medium text-stone-800">
                                     {row.name}
                                 </span>
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={row.notifyEnabled}
-                                    disabled={pending}
-                                    aria-label={
-                                        row.notifyEnabled ? t("notifyOn") : t("notifyOff")
-                                    }
-                                    onClick={() => toggleTeam(row.id, !row.notifyEnabled)}
-                                    className={[
-                                        "relative h-7 w-12 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:opacity-50",
-                                        row.notifyEnabled ? "bg-emerald-600" : "bg-stone-300",
-                                    ].join(" ")}
-                                >
-                                    <span
-                                        className={[
-                                            "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform",
-                                            row.notifyEnabled ? "left-5" : "left-0.5",
-                                        ].join(" ")}
-                                    />
-                                </button>
+                                <div className="flex flex-wrap items-center gap-5 sm:shrink-0 sm:gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-stone-500">{t("pushLabel")}</span>
+                                        <NotifySwitch
+                                            enabled={row.notifyPushEnabled}
+                                            pending={pending}
+                                            ariaOn={t("pushOn")}
+                                            ariaOff={t("pushOff")}
+                                            onToggle={() =>
+                                                toggleTeamPush(row.id, !row.notifyPushEnabled)
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-stone-500">{t("emailLabel")}</span>
+                                        <NotifySwitch
+                                            enabled={row.notifyEmailEnabled}
+                                            pending={pending}
+                                            ariaOn={t("emailOn")}
+                                            ariaOff={t("emailOff")}
+                                            onToggle={() =>
+                                                toggleTeamEmail(row.id, !row.notifyEmailEnabled)
+                                            }
+                                        />
+                                    </div>
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -534,32 +613,37 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
                         {projects.map((row) => (
                             <li
                                 key={row.id}
-                                className="flex items-center justify-between gap-3 px-4 py-3"
+                                className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <span className="min-w-0 truncate text-sm text-stone-800">
+                                <span className="min-w-0 truncate text-sm font-medium text-stone-800">
                                     {row.name}
                                 </span>
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={row.notifyEnabled}
-                                    disabled={pending}
-                                    aria-label={
-                                        row.notifyEnabled ? t("notifyOn") : t("notifyOff")
-                                    }
-                                    onClick={() => toggleProject(row.id, !row.notifyEnabled)}
-                                    className={[
-                                        "relative h-7 w-12 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:opacity-50",
-                                        row.notifyEnabled ? "bg-emerald-600" : "bg-stone-300",
-                                    ].join(" ")}
-                                >
-                                    <span
-                                        className={[
-                                            "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform",
-                                            row.notifyEnabled ? "left-5" : "left-0.5",
-                                        ].join(" ")}
-                                    />
-                                </button>
+                                <div className="flex flex-wrap items-center gap-5 sm:shrink-0 sm:gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-stone-500">{t("pushLabel")}</span>
+                                        <NotifySwitch
+                                            enabled={row.notifyPushEnabled}
+                                            pending={pending}
+                                            ariaOn={t("pushOn")}
+                                            ariaOff={t("pushOff")}
+                                            onToggle={() =>
+                                                toggleProjectPush(row.id, !row.notifyPushEnabled)
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-stone-500">{t("emailLabel")}</span>
+                                        <NotifySwitch
+                                            enabled={row.notifyEmailEnabled}
+                                            pending={pending}
+                                            ariaOn={t("emailOn")}
+                                            ariaOff={t("emailOff")}
+                                            onToggle={() =>
+                                                toggleProjectEmail(row.id, !row.notifyEmailEnabled)
+                                            }
+                                        />
+                                    </div>
+                                </div>
                             </li>
                         ))}
                     </ul>

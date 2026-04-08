@@ -150,8 +150,16 @@ export async function changePasswordAction(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function patchNotificationPreferencesAction(input: {
-    teams?: { teamId: string; notifyEnabled: boolean }[];
-    projects?: { projectId: string; notifyEnabled: boolean }[];
+    teams?: {
+        teamId: string;
+        notifyPushEnabled?: boolean;
+        notifyEmailEnabled?: boolean;
+    }[];
+    projects?: {
+        projectId: string;
+        notifyPushEnabled?: boolean;
+        notifyEmailEnabled?: boolean;
+    }[];
 }): Promise<
     | { ok: true; data: ApiNotificationPreferences }
     | { ok: false; message: string }

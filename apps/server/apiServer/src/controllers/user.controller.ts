@@ -41,8 +41,16 @@ export interface ChangePasswordBody {
 }
 
 export interface PatchNotificationPrefsBody {
-    teams?: { teamId: string; notifyEnabled: boolean }[];
-    projects?: { projectId: string; notifyEnabled: boolean }[];
+    teams?: {
+        teamId: string;
+        notifyPushEnabled?: boolean;
+        notifyEmailEnabled?: boolean;
+    }[];
+    projects?: {
+        projectId: string;
+        notifyPushEnabled?: boolean;
+        notifyEmailEnabled?: boolean;
+    }[];
 }
 
 const MIN_NEW_PASSWORD_LEN = 8;
@@ -246,12 +254,20 @@ export function createUserController(app: FastifyInstance) {
         const [teamRows, projectRows] = await Promise.all([
             app.prisma.teamMember.findMany({
                 where: { userId },
-                select: { notifyEnabled: true, team: { select: { id: true, name: true } } },
+                select: {
+                    notifyPushEnabled: true,
+                    notifyEmailEnabled: true,
+                    team: { select: { id: true, name: true } },
+                },
                 orderBy: { team: { name: "asc" } },
             }),
             app.prisma.projectMember.findMany({
                 where: { userId },
-                select: { notifyEnabled: true, project: { select: { id: true, name: true } } },
+                select: {
+                    notifyPushEnabled: true,
+                    notifyEmailEnabled: true,
+                    project: { select: { id: true, name: true } },
+                },
                 orderBy: { project: { name: "asc" } },
             }),
         ]);
@@ -259,12 +275,14 @@ export function createUserController(app: FastifyInstance) {
             teams: teamRows.map((r) => ({
                 id: r.team.id,
                 name: r.team.name,
-                notifyEnabled: r.notifyEnabled,
+                notifyPushEnabled: r.notifyPushEnabled,
+                notifyEmailEnabled: r.notifyEmailEnabled,
             })),
             projects: projectRows.map((r) => ({
                 id: r.project.id,
                 name: r.project.name,
-                notifyEnabled: r.notifyEnabled,
+                notifyPushEnabled: r.notifyPushEnabled,
+                notifyEmailEnabled: r.notifyEmailEnabled,
             })),
         };
     }
@@ -286,18 +304,40 @@ export function createUserController(app: FastifyInstance) {
         if (teams?.length) {
             for (const row of teams) {
                 if (!row?.teamId) continue;
+                const data: {
+                    notifyPushEnabled?: boolean;
+                    notifyEmailEnabled?: boolean;
+                } = {};
+                if (row.notifyPushEnabled !== undefined) {
+                    data.notifyPushEnabled = row.notifyPushEnabled;
+                }
+                if (row.notifyEmailEnabled !== undefined) {
+                    data.notifyEmailEnabled = row.notifyEmailEnabled;
+                }
+                if (Object.keys(data).length === 0) continue;
                 await app.prisma.teamMember.updateMany({
                     where: { userId, teamId: row.teamId },
-                    data: { notifyEnabled: !!row.notifyEnabled },
+                    data,
                 });
             }
         }
         if (projects?.length) {
             for (const row of projects) {
                 if (!row?.projectId) continue;
+                const data: {
+                    notifyPushEnabled?: boolean;
+                    notifyEmailEnabled?: boolean;
+                } = {};
+                if (row.notifyPushEnabled !== undefined) {
+                    data.notifyPushEnabled = row.notifyPushEnabled;
+                }
+                if (row.notifyEmailEnabled !== undefined) {
+                    data.notifyEmailEnabled = row.notifyEmailEnabled;
+                }
+                if (Object.keys(data).length === 0) continue;
                 await app.prisma.projectMember.updateMany({
                     where: { userId, projectId: row.projectId },
-                    data: { notifyEnabled: !!row.notifyEnabled },
+                    data,
                 });
             }
         }

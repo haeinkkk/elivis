@@ -285,8 +285,10 @@ model ProjectMember {
   projectId String
   role      ProjectRole @default(MEMBER)
   joinedAt  DateTime    @default(now())
-  /// false면 해당 프로젝트 관련 푸시 알림 수신 안 함
-  notifyEnabled Boolean @default(true)
+  /// false면 해당 프로젝트 관련 인앱·실시간(푸시) 알림 수신 안 함
+  notifyPushEnabled Boolean @default(true)
+  /// false면 해당 프로젝트 관련 이메일 알림 수신 안 함
+  notifyEmailEnabled Boolean @default(true)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -352,8 +354,10 @@ model TeamMember {
   joinedAt DateTime @default(now())
   /// 내 팀 목록 고정 순서 (작을수록 상단). null이면 고정 안 함.
   pinnedOrder Int?
-  /// false면 이 팀에 연결된 프로젝트 관련 푸시 알림 수신 안 함
-  notifyEnabled Boolean @default(true)
+  /// false면 이 팀에 연결된 프로젝트 관련 인앱·실시간(푸시) 알림 수신 안 함
+  notifyPushEnabled Boolean @default(true)
+  /// false면 이 팀에 연결된 프로젝트 관련 이메일 알림 수신 안 함
+  notifyEmailEnabled Boolean @default(true)
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -1,10 +1,13 @@
-import { generatePublicId } from "@repo/database";
+import {
+    canAccessProject,
+    generatePublicId,
+    shouldDeliverProjectNotificationEmail,
+    shouldDeliverProjectNotificationPush,
+} from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import { badRequest, created, forbidden, notFound, ok } from "../utils/response";
-import { shouldDeliverProjectNotification } from "../utils/notification-prefs";
 import { publishNotification } from "../utils/notify";
-import { canAccessProject } from "@repo/database";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 파라미터 / 바디 타입
@@ -98,8 +101,11 @@ export function createTaskRequestController(app: FastifyInstance) {
         const senderName = fromUser?.name ?? fromUser?.email ?? "누군가";
         const urgentPrefix = isUrgent ? "[긴급] " : "";
 
-        const deliverReq = await shouldDeliverProjectNotification(app.prisma, toUserId, projectId);
-        if (deliverReq) {
+        const [deliverPush, deliverEmail] = await Promise.all([
+            shouldDeliverProjectNotificationPush(app.prisma, toUserId, projectId),
+            shouldDeliverProjectNotificationEmail(app.prisma, toUserId, projectId),
+        ]);
+        if (deliverPush || deliverEmail) {
             void publishNotification(app.redis, {
                 userId: toUserId,
                 type: "TASK_REQUEST_RECEIVED",
@@ -110,6 +116,9 @@ export function createTaskRequestController(app: FastifyInstance) {
                     projectId,
                     ...(toWorkspace?.id ? { workspaceId: toWorkspace.id } : {}),
                 },
+                projectId,
+                push: deliverPush,
+                email: deliverEmail,
             }).catch((err) => app.log.error({ err }, "Failed to publish task request notification"));
         }
 
@@ -226,18 +235,20 @@ export function createTaskRequestController(app: FastifyInstance) {
         });
         const accepterName = accepter?.name ?? accepter?.email ?? "상대방";
 
-        const deliverAcc = await shouldDeliverProjectNotification(
-            app.prisma,
-            taskReq.fromUserId,
-            taskReq.projectId,
-        );
-        if (deliverAcc) {
+        const [deliverPushAcc, deliverEmailAcc] = await Promise.all([
+            shouldDeliverProjectNotificationPush(app.prisma, taskReq.fromUserId, taskReq.projectId),
+            shouldDeliverProjectNotificationEmail(app.prisma, taskReq.fromUserId, taskReq.projectId),
+        ]);
+        if (deliverPushAcc || deliverEmailAcc) {
             void publishNotification(app.redis, {
                 userId: taskReq.fromUserId,
                 type: "TASK_REQUEST_ACCEPTED",
                 title: "업무 요청이 수락되었습니다",
                 message: `${accepterName}님이 '${taskReq.title}' 요청을 수락했습니다.`,
                 data: { requestId, projectId: taskReq.projectId },
+                projectId: taskReq.projectId,
+                push: deliverPushAcc,
+                email: deliverEmailAcc,
             }).catch((err) => app.log.error({ err }, "Failed to publish accept notification"));
         }
 
@@ -276,18 +287,20 @@ export function createTaskRequestController(app: FastifyInstance) {
         });
         const rejecterName = rejecter?.name ?? rejecter?.email ?? "상대방";
 
-        const deliverRej = await shouldDeliverProjectNotification(
-            app.prisma,
-            taskReq.fromUserId,
-            taskReq.projectId,
-        );
-        if (deliverRej) {
+        const [deliverPushRej, deliverEmailRej] = await Promise.all([
+            shouldDeliverProjectNotificationPush(app.prisma, taskReq.fromUserId, taskReq.projectId),
+            shouldDeliverProjectNotificationEmail(app.prisma, taskReq.fromUserId, taskReq.projectId),
+        ]);
+        if (deliverPushRej || deliverEmailRej) {
             void publishNotification(app.redis, {
                 userId: taskReq.fromUserId,
                 type: "TASK_REQUEST_REJECTED",
                 title: "업무 요청이 거절되었습니다",
                 message: `${rejecterName}님이 '${taskReq.title}' 요청을 거절했습니다.`,
                 data: { requestId, projectId: taskReq.projectId },
+                projectId: taskReq.projectId,
+                push: deliverPushRej,
+                email: deliverEmailRej,
             }).catch((err) => app.log.error({ err }, "Failed to publish reject notification"));
         }
 

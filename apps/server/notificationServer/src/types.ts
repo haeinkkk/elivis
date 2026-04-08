@@ -11,6 +11,9 @@ export interface NotificationPayload {
   message?: string;
   /** 연관 리소스 정보 (taskId, workspaceId 등) */
   data?: Record<string, string>;
+  projectId?: string;
+  push?: boolean;
+  email?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

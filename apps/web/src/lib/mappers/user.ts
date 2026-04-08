@@ -13,7 +13,8 @@ export type ApiUserSearchRow = {
 export interface NotificationPrefRow {
     id: string;
     name: string;
-    notifyEnabled: boolean;
+    notifyPushEnabled: boolean;
+    notifyEmailEnabled: boolean;
 }
 
 /** GET/PATCH /api/users/me/notification-preferences 응답 `data` */

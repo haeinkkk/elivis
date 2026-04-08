@@ -832,7 +832,7 @@ export const ko = {
             tabs: {
                 profile: "개인정보",
                 security: "보안",
-                preferences: "설정",
+                preferences: "알림설정",
             },
             profile: {
                 sectionTitle: "기본 정보",
@@ -870,9 +870,15 @@ export const ko = {
                 changeError: "비밀번호를 변경하지 못했습니다.",
             },
             preferences: {
-                intro: "팀·프로젝트별로 업무 관련 알림(할당, 상태 변경, 업무 요청 등) 수신 여부를 설정합니다.",
+                intro: "팀·프로젝트별로 업무 관련 알림(할당, 상태 변경, 업무 요청 등)을 인앱·실시간(푸시)과 이메일로 나누어 켜거나 끌 수 있습니다. 이메일은 관리자가 메일 서버를 켠 경우에만 발송됩니다.",
                 teamsTitle: "팀",
                 projectsTitle: "프로젝트",
+                pushLabel: "푸시 알림",
+                emailLabel: "이메일 알림",
+                pushOn: "푸시 알림 켜짐",
+                pushOff: "푸시 알림 꺼짐",
+                emailOn: "이메일 알림 켜짐",
+                emailOff: "이메일 알림 꺼짐",
                 notifyOn: "알림 켜짐",
                 notifyOff: "알림 꺼짐",
                 emptyTeams: "소속된 팀이 없습니다.",

@@ -828,7 +828,7 @@ export const ja = {
       tabs: {
         profile:      "プロフィール",
         security:     "セキュリティ",
-        preferences:  "設定",
+        preferences:  "通知設定",
       },
       profile: {
         sectionTitle:    "基本情報",
@@ -867,9 +867,15 @@ export const ja = {
       },
       preferences: {
         intro:
-          "チーム・プロジェクトごとに、業務関連の通知（割り当て・ステータス変更・タスク依頼など）の受信を設定します。",
+          "チーム・プロジェクトごとに、業務関連の通知（割り当て・ステータス変更・タスク依頼など）をアプリ内・プッシュとメールで個別にオン・オフできます。メールは管理者がメールサーバーを有効にした場合のみ送信されます。",
         teamsTitle:    "チーム",
         projectsTitle: "プロジェクト",
+        pushLabel:     "プッシュ通知",
+        emailLabel:    "メール通知",
+        pushOn:        "プッシュ通知オン",
+        pushOff:       "プッシュ通知オフ",
+        emailOn:       "メール通知オン",
+        emailOff:      "メール通知オフ",
         notifyOn:      "通知オン",
         notifyOff:     "通知オフ",
         emptyTeams:    "所属しているチームがありません。",

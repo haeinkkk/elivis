@@ -830,7 +830,7 @@ export const en = {
       tabs: {
         profile:      "Profile",
         security:     "Security",
-        preferences:  "Preferences",
+        preferences:  "Notifications",
       },
       profile: {
         sectionTitle:    "Basic Information",
@@ -869,9 +869,15 @@ export const en = {
       },
       preferences: {
         intro:
-          "Choose whether to receive work-related notifications (assignments, status changes, task requests, etc.) per team and project.",
+          "Per team and project, turn in-app and real-time (push) notifications on or off separately from email. Email is sent only when an administrator has enabled the mail server.",
         teamsTitle:    "Teams",
         projectsTitle: "Projects",
+        pushLabel:     "Push",
+        emailLabel:    "Email",
+        pushOn:        "Push notifications on",
+        pushOff:       "Push notifications off",
+        emailOn:       "Email notifications on",
+        emailOff:      "Email notifications off",
         notifyOn:      "Notifications on",
         notifyOff:     "Notifications off",
         emptyTeams:    "You are not a member of any team.",

@@ -1,10 +1,13 @@
-import { generatePublicId } from "@repo/database";
+import {
+    generatePublicId,
+    shouldDeliverProjectNotificationEmail,
+    shouldDeliverProjectNotificationPush,
+} from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { t } from "@repo/i18n";
 
 import { MSG } from "../utils/messages";
 import { badRequest, conflict, forbidden, notFound, ok, created } from "../utils/response";
-import { shouldDeliverProjectNotification } from "../utils/notification-prefs";
 import { publishNotification } from "../utils/notify";
 import { recordHistory } from "../services/history.service";
 
@@ -873,18 +876,20 @@ export function createWorkspaceController(app: FastifyInstance) {
             });
             const assignerName = assigner?.name ?? assigner?.email ?? "누군가";
 
-            const deliverAssign = await shouldDeliverProjectNotification(
-                app.prisma,
-                body.assigneeId,
-                ws.projectId,
-            );
-            if (deliverAssign) {
+            const [deliverPushAssign, deliverEmailAssign] = await Promise.all([
+                shouldDeliverProjectNotificationPush(app.prisma, body.assigneeId, ws.projectId),
+                shouldDeliverProjectNotificationEmail(app.prisma, body.assigneeId, ws.projectId),
+            ]);
+            if (deliverPushAssign || deliverEmailAssign) {
                 void publishNotification(app.redis, {
                     userId: body.assigneeId,
                     type: "TASK_ASSIGNED",
                     title: "새 업무가 할당되었습니다",
                     message: `${assignerName}님이 '${updated.title}' 업무를 할당했습니다.`,
-                    data: { taskId: updated.id, workspaceId },
+                    data: { taskId: updated.id, workspaceId, projectId: ws.projectId },
+                    projectId: ws.projectId,
+                    push: deliverPushAssign,
+                    email: deliverEmailAssign,
                 }).catch((err) =>
                     app.log.error({ err }, "Failed to publish task assignment notification"),
                 );
@@ -912,18 +917,25 @@ export function createWorkspaceController(app: FastifyInstance) {
                 const changerName = changer?.name ?? changer?.email ?? "누군가";
 
                 for (const member of projectMembers) {
-                    const deliverStatus = await shouldDeliverProjectNotification(
-                        app.prisma,
-                        member.userId,
-                        ws.projectId,
-                    );
-                    if (!deliverStatus) continue;
+                    const [deliverPushSt, deliverEmailSt] = await Promise.all([
+                        shouldDeliverProjectNotificationPush(app.prisma, member.userId, ws.projectId),
+                        shouldDeliverProjectNotificationEmail(app.prisma, member.userId, ws.projectId),
+                    ]);
+                    if (!deliverPushSt && !deliverEmailSt) continue;
                     void publishNotification(app.redis, {
                         userId: member.userId,
                         type: "TASK_STATUS_CHANGED",
                         title: `업무 상태가 '${newStatus.name}'(으)로 변경되었습니다`,
                         message: `${changerName}님이 '${updated.title}' 상태를 '${newStatus.name}'(으)로 변경했습니다.`,
-                        data: { taskId: updated.id, workspaceId, statusId: newStatus.id },
+                        data: {
+                            taskId: updated.id,
+                            workspaceId,
+                            statusId: newStatus.id,
+                            projectId: ws.projectId,
+                        },
+                        projectId: ws.projectId,
+                        push: deliverPushSt,
+                        email: deliverEmailSt,
                     }).catch((err) =>
                         app.log.error({ err }, "Failed to publish status change notification"),
                     );
