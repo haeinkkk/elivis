@@ -16,6 +16,7 @@ import { notificationRoutes } from "./routes/notification.routes";
 import { authRoutes } from "./routes/auth.routes";
 import { healthRoutes } from "./routes/health.routes";
 import { projectRoutes } from "./routes/project.routes";
+import { searchRoutes } from "./routes/search.routes";
 import { teamRoutes } from "./routes/team.routes";
 import { userRoutes } from "./routes/user.routes";
 import { workspaceRoutes } from "./routes/workspace.routes";
@@ -184,6 +185,7 @@ async function main() {
   await app.register(healthRoutes);
   await app.register(authRoutes,    { prefix: "/api" });
   await app.register(userRoutes,    { prefix: "/api" });
+  await app.register(searchRoutes,  { prefix: "/api" });
   await app.register(projectRoutes, { prefix: "/api" });
   await app.register(teamRoutes,      { prefix: "/api" });
   await app.register(workspaceRoutes, { prefix: "/api" });

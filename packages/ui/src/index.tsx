@@ -14,7 +14,7 @@ export { ProjectFavoriteButton } from "./ProjectFavoriteButton";
 export { TeamFavoriteButton } from "./TeamFavoriteButton";
 export { WorkspaceSidebarLabelModal } from "./WorkspaceSidebarLabelModal";
 
-export { AppHeader } from "./AppHeader";
+export { AppHeader, type QuickSearchResult } from "./AppHeader";
 export { AppSidebar, type SidebarSize } from "./AppSidebar";
 export { AdminHeader } from "./AdminHeader";
 export { AdminSidebar, type AdminSidebarSize } from "./AdminSidebar";

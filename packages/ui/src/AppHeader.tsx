@@ -12,11 +12,28 @@ import { StatusDropdown } from "./StatusDropdown";
 import type { UserProfile } from "./types/user-profile";
 import type { UserStatus } from "./types/user-status";
 import { toAvatarSrc } from "./utils/avatar";
+import { apiUrl } from "./utils/api-base-url";
+
+export type QuickSearchResult = {
+    teams: { id: string; name: string }[];
+    projects: { id: string; name: string; teamName: string | null }[];
+    tasks: {
+        id: string;
+        title: string;
+        workspaceId: string;
+        projectName: string;
+        workspaceLabel: string | null;
+    }[];
+};
 
 interface AppHeaderProps {
     onMenuClick: () => void;
     title?: string;
     user?: UserProfile | null;
+    /** 설정 시 헤더 검색이 `/api/search/quick`을 호출합니다. */
+    accessToken?: string | null;
+    /** Enter 시 호출(예: 전체 검색 페이지로 이동). 검색어는 trim 된 상태입니다. */
+    onSearchEnter?: (trimmedQuery: string) => void;
     logoutAction: NonNullable<ComponentProps<"form">["action"]>;
     persistUserStatus: (status: UserStatus) => Promise<{ ok: boolean }>;
     onSelectLocale: (locale: Locale) => void | Promise<void>;
@@ -26,6 +43,8 @@ export function AppHeader({
     onMenuClick,
     title = "",
     user,
+    accessToken = null,
+    onSearchEnter,
     logoutAction,
     persistUserStatus,
     onSelectLocale,
@@ -33,10 +52,90 @@ export function AppHeader({
     const t = useTranslations("header");
     const tCommon = useTranslations("common");
 
-    const [searchFocused, setSearchFocused] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
+    const [quickOpen, setQuickOpen] = useState(false);
+    const [quickLoading, setQuickLoading] = useState(false);
+    const [quickError, setQuickError] = useState(false);
+    const [quickData, setQuickData] = useState<QuickSearchResult | null>(null);
 
     const userMenuRef = useRef<HTMLDivElement | null>(null);
+    const quickSearchRef = useRef<HTMLDivElement | null>(null);
+    const quickInputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        const id = window.setTimeout(() => setDebouncedQuery(searchQuery.trim()), 280);
+        return () => window.clearTimeout(id);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        if (!accessToken || debouncedQuery.length < 1) {
+            setQuickData(null);
+            setQuickLoading(false);
+            setQuickError(false);
+            return;
+        }
+
+        const ac = new AbortController();
+        setQuickLoading(true);
+        setQuickError(false);
+
+        void (async () => {
+            try {
+                const res = await fetch(
+                    apiUrl(
+                        `/api/search/quick?${new URLSearchParams({ q: debouncedQuery, take: "8" })}`,
+                    ),
+                    {
+                        headers: { Authorization: `Bearer ${accessToken}` },
+                        signal: ac.signal,
+                    },
+                );
+                const json = (await res.json()) as { data?: QuickSearchResult };
+                if (!res.ok) throw new Error("search failed");
+                setQuickData(
+                    json.data ?? {
+                        teams: [],
+                        projects: [],
+                        tasks: [],
+                    },
+                );
+            } catch (e) {
+                if ((e as Error).name === "AbortError") return;
+                setQuickError(true);
+                setQuickData(null);
+            } finally {
+                if (!ac.signal.aborted) setQuickLoading(false);
+            }
+        })();
+
+        return () => ac.abort();
+    }, [accessToken, debouncedQuery]);
+
+    useEffect(() => {
+        if (!quickOpen) return;
+        const onPointerDown = (e: PointerEvent) => {
+            if (quickSearchRef.current && !quickSearchRef.current.contains(e.target as Node)) {
+                setQuickOpen(false);
+                quickInputRef.current?.blur();
+            }
+        };
+        document.addEventListener("pointerdown", onPointerDown);
+        return () => document.removeEventListener("pointerdown", onPointerDown);
+    }, [quickOpen]);
+
+    useEffect(() => {
+        if (!quickOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setQuickOpen(false);
+                quickInputRef.current?.blur();
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [quickOpen]);
 
     useEffect(() => {
         if (!userMenuOpen) return;
@@ -48,6 +147,13 @@ export function AppHeader({
         document.addEventListener("pointerdown", onPointerDown);
         return () => document.removeEventListener("pointerdown", onPointerDown);
     }, [userMenuOpen]);
+
+    const showQuickPanel =
+        !!accessToken && quickOpen && debouncedQuery.length >= 1;
+    const totalQuickHits =
+        (quickData?.teams.length ?? 0) +
+        (quickData?.projects.length ?? 0) +
+        (quickData?.tasks.length ?? 0);
 
     return (
         <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 bg-white/80 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
@@ -76,33 +182,150 @@ export function AppHeader({
             {/* 가운데: 검색 */}
             <div className="flex min-w-0 flex-1 items-center justify-center px-1 sm:justify-start">
                 <div
-                    className={`
-            hidden flex w-full items-center gap-2 rounded-xl border bg-stone-50/80 px-3 py-2 transition-all
-            sm:flex sm:max-w-[200px] md:max-w-xs lg:max-w-md
-            ${searchFocused ? "border-amber-300 ring-2 ring-amber-300/20" : "border-stone-200"}
-          `}
+                    ref={quickSearchRef}
+                    className="relative hidden w-full sm:block sm:max-w-[200px] md:max-w-xs lg:max-w-md"
                 >
-                    <svg
-                        className="h-4 w-4 shrink-0 text-stone-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
+                    <div
+                        className={`
+              flex w-full items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2 transition-all
+              focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-300/20
+            `}
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                        <svg
+                            className="h-4 w-4 shrink-0 text-stone-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            aria-hidden
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                            />
+                        </svg>
+                        <input
+                            ref={quickInputRef}
+                            type="search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key !== "Enter") return;
+                                const trimmed = searchQuery.trim();
+                                if (!onSearchEnter || trimmed.length < 1) return;
+                                e.preventDefault();
+                                onSearchEnter(trimmed);
+                                setSearchQuery("");
+                                setQuickOpen(false);
+                                quickInputRef.current?.blur();
+                            }}
+                            placeholder={t("searchPlaceholder")}
+                            aria-label={`${title} ${tCommon("search")}`}
+                            aria-expanded={showQuickPanel}
+                            aria-haspopup="listbox"
+                            autoComplete="off"
+                            onFocus={() => accessToken && setQuickOpen(true)}
+                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
                         />
-                    </svg>
-                    <input
-                        type="search"
-                        placeholder={t("searchPlaceholder")}
-                        aria-label={`${title} ${tCommon("search")}`}
-                        onFocus={() => setSearchFocused(true)}
-                        onBlur={() => setSearchFocused(false)}
-                        className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
-                    />
+                    </div>
+
+                    {showQuickPanel && (
+                        <div
+                            className="absolute left-0 right-0 top-full z-[60] mt-1 max-h-[min(70vh,24rem)] overflow-auto rounded-xl border border-stone-200 bg-white py-2 text-left shadow-lg"
+                            role="listbox"
+                        >
+                            {quickLoading && (
+                                <p className="px-3 py-2 text-sm text-stone-500">{t("searchLoading")}</p>
+                            )}
+                            {!quickLoading && quickError && (
+                                <p className="px-3 py-2 text-sm text-red-600">{t("searchError")}</p>
+                            )}
+                            {!quickLoading && !quickError && quickData && totalQuickHits === 0 && (
+                                <p className="px-3 py-2 text-sm text-stone-500">{t("searchEmpty")}</p>
+                            )}
+                            {!quickLoading && !quickError && quickData && quickData.teams.length > 0 && (
+                                <div className="mb-1">
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                        {t("searchSectionTeams")}
+                                    </p>
+                                    <ul className="space-y-0.5">
+                                        {quickData.teams.map((team) => (
+                                            <li key={team.id}>
+                                                <Link
+                                                    href={`/teams/${encodeURIComponent(team.id)}`}
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    onClick={() => {
+                                                        setQuickOpen(false);
+                                                        setSearchQuery("");
+                                                    }}
+                                                >
+                                                    <span className="truncate font-medium">{team.name}</span>
+                                                    <span className="text-xs text-stone-400">{t("searchHintTeam")}</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {!quickLoading && !quickError && quickData && quickData.projects.length > 0 && (
+                                <div className="mb-1">
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                        {t("searchSectionProjects")}
+                                    </p>
+                                    <ul className="space-y-0.5">
+                                        {quickData.projects.map((p) => (
+                                            <li key={p.id}>
+                                                <Link
+                                                    href={`/projects/${encodeURIComponent(p.id)}`}
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    onClick={() => {
+                                                        setQuickOpen(false);
+                                                        setSearchQuery("");
+                                                    }}
+                                                >
+                                                    <span className="truncate font-medium">{p.name}</span>
+                                                    <span className="truncate text-xs text-stone-400">
+                                                        {p.teamName
+                                                            ? `${p.teamName} · ${t("searchHintProject")}`
+                                                            : t("searchHintProject")}
+                                                    </span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {!quickLoading && !quickError && quickData && quickData.tasks.length > 0 && (
+                                <div>
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                        {t("searchSectionMyTasks")}
+                                    </p>
+                                    <ul className="space-y-0.5">
+                                        {quickData.tasks.map((task) => (
+                                            <li key={task.id}>
+                                                <Link
+                                                    href={`/mywork/${encodeURIComponent(task.workspaceId)}`}
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    onClick={() => {
+                                                        setQuickOpen(false);
+                                                        setSearchQuery("");
+                                                    }}
+                                                >
+                                                    <span className="truncate font-medium">{task.title}</span>
+                                                    <span className="truncate text-xs text-stone-400">
+                                                        {task.workspaceLabel
+                                                            ? `${task.workspaceLabel} · ${task.projectName}`
+                                                            : task.projectName}
+                                                    </span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 

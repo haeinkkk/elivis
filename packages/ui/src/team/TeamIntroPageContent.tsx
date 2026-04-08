@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { MarkdownContent } from "../MarkdownContent";
@@ -40,25 +39,18 @@ export function TeamIntroPageContent({
     const projects = team.projects ?? [];
     const projectCount = projects.length;
 
-    const leader = useMemo(
-        () => team.members.find((m) => m.role === "LEADER") ?? null,
-        [team.members],
-    );
+    const leader = team.members.find((m) => m.role === "LEADER") ?? null;
 
-    const sortedMembers = useMemo(() => {
-        return [...team.members].sort((a, b) => {
-            if (a.role !== b.role) return a.role === "LEADER" ? -1 : 1;
-            return displayUserName(a.user).localeCompare(displayUserName(b.user), locale, {
-                sensitivity: "base",
-            });
+    const sortedMembers = [...team.members].sort((a, b) => {
+        if (a.role !== b.role) return a.role === "LEADER" ? -1 : 1;
+        return displayUserName(a.user).localeCompare(displayUserName(b.user), locale, {
+            sensitivity: "base",
         });
-    }, [team.members, locale]);
+    });
 
-    const recentMembersPreview = useMemo(() => {
-        return [...team.members]
-            .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime())
-            .slice(0, MEMBERS_PREVIEW_MAX);
-    }, [team.members]);
+    const recentMembersPreview = [...team.members]
+        .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime())
+        .slice(0, MEMBERS_PREVIEW_MAX);
 
     const membersPreviewMode = Boolean(showFullRoster && onOpenMembersTab);
 

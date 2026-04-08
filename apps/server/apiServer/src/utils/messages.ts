@@ -192,6 +192,8 @@ export const MSG = {
     USER_NOTIFICATION_PREFS_FETCHED: "server.user.notificationPrefsFetched",
     USER_NOTIFICATION_PREFS_UPDATED: "server.user.notificationPrefsUpdated",
 
+    SEARCH_QUICK_FETCHED: "server.search.quickFetched",
+
     // ── 유효성 검사 ────────────────────────────────────────────────────────────
     VALIDATION_INVALID_STATUS: "server.validation.invalidStatus",
 

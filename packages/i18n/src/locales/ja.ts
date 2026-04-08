@@ -146,6 +146,9 @@ export const ja = {
       statusMinRequired:   "最低1つのステータスが必要です。",
       tasksFetched:   "タスク一覧を読み込みました。",
     },
+    search: {
+      quickFetched: "クイック検索の結果を読み込みました。",
+    },
     user: {
       profileFetched: "プロフィールの取得が完了しました。",
       updated:        "プロフィールを更新しました。",
@@ -267,6 +270,7 @@ export const ja = {
     nav: {
       myWork:        "マイワーク",
       myPerformance: "実績サマリー",
+      search:        "検索",
       teams:         "チーム",
       projects:      "プロジェクト",
       notifications: "通知",
@@ -790,7 +794,15 @@ export const ja = {
       nameRequired: "チーム名を入力してください。",
     },
     header: {
-      searchPlaceholder: "検索…",
+      searchPlaceholder: "チーム・プロジェクト・マイタスクを検索…",
+      searchLoading:     "検索中…",
+      searchEmpty:       "一致する項目がありません。",
+      searchError:       "検索に失敗しました。",
+      searchSectionTeams:    "チーム",
+      searchSectionProjects: "プロジェクト",
+      searchSectionMyTasks:  "マイタスク",
+      searchHintTeam:    "チーム",
+      searchHintProject: "プロジェクト",
       openMenu:          "メニューを開く",
       userMenu:          "ユーザーメニュー",
       mySettings:        "設定",
@@ -903,6 +915,24 @@ export const ja = {
       selectTeamForTimeline: "上のチームカードを選ぶと、そのチームのタスクタイムラインが表示されます。",
       timelineSectionTitle: "タスクタイムライン",
       timelineSectionDesc: "マイワークと同じ締切・ワークスペース別の一覧です。",
+    },
+    search: {
+      page: {
+        title: "検索結果",
+        resultFor: "「{q}」の検索結果",
+        emptyQuery:
+          "検索語を入力してください。ヘッダーの検索欄を使うか、下に入力して検索を押してください。",
+        noResults: "一致する項目がありません。",
+        loadError: "検索結果を読み込めませんでした。しばらくしてから再度お試しください。",
+        inputLabel: "検索語",
+        inputPlaceholder: "チーム・プロジェクト・マイタスクを検索…",
+        submit: "検索",
+        teamsTitle: "チーム",
+        projectsTitle: "プロジェクト",
+        tasksTitle: "マイタスク",
+        hintTeam: "チーム",
+        hintProject: "プロジェクト",
+      },
     },
     projects: {
       list: {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type {
@@ -687,9 +687,10 @@ export function ProjectTasksTab({
         { value: "dueDate", label: tList("sortDueDate") },
     ];
 
-    const filterVisibleTaskIds = useMemo(
-        () => computeVisibleTaskIdsForFilters(allEnrichedTasks, filterStatusName, filterPriorityName),
-        [allEnrichedTasks, filterStatusName, filterPriorityName],
+    const filterVisibleTaskIds = computeVisibleTaskIdsForFilters(
+        allEnrichedTasks,
+        filterStatusName,
+        filterPriorityName,
     );
 
     // 필터/정렬 적용된 전체 top-task 목록

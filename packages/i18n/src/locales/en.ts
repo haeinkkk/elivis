@@ -147,6 +147,9 @@ export const en = {
       statusAlreadyExists: "A status with this name already exists.",
       statusMinRequired:   "At least one status is required.",
     },
+    search: {
+      quickFetched: "Quick search results loaded.",
+    },
     user: {
       profileFetched: "Profile retrieved successfully.",
       updated:        "Profile updated successfully.",
@@ -269,6 +272,7 @@ export const en = {
     nav: {
       myWork:        "My Work",
       myPerformance: "Overview",
+      search:        "Search",
       teams:         "Teams",
       projects:      "Projects",
       notifications: "Notifications",
@@ -792,7 +796,15 @@ export const en = {
       nameRequired: "Please enter a team name.",
     },
     header: {
-      searchPlaceholder: "Search…",
+      searchPlaceholder: "Search teams, projects, my tasks…",
+      searchLoading:     "Searching…",
+      searchEmpty:       "No matching items.",
+      searchError:       "Search failed.",
+      searchSectionTeams:    "Teams",
+      searchSectionProjects: "Projects",
+      searchSectionMyTasks:  "My tasks",
+      searchHintTeam:    "Team",
+      searchHintProject: "Project",
       openMenu:          "Open menu",
       userMenu:          "User menu",
       mySettings:        "My Settings",
@@ -905,6 +917,24 @@ export const en = {
       selectTeamForTimeline: "Select a team card above to show its task timeline.",
       timelineSectionTitle: "Task timeline",
       timelineSectionDesc: "Same timeline as My work — by due date and workspace.",
+    },
+    search: {
+      page: {
+        title: "Search results",
+        resultFor: "Results for “{q}”",
+        emptyQuery:
+          "Enter a search term. Use the header search or type below and press Search.",
+        noResults: "No matching items.",
+        loadError: "Could not load search results. Please try again in a moment.",
+        inputLabel: "Search query",
+        inputPlaceholder: "Search teams, projects, my tasks…",
+        submit: "Search",
+        teamsTitle: "Teams",
+        projectsTitle: "Projects",
+        tasksTitle: "My tasks",
+        hintTeam: "Team",
+        hintProject: "Project",
+      },
     },
     projects: {
       list: {

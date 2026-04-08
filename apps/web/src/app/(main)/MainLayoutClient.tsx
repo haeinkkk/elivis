@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { logoutAction } from "@/app/actions/auth";
@@ -30,6 +30,7 @@ function getPageTitle(pathname: string | null, tNav: (key: string) => string): s
 
     const exact: Record<string, string> = {
         "/mywork": "myWork",
+        "/search": "search",
         "/teams": "teams",
         "/teams/new": "newTeam",
         "/projects": "projects",
@@ -72,6 +73,7 @@ export function MainLayoutClient({
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarSize, setSidebarSize] = useState<"expanded" | "collapsed" | "hidden">("expanded");
     const pathname = usePathname();
+    const router = useRouter();
     const title = getPageTitle(pathname, tNav);
 
     const {
@@ -125,6 +127,10 @@ export function MainLayoutClient({
                             onMenuClick={() => setSidebarOpen((o) => !o)}
                             title={title}
                             user={user}
+                            accessToken={accessToken}
+                            onSearchEnter={(q) =>
+                                router.push(`/search?q=${encodeURIComponent(q)}`)
+                            }
                             logoutAction={logoutAction}
                             persistUserStatus={async (s) => {
                                 const r = await updateStatusAction(s);

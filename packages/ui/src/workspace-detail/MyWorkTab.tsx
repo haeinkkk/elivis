@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
     closestCenter,
@@ -67,11 +67,10 @@ export function MyWorkTab({
     // ── 필터 적용 (하위 업무 포함) ──────────────────────────────────────────
     // 필터가 걸려있을 때는 "조건에 맞는 업무 + 그 업무의 모든 조상(상위)"를 visible 로 둬서
     // 2·3단이 조건에 맞더라도 화면에서 사라지지 않게 한다.
-    const visibleTaskIds = useMemo(() => {
-        const hasStatusFilter = filterStatusId !== "all";
-        const hasPriorityFilter = filterPriorityId !== "all";
-        if (!hasStatusFilter && !hasPriorityFilter) return null;
-
+    const hasStatusFilter = filterStatusId !== "all";
+    const hasPriorityFilter = filterPriorityId !== "all";
+    let visibleTaskIds: Set<string> | null = null;
+    if (hasStatusFilter || hasPriorityFilter) {
         const byId = new Map(tasks.map((t) => [t.id, t] as const));
         const visible = new Set<string>();
 
@@ -83,9 +82,7 @@ export function MyWorkTab({
 
         for (const t of tasks) {
             if (!matches(t)) continue;
-            // 자신
             visible.add(t.id);
-            // 조상 체인
             let cur: ApiWorkspaceTask | undefined = t;
             while (cur?.parentId) {
                 const p = byId.get(cur.parentId);
@@ -95,8 +92,8 @@ export function MyWorkTab({
             }
         }
 
-        return visible;
-    }, [tasks, filterStatusId, filterPriorityId]);
+        visibleTaskIds = visible;
+    }
 
     const filteredTopTasks = topTasks.filter((t) => !visibleTaskIds || visibleTaskIds.has(t.id));
 
@@ -128,22 +125,18 @@ export function MyWorkTab({
     const topTaskIds = displayTopTasks.map((t) => t.id);
 
     /** 1단 드래그 시 중첩 Sortable 행이 충돌 후보에 섞이지 않도록 droppable 을 최상위 id 로만 제한 */
-    const listCollisionDetection = useMemo<CollisionDetection>(() => {
-        return (args) => {
-            const activeId = String(args.active.id);
-            const dragging = tasks.find((t) => t.id === activeId);
-            if (dragging && !dragging.parentId) {
-                const allowed = new Set(displayTopTasks.map((t) => t.id));
-                const filtered = args.droppableContainers.filter((c) =>
-                    allowed.has(String(c.id)),
-                );
-                if (filtered.length > 0) {
-                    return closestCenter({ ...args, droppableContainers: filtered });
-                }
+    const listCollisionDetection: CollisionDetection = (args) => {
+        const activeIdStr = String(args.active.id);
+        const dragging = tasks.find((t) => t.id === activeIdStr);
+        if (dragging && !dragging.parentId) {
+            const allowed = new Set(displayTopTasks.map((t) => t.id));
+            const filtered = args.droppableContainers.filter((c) => allowed.has(String(c.id)));
+            if (filtered.length > 0) {
+                return closestCenter({ ...args, droppableContainers: filtered });
             }
-            return closestCenter(args);
-        };
-    }, [tasks, displayTopTasks]);
+        }
+        return closestCenter(args);
+    };
 
     // 보드: 상태 필터 적용
     const displayStatuses = filterStatusId === "all"
@@ -151,12 +144,8 @@ export function MyWorkTab({
         : sortedStatuses.filter((s) => s.id === filterStatusId);
 
     // 필터 드롭다운: 워크스페이스 order 가 아니라 사용자가 지정한 상태 이름 순
-    const statusesForFilter = useMemo(
-        () =>
-            [...statuses].sort((a, b) =>
-                a.name.localeCompare(b.name, locale, { sensitivity: "base" }),
-            ),
-        [statuses, locale],
+    const statusesForFilter = [...statuses].sort((a, b) =>
+        a.name.localeCompare(b.name, locale, { sensitivity: "base" }),
     );
 
     // 필터/정렬 옵션

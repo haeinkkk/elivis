@@ -146,6 +146,9 @@ export const ko = {
             statusAlreadyExists: "같은 이름의 상태가 이미 있습니다.",
             statusMinRequired: "최소 1개의 상태가 필요합니다.",
         },
+        search: {
+            quickFetched: "빠른 검색 결과를 불러왔습니다.",
+        },
         user: {
             profileFetched: "프로필 조회가 완료되었습니다.",
             updated: "프로필이 수정되었습니다.",
@@ -272,6 +275,7 @@ export const ko = {
         nav: {
             myWork: "할 일",
             myPerformance: "전체 실적",
+            search: "검색",
             teams: "팀",
             projects: "프로젝트",
             notifications: "알림",
@@ -794,7 +798,15 @@ export const ko = {
             nameRequired: "팀 이름을 입력해 주세요.",
         },
         header: {
-            searchPlaceholder: "검색…",
+            searchPlaceholder: "팀, 프로젝트, 내 업무 검색…",
+            searchLoading: "검색 중…",
+            searchEmpty: "일치하는 항목이 없습니다.",
+            searchError: "검색에 실패했습니다.",
+            searchSectionTeams: "팀",
+            searchSectionProjects: "프로젝트",
+            searchSectionMyTasks: "내 업무",
+            searchHintTeam: "팀",
+            searchHintProject: "프로젝트",
             openMenu: "메뉴 열기",
             userMenu: "사용자 메뉴",
             mySettings: "내 설정",
@@ -906,6 +918,24 @@ export const ko = {
             selectTeamForTimeline: "위 팀 카드를 선택하면 해당 팀의 업무 타임라인이 표시됩니다.",
             timelineSectionTitle: "업무 타임라인",
             timelineSectionDesc: "마감일·워크스페이스별로 모든 업무를 할 일 화면과 동일하게 볼 수 있습니다.",
+        },
+        search: {
+            page: {
+                title: "검색 결과",
+                resultFor: "「{q}」에 대한 결과",
+                emptyQuery:
+                    "검색어를 입력해 주세요. 헤더 검색창에서 검색하거나, 아래에 검색어를 입력한 뒤 검색을 누르세요.",
+                noResults: "일치하는 항목이 없습니다.",
+                loadError: "검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                inputLabel: "검색어",
+                inputPlaceholder: "팀, 프로젝트, 내 업무 검색…",
+                submit: "검색",
+                teamsTitle: "팀",
+                projectsTitle: "프로젝트",
+                tasksTitle: "내 업무",
+                hintTeam: "팀",
+                hintProject: "프로젝트",
+            },
         },
         projects: {
             list: {
