@@ -109,7 +109,7 @@ export function MainLayoutClient({
             }}
         >
             <UserStatusProvider initialStatus={user?.status ?? "WORKING"}>
-                <div className="flex h-screen bg-[#f8f7f5]">
+                <div className="flex h-screen bg-[#f8f7f5] dark:bg-elivis-bg">
                     <TopLoadingBar />
                     <AppSidebar
                         open={sidebarOpen}

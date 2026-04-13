@@ -13,6 +13,7 @@ import {
     type DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { ElivisFilterSelect } from "../ElivisFilterSelect";
 import TaskDetailPanel from "../workspace/TaskDetailPanel";
 import type { ApiWorkspacePriority, ApiWorkspaceStatus, ApiWorkspaceTask } from "../types/workspace-api";
 import type { WorkspaceDetailMyWorkMutations } from "../types/workspace-detail-mutations";
@@ -20,7 +21,6 @@ import type { WorkspaceTaskDetailActions } from "../types/workspace-task-detail-
 import { formatTaskTitleForList } from "../utils/task-title-display";
 
 import { DroppableColumn } from "./DroppableColumn";
-import { FilterSortDropdown } from "./FilterSortDropdown";
 import { InlineAddForm } from "./InlineAddForm";
 import { SortableTaskRow } from "./TaskRows";
 import type { MyWorkView, SortBy } from "./types";
@@ -55,10 +55,17 @@ export function MyWorkTab({
     const [filterStatusId, setFilterStatusId] = useState<string>("all");
     const [filterPriorityId, setFilterPriorityId] = useState<string>("all");
     const [sortBy, setSortBy] = useState<SortBy>("default");
+    const [expandKey, setExpandKey] = useState(0);
+    const [globalDefaultExpanded, setGlobalDefaultExpanded] = useState(true);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     );
+
+    function handleToggleExpandCollapseSubtasks() {
+        setGlobalDefaultExpanded((prev) => !prev);
+        setExpandKey((k) => k + 1);
+    }
 
     const topTasks = tasks.filter((t) => !t.parentId);
     const sortedStatuses = [...statuses].sort((a, b) => a.order - b.order || a.createdAt.localeCompare(b.createdAt));
@@ -241,43 +248,54 @@ export function MyWorkTab({
     return (
         <div className="flex h-full flex-col">
             {/* 툴바 */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 bg-white px-4 py-2 sm:px-5">
+            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 sm:px-5">
                 {/* 뷰 토글 */}
-                <div className="flex rounded-lg border border-stone-200 bg-stone-50 p-0.5">
+                <div className="flex rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface p-0.5">
                     {(["list", "board"] as const).map((v) => (
                         <button key={v} type="button" onClick={() => setView(v)}
-                            className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === v ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"}`}>
+                            className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                                view === v
+                                    ? "bg-white text-stone-800 shadow-sm dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:shadow-none"
+                                    : "text-stone-500 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
+                            }`}
+                        >
                             {v === "list" ? t("toolbar.list") : t("toolbar.board")}
                         </button>
                     ))}
                 </div>
 
                 {/* 구분선 */}
-                <div className="h-4 w-px bg-stone-200" />
+                <div className="h-4 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                 {/* 필터 */}
-                <FilterSortDropdown
+                <ElivisFilterSelect
                     value={filterStatusId}
                     options={statusOptions}
                     onChange={setFilterStatusId}
                     label={t("toolbar.filterStatus")}
+                    searchPlaceholder={t("toolbar.filterSearchPlaceholder")}
+                    noResultsText={t("toolbar.filterNoResults")}
                 />
-                <FilterSortDropdown
+                <ElivisFilterSelect
                     value={filterPriorityId}
                     options={priorityOptions}
                     onChange={setFilterPriorityId}
                     label={t("toolbar.filterPriority")}
+                    searchPlaceholder={t("toolbar.filterSearchPlaceholder")}
+                    noResultsText={t("toolbar.filterNoResults")}
                 />
 
                 {/* 구분선 */}
-                <div className="h-4 w-px bg-stone-200" />
+                <div className="h-4 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                 {/* 정렬 */}
-                <FilterSortDropdown
+                <ElivisFilterSelect
                     value={sortBy}
                     options={sortOptions}
                     onChange={setSortBy}
                     label={t("toolbar.sort")}
+                    searchPlaceholder={t("toolbar.filterSearchPlaceholder")}
+                    noResultsText={t("toolbar.filterNoResults")}
                 />
 
                 {/* 필터/정렬 초기화 */}
@@ -285,7 +303,7 @@ export function MyWorkTab({
                     <button
                         type="button"
                         onClick={() => { setFilterStatusId("all"); setFilterPriorityId("all"); setSortBy("default"); }}
-                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                     >
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -294,10 +312,27 @@ export function MyWorkTab({
                     </button>
                 )}
 
-                {/* 우측: 업무 추가 */}
-                <div className="ml-auto">
+                {/* 우측: 하위 일괄 펼침·접기 / 업무 추가 */}
+                <div className="ml-auto flex items-center gap-1">
+                    {view === "list" && topTasks.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={handleToggleExpandCollapseSubtasks}
+                            title={globalDefaultExpanded ? t("toolbar.collapseAllTitle") : t("toolbar.expandAllTitle")}
+                            className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:border-elivis-line dark:hover:bg-elivis-surface-elevated"
+                        >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {globalDefaultExpanded ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                )}
+                            </svg>
+                            {globalDefaultExpanded ? t("toolbar.collapseAll") : t("toolbar.expandAll")}
+                        </button>
+                    )}
                     <button type="button" onClick={() => setAddingTop(true)}
-                        className="flex items-center gap-1.5 rounded-lg bg-stone-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-stone-700">
+                        className="flex items-center gap-1.5 rounded-lg bg-stone-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-stone-700 dark:bg-elivis-accent dark:hover:bg-elivis-accent-hover">
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
@@ -306,7 +341,7 @@ export function MyWorkTab({
                 </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto">
+            <div className="min-h-0 flex-1 overflow-auto bg-white dark:bg-elivis-bg">
                 {/* ── 리스트 뷰 ── */}
                 {view === "list" && (
                     <DndContext id="workspace-list-dnd" sensors={sensors} collisionDetection={listCollisionDetection}
@@ -315,14 +350,14 @@ export function MyWorkTab({
                         <SortableContext items={topTaskIds} strategy={verticalListSortingStrategy}>
                             <table className="w-full text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-stone-200 bg-stone-50/60">
+                                    <tr className="border-b border-stone-200 bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface-elevated/40">
                                         <th className="w-6 py-2 pl-2" />
-                                        <th className="py-2 pr-3 pl-1 text-left text-xs font-medium text-stone-500">{t("table.task")}</th>
-                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">{t("table.status")}</th>
-                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500">{t("table.priority")}</th>
-                                        <th className="hidden py-2 pr-3 text-center text-xs font-medium text-stone-500 sm:table-cell">{t("table.assignee")}</th>
-                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">{t("table.startDate")}</th>
-                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 md:table-cell">{t("table.dueDate")}</th>
+                                        <th className="py-2 pr-3 pl-1 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("table.task")}</th>
+                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("table.status")}</th>
+                                        <th className="py-2 pr-2 text-center text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("table.priority")}</th>
+                                        <th className="hidden py-2 pr-3 text-center text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary sm:table-cell">{t("table.assignee")}</th>
+                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary md:table-cell">{t("table.startDate")}</th>
+                                        <th className="hidden py-2 pr-2 text-center text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary md:table-cell">{t("table.dueDate")}</th>
                                         <th className="w-16 py-2 pr-2" />
                                     </tr>
                                 </thead>
@@ -345,11 +380,13 @@ export function MyWorkTab({
                                             onStatusesChange={onStatusesChange} onPrioritiesChange={onPrioritiesChange}
                                             onOpenPanel={(t) => setPanelTask(t)}
                                             myWorkMutations={myWorkMutations}
+                                            expandKey={expandKey}
+                                            defaultExpanded={globalDefaultExpanded}
                                         />
                                     ))}
                                     {!addingTop && displayTopTasks.length === 0 && (
                                         <tr>
-                                            <td colSpan={8} className="py-12 text-center text-sm text-stone-400">
+                                            <td colSpan={8} className="py-12 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">
                                                 {topTasks.length === 0 ? t("empty.noTasks") : t("empty.noTasksFilter")}
                                             </td>
                                         </tr>
@@ -359,7 +396,7 @@ export function MyWorkTab({
                         </SortableContext>
                         <DragOverlay>
                             {activeTask && (
-                                <div className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold shadow-lg opacity-90">
+                                <div className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 shadow-lg opacity-90 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:shadow-none">
                                     {formatTaskTitleForList(activeTask.title)}
                                 </div>
                             )}
@@ -403,8 +440,8 @@ export function MyWorkTab({
                         </div>
                         <DragOverlay>
                             {activeTask && (
-                                <div className="w-[260px] rounded-lg border border-stone-300 bg-white p-3 shadow-xl opacity-95">
-                                    <p className="text-sm font-medium text-stone-800">{formatTaskTitleForList(activeTask.title)}</p>
+                                <div className="w-[260px] rounded-lg border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface p-3 shadow-xl opacity-95">
+                                    <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">{formatTaskTitleForList(activeTask.title)}</p>
                                 </div>
                             )}
                         </DragOverlay>

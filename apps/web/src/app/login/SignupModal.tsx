@@ -57,15 +57,15 @@ export function SignupModal({
                 if (e.target === e.currentTarget && !isPending) onClose();
             }}
         >
-            <div className="relative w-full max-w-[400px] rounded-2xl border border-stone-200/80 bg-white shadow-xl shadow-stone-300/40">
-                <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-5 py-3">
-                    <h2 id="signup-modal-title" className="text-base font-semibold text-stone-800">
+            <div className="relative w-full max-w-[400px] rounded-2xl border border-stone-200/80 bg-white dark:bg-elivis-surface shadow-xl shadow-stone-300/40">
+                <div className="flex items-center justify-between gap-3 border-b border-stone-100 dark:border-elivis-line px-5 py-3">
+                    <h2 id="signup-modal-title" className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                         {t("title")}
                     </h2>
                     <button
                         type="button"
                         onClick={() => !isPending && onClose()}
-                        className="rounded-lg px-2 py-1 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-800"
+                        className="rounded-lg px-2 py-1 text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-800"
                         aria-label={tAuth("signupModalClose")}
                     >
                         {tAuth("signupModalClose")}

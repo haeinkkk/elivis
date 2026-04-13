@@ -10,8 +10,8 @@ export default async function AdminDashboardPage() {
 
     if (!users) {
         return (
-            <div className="w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-stone-600">{t("loadError")}</p>
+            <div className="w-full rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("loadError")}</p>
             </div>
         );
     }
@@ -21,25 +21,25 @@ export default async function AdminDashboardPage() {
 
     return (
         <div className="w-full max-w-full">
-            <p className="text-stone-600">{t("intro")}</p>
+            <p className="text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:mt-8">
-                <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                    <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+                <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 shadow-sm">
+                    <p className="text-xs font-medium uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                         {t("statUsers")}
                     </p>
-                    <p className="mt-2 text-3xl font-semibold text-stone-800">{total}</p>
+                    <p className="mt-2 text-3xl font-semibold text-stone-800 dark:text-elivis-ink">{total}</p>
                 </div>
-                <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                    <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+                <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 shadow-sm">
+                    <p className="text-xs font-medium uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                         {tRole("SUPER_ADMIN")}
                     </p>
-                    <p className="mt-2 text-3xl font-semibold text-stone-800">
+                    <p className="mt-2 text-3xl font-semibold text-stone-800 dark:text-elivis-ink">
                         {superAdminCount}
                     </p>
                 </div>
-                <div className="rounded-2xl border border-dashed border-stone-200 bg-white/50 p-5 sm:col-span-2 lg:col-span-1">
-                    <p className="text-sm font-medium text-stone-700">{t("quickLinks")}</p>
+                <div className="rounded-2xl border border-dashed border-stone-200 dark:border-elivis-line bg-white/50 p-5 dark:bg-elivis-surface/40 sm:col-span-2 lg:col-span-1">
+                    <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("quickLinks")}</p>
                     <Link
                         href="/admin/users"
                         className="mt-3 inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
@@ -62,8 +62,8 @@ export default async function AdminDashboardPage() {
                 </div>
             </div>
 
-            <div className="mt-8 rounded-2xl border border-dashed border-stone-200 bg-white/50 p-6 sm:p-8">
-                <p className="text-sm text-stone-500">{t("footer")}</p>
+            <div className="mt-8 rounded-2xl border border-dashed border-stone-200 dark:border-elivis-line bg-white/50 p-6 dark:bg-elivis-surface/40 sm:p-8">
+                <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("footer")}</p>
             </div>
         </div>
     );

@@ -78,20 +78,20 @@ export default function TaskDetailPanel({
     const content = (
         <>
             <div
-                className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-[1px]"
+                className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-[1px] dark:bg-black/50"
                 onClick={onClose}
                 aria-hidden
             />
 
             <div
-                className="fixed inset-y-0 right-0 z-[9999] flex w-full max-w-2xl flex-col border-l border-stone-200 bg-white shadow-2xl"
+                className="fixed inset-y-0 right-0 z-[9999] flex w-full max-w-2xl flex-col border-l border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-2xl"
                 style={{ animation: "slideInRight 200ms ease-out" }}
             >
-                <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3">
+                <div className="flex items-center justify-between border-b border-stone-200 dark:border-elivis-line px-5 py-3">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-stone-900">{t("taskDetail.title")}</span>
+                        <span className="text-sm font-bold text-stone-900 dark:text-elivis-ink">{t("taskDetail.title")}</span>
                         {readOnly && (
-                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-400">
+                            <span className="rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-[10px] font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                 읽기 전용
                             </span>
                         )}
@@ -99,7 +99,7 @@ export default function TaskDetailPanel({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="rounded-lg p-1.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600 dark:hover:text-elivis-ink"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
@@ -128,11 +128,11 @@ export default function TaskDetailPanel({
                             }}
                             disabled={isPending}
                             readOnly={readOnly}
-                            className={`min-h-[2.5rem] min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-0 bg-transparent px-0 py-0.5 text-lg font-bold leading-snug text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 break-words whitespace-pre-wrap ${readOnly ? "cursor-default select-text" : ""}`}
+                            className={`min-h-[2.5rem] min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-0 bg-transparent px-0 py-0.5 text-lg font-bold leading-snug text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 break-words whitespace-pre-wrap dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted ${readOnly ? "cursor-default select-text" : ""}`}
                             placeholder={t("taskDetail.taskTitlePlaceholder")}
                         />
                         {task.assignee && (
-                            <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1">
+                            <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface-elevated px-2.5 py-1">
                                 {task.assignee.avatarUrl ? (
                                     <img
                                         src={task.assignee.avatarUrl}
@@ -140,21 +140,21 @@ export default function TaskDetailPanel({
                                         alt=""
                                     />
                                 ) : (
-                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-300 text-[10px] font-semibold text-stone-600">
+                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-300 dark:bg-elivis-surface-elevated text-[10px] font-semibold text-stone-600 dark:text-elivis-ink-secondary">
                                         {(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}
                                     </span>
                                 )}
-                                <span className="text-xs font-medium text-stone-600">
+                                <span className="text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                     {task.assignee.name ?? task.assignee.email}
                                 </span>
                             </div>
                         )}
                     </div>
 
-                    <div className="space-y-2 rounded-xl border border-stone-100 bg-stone-50/60 px-4 py-3">
+                    <div className="space-y-2 rounded-xl border border-stone-100 dark:border-elivis-line bg-stone-50/60 px-4 py-3 dark:bg-elivis-surface-elevated">
                         <div className="grid grid-cols-2 gap-x-4">
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("taskDetail.status")}
                                 </span>
                                 <TaskDetailSimpleSelect
@@ -167,7 +167,7 @@ export default function TaskDetailPanel({
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("taskDetail.priority")}
                                 </span>
                                 <TaskDetailSimpleSelect
@@ -183,7 +183,7 @@ export default function TaskDetailPanel({
                         </div>
                         <div className="grid grid-cols-2 gap-x-4">
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("taskDetail.startDate")}
                                 </span>
                                 <input
@@ -191,11 +191,11 @@ export default function TaskDetailPanel({
                                     defaultValue={task.startDate?.slice(0, 10) ?? ""}
                                     disabled={isPending || readOnly}
                                     onChange={(e) => !readOnly && update({ startDate: e.target.value || null })}
-                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
+                                    className="rounded border border-stone-200 dark:border-elivis-line bg-white px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70 dark:bg-elivis-surface dark:text-elivis-ink dark:focus:border-elivis-ink-muted"
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400">
+                                <span className="w-14 shrink-0 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("taskDetail.dueDate")}
                                 </span>
                                 <input
@@ -203,7 +203,7 @@ export default function TaskDetailPanel({
                                     defaultValue={task.dueDate?.slice(0, 10) ?? ""}
                                     disabled={isPending || readOnly}
                                     onChange={(e) => !readOnly && update({ dueDate: e.target.value || null })}
-                                    className="rounded border border-stone-200 px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
+                                    className="rounded border border-stone-200 dark:border-elivis-line bg-white px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70 dark:bg-elivis-surface dark:text-elivis-ink dark:focus:border-elivis-ink-muted"
                                 />
                             </div>
                         </div>
@@ -232,7 +232,7 @@ export default function TaskDetailPanel({
                     />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 border-t border-stone-100 px-5 py-2.5">
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-stone-100 dark:border-elivis-line px-5 py-2.5">
                     <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusColor.badge}`}
                     >
@@ -247,7 +247,7 @@ export default function TaskDetailPanel({
                             {task.priority.name}
                         </span>
                     )}
-                    <span className="ml-auto text-[10px] text-stone-300">
+                    <span className="ml-auto text-[10px] text-stone-300 dark:text-elivis-ink-muted">
                         {t("taskDetail.created")} {new Date(task.createdAt).toLocaleDateString(locale)}
                     </span>
                 </div>
@@ -266,10 +266,17 @@ export default function TaskDetailPanel({
                     height: 0;
                     font-size: 0.875rem;
                 }
+                .dark .tiptap p.is-editor-empty:first-child::before {
+                    color: rgb(108 108 108);
+                }
                 .tiptap { outline: none; }
                 .tiptap p { margin: 0.25rem 0; }
                 .tiptap ul, .tiptap ol { padding-left: 1.25rem; margin: 0.25rem 0; }
                 .tiptap blockquote { border-left: 2px solid #d6d3d1; padding-left: 0.75rem; color: #78716c; margin: 0.25rem 0; }
+                .dark .tiptap blockquote {
+                    border-left-color: rgb(42 42 42);
+                    color: rgb(160 160 160);
+                }
                 .tiptap strong { font-weight: 600; }
                 .tiptap em { font-style: italic; }
                 .tiptap s { text-decoration: line-through; }

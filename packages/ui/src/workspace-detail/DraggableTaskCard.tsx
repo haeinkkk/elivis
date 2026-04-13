@@ -113,17 +113,21 @@ export function DraggableTaskCard({
             />
         )}
         <div ref={setNodeRef} style={style}
-            className={`rounded-lg border border-stone-200 bg-white p-3 shadow-sm transition-opacity ${isPending ? "opacity-50" : ""}`}>
+            className={`rounded-lg border border-stone-200 bg-white p-3 shadow-sm transition-opacity dark:border-elivis-line dark:bg-elivis-surface dark:shadow-none ${isPending ? "opacity-50" : ""}`}>
             {/* 드래그 핸들 + 삭제 */}
             <div className="mb-1.5 flex items-center justify-between gap-1">
                 <button type="button" {...attributes} {...listeners}
-                    className="cursor-grab touch-none text-stone-300 hover:text-stone-400 active:cursor-grabbing" title="드래그">
+                    className="cursor-grab touch-none text-stone-300 hover:text-stone-400 active:cursor-grabbing dark:text-elivis-ink-muted dark:hover:text-elivis-ink-secondary"
+                    title="드래그"
+                >
                     <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8-16a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
                     </svg>
                 </button>
                 <button type="button" onClick={() => startTransition(async () => { const res = await myWorkMutations.deleteWorkspaceTask(workspaceId, task.id); if (res.ok) onDelete(task.id); })}
-                    disabled={isPending} className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 hover:text-red-400">
+                    disabled={isPending}
+                    className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 dark:text-elivis-ink-muted dark:hover:bg-red-950/40 hover:text-red-400 dark:hover:text-red-400"
+                >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -145,7 +149,7 @@ export function DraggableTaskCard({
                             }
                         }}
                         disabled={isPending}
-                        className="w-full rounded border border-stone-200 bg-white px-1 py-0.5 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+                        className="w-full rounded border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-1 py-0.5 text-sm font-medium text-stone-800 dark:text-elivis-ink outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
                     />
                 ) : (
                     <>
@@ -154,12 +158,12 @@ export function DraggableTaskCard({
                                 type="button"
                                 onClick={() => onOpenPanel(task)}
                                 title={task.title}
-                                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+                                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 dark:text-elivis-ink hover:underline"
                             >
                                 {formatTaskTitleForList(task.title)}
                             </button>
                         ) : (
-                            <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">{formatTaskTitleForList(task.title)}</span>
+                            <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800 dark:text-elivis-ink">{formatTaskTitleForList(task.title)}</span>
                         )}
                         <button
                             type="button"
@@ -167,7 +171,7 @@ export function DraggableTaskCard({
                                 setTitleDraft(task.title);
                                 setEditingTitle(true);
                             }}
-                            className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover/title:opacity-100"
+                            className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 dark:text-elivis-ink-muted dark:hover:bg-elivis-surface-elevated hover:text-stone-600 dark:hover:text-elivis-ink-secondary group-hover/title:opacity-100"
                             title={t("taskRow.editTitle")}
                             aria-label={t("taskRow.editTitle")}
                         >
@@ -197,7 +201,7 @@ export function DraggableTaskCard({
                 />
             </div>
             {(task.startDate || task.dueDate) && (
-                <div className="mt-1.5 flex items-center gap-1 text-xs text-stone-500">
+                <div className="mt-1.5 flex items-center gap-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                     {task.startDate && <span>{new Date(task.startDate).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>}
                     {task.startDate && task.dueDate && <span>~</span>}
                     {task.dueDate && <span>{new Date(task.dueDate).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>}

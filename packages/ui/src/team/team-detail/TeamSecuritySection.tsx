@@ -67,13 +67,13 @@ export function TeamSecuritySection({
     return (
         <div className="space-y-10">
             <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">{t("security.hideTeam.title")}</h2>
-                <p className="text-sm text-stone-500">{t("security.hideTeam.desc")}</p>
+                <h2 className="mb-1 text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("security.hideTeam.title")}</h2>
+                <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("security.hideTeam.desc")}</p>
                 {isLeader ? (
-                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3">
+                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 px-4 py-3">
                         <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-stone-800 focus:ring-stone-400"
+                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 dark:border-elivis-line text-stone-800 dark:text-elivis-ink focus:ring-stone-400"
                             checked={hiddenFromUsers}
                             disabled={hiddenPending}
                             onChange={(e) => {
@@ -94,34 +94,34 @@ export function TeamSecuritySection({
                                 });
                             }}
                         />
-                        <span className="text-sm text-stone-800">{t("security.hideTeam.toggleLabel")}</span>
+                        <span className="text-sm text-stone-800 dark:text-elivis-ink">{t("security.hideTeam.toggleLabel")}</span>
                     </label>
                 ) : (
-                    <p className="mt-4 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-600">
+                    <p className="mt-4 rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">
                         {hiddenFromUsers
                             ? t("security.hideTeam.stateHidden")
                             : t("security.hideTeam.stateVisible")}
-                        <span className="block text-stone-400">{t("security.hideTeam.leaderOnlyNote")}</span>
+                        <span className="block text-stone-400 dark:text-elivis-ink-secondary">{t("security.hideTeam.leaderOnlyNote")}</span>
                     </p>
                 )}
-                {hiddenError ? <p className="mt-2 text-sm text-red-600">{hiddenError}</p> : null}
+                {hiddenError ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{hiddenError}</p> : null}
             </div>
 
-            <div className="h-px bg-stone-100" />
+            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
             <div>
-                <h2 className="mb-1 text-base font-semibold text-stone-800">{t("security.deleteTeam.title")}</h2>
-                <p className="text-sm text-stone-500">{t("security.deleteTeam.desc")}</p>
+                <h2 className="mb-1 text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("security.deleteTeam.title")}</h2>
+                <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("security.deleteTeam.desc")}</p>
                 {isLeader ? (
                     <button
                         type="button"
                         onClick={openDeleteNameModal}
-                        className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+                        className="mt-4 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-4 py-2 text-sm font-medium text-red-700 dark:text-red-300 transition hover:bg-red-100"
                     >
                         {t("security.deleteTeam.button")}
                     </button>
                 ) : (
-                    <p className="mt-4 text-sm text-stone-400">{t("security.deleteTeam.leaderOnlyNote")}</p>
+                    <p className="mt-4 text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("security.deleteTeam.leaderOnlyNote")}</p>
                 )}
             </div>
 
@@ -133,16 +133,16 @@ export function TeamSecuritySection({
                         onClick={() => !deletePending && closeDeleteModals()}
                     />
                     <div
-                        className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+                        className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-xl"
                         role="dialog"
                         aria-modal
                         aria-labelledby="team-delete-name-title"
                     >
-                        <h3 id="team-delete-name-title" className="text-base font-semibold text-stone-800">
+                        <h3 id="team-delete-name-title" className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                             {t("security.deleteTeam.modalName.title")}
                         </h3>
-                        <p className="mt-2 text-sm text-stone-600">{t("security.deleteTeam.modalName.desc")}</p>
-                        <p className="mt-1 font-mono text-sm font-medium text-stone-800">{team.name}</p>
+                        <p className="mt-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("security.deleteTeam.modalName.desc")}</p>
+                        <p className="mt-1 font-mono text-sm font-medium text-stone-800 dark:text-elivis-ink">{team.name}</p>
                         <input
                             type="text"
                             value={deleteNameInput}
@@ -153,15 +153,15 @@ export function TeamSecuritySection({
                             disabled={deletePending}
                             autoComplete="off"
                             placeholder={t("security.deleteTeam.modalName.placeholder")}
-                            className="mt-4 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
+                            className="mt-4 w-full rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
                         />
-                        {deleteError ? <p className="mt-2 text-sm text-red-600">{deleteError}</p> : null}
+                        {deleteError ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p> : null}
                         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
                                 onClick={closeDeleteModals}
                                 disabled={deletePending}
-                                className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                                className="rounded-lg border border-stone-200 dark:border-elivis-line px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                             >
                                 {t("common.cancel")}
                             </button>
@@ -186,15 +186,15 @@ export function TeamSecuritySection({
                         onClick={() => !deletePending && setDeleteConfirmModalOpen(false)}
                     />
                     <div
-                        className="fixed left-1/2 top-1/2 z-[55] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+                        className="fixed left-1/2 top-1/2 z-[55] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-xl"
                         role="dialog"
                         aria-modal
                         aria-labelledby="team-delete-confirm-title"
                     >
-                        <h3 id="team-delete-confirm-title" className="text-base font-semibold text-stone-800">
+                        <h3 id="team-delete-confirm-title" className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                             {t("security.deleteTeam.modalConfirm.title")}
                         </h3>
-                        <p className="mt-2 text-sm text-stone-600">{t("security.deleteTeam.modalConfirm.desc")}</p>
+                        <p className="mt-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("security.deleteTeam.modalConfirm.desc")}</p>
                         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
@@ -203,7 +203,7 @@ export function TeamSecuritySection({
                                     setDeleteNameModalOpen(true);
                                 }}
                                 disabled={deletePending}
-                                className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                                className="rounded-lg border border-stone-200 dark:border-elivis-line px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                             >
                                 {t("common.back")}
                             </button>

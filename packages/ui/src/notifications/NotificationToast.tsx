@@ -94,25 +94,25 @@ function ToastCard({
     return (
         <div
             role="status"
-            className={`pointer-events-auto flex gap-3 rounded-xl border border-stone-200/90 bg-white/95 px-3.5 py-3 shadow-lg shadow-stone-900/10 backdrop-blur-sm transition-all duration-300 ease-out ${
+            className={`pointer-events-auto flex gap-3 rounded-xl border border-stone-200/90 bg-white/95 px-3.5 py-3 shadow-lg shadow-stone-900/10 backdrop-blur-sm transition-all duration-300 ease-out dark:border-elivis-line dark:bg-elivis-surface/95 dark:shadow-none ${
                 entered ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
-            } ${href ? "cursor-pointer hover:bg-stone-50/90" : ""}`}
+            } ${href ? "cursor-pointer hover:bg-stone-50/90 dark:hover:bg-elivis-surface-elevated/90" : ""}`}
             onClick={() => {
                 if (href) onNavigate(href);
             }}
         >
-            <div className="mt-0.5 shrink-0 text-stone-500">
+            <div className="mt-0.5 shrink-0 text-stone-500 dark:text-elivis-ink-secondary">
                 <NotificationTypeIcon type={n.type} size="md" />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-snug text-stone-900">{n.title}</p>
+                <p className="text-sm font-semibold leading-snug text-stone-900 dark:text-elivis-ink">{n.title}</p>
                 {n.message && (
-                    <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-stone-500">
+                    <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-stone-500 dark:text-elivis-ink-secondary">
                         {n.message}
                     </p>
                 )}
                 {href && (
-                    <p className="mt-1.5 text-[11px] font-medium text-stone-400">클릭하여 이동</p>
+                    <p className="mt-1.5 text-[11px] font-medium text-stone-400 dark:text-elivis-ink-secondary">클릭하여 이동</p>
                 )}
             </div>
             <button
@@ -121,7 +121,7 @@ function ToastCard({
                     e.stopPropagation();
                     onDismiss(toastKey);
                 }}
-                className="shrink-0 rounded-lg p-1 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                className="shrink-0 rounded-lg p-1 text-stone-400 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                 aria-label="닫기"
             >
                 <svg

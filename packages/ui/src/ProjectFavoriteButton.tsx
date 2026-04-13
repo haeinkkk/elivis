@@ -65,7 +65,7 @@ export function ProjectFavoriteButton({
                 className={`flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${btnSize} ${
                     isFavorite
                         ? "text-amber-400 hover:text-amber-300"
-                        : "text-stone-300 hover:text-amber-400"
+                        : "text-stone-300 hover:text-amber-400 dark:text-elivis-ink-secondary dark:hover:text-amber-400"
                 }`}
             >
                 <svg

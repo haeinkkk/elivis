@@ -86,13 +86,13 @@ function filterTasksByStat(
 function bandBadgeClass(band: WorkloadBand): string {
     switch (band) {
         case "relaxed":
-            return "bg-emerald-100 text-emerald-800 ring-emerald-200/80";
+            return "bg-emerald-100 text-emerald-800 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-700/45";
         case "normal":
-            return "bg-sky-100 text-sky-800 ring-sky-200/80";
+            return "bg-sky-100 text-sky-800 ring-sky-200/80 dark:bg-sky-950/50 dark:text-sky-200 dark:ring-sky-700/45";
         case "overload":
-            return "bg-amber-100 text-amber-900 ring-amber-200/80";
+            return "bg-amber-100 text-amber-900 ring-amber-200/80 dark:bg-amber-950/55 dark:text-amber-200 dark:ring-amber-700/45";
         default:
-            return "bg-red-100 text-red-800 ring-red-200/80";
+            return "bg-red-100 text-red-800 ring-red-200/80 dark:bg-red-950/50 dark:text-red-200 dark:ring-red-700/45";
     }
 }
 
@@ -234,7 +234,7 @@ export function ProjectPerformanceMemberDetailPanel({
         <div className="fixed inset-0 z-[110] flex justify-end" aria-hidden={!open}>
             <button
                 type="button"
-                className={`absolute inset-0 bg-stone-900/45 transition-opacity ease-out ${
+                className={`absolute inset-0 bg-stone-900/45 transition-opacity ease-out dark:bg-black/70 ${
                     open ? "opacity-100" : "opacity-0"
                 }`}
                 style={{ transitionDuration: `${PANEL_MS}ms` }}
@@ -242,7 +242,7 @@ export function ProjectPerformanceMemberDetailPanel({
                 aria-label={tp("detailCloseAria")}
             />
             <aside
-                className={`relative flex h-full w-full max-w-lg flex-col border-l border-stone-200/90 bg-white shadow-[0_0_40px_-10px_rgba(0,0,0,0.25)] will-change-transform sm:max-w-xl ${
+                className={`relative flex h-full w-full max-w-lg flex-col border-l border-stone-200/90 bg-white shadow-[0_0_40px_-10px_rgba(0,0,0,0.25)] will-change-transform dark:border-elivis-line dark:bg-elivis-surface dark:shadow-[0_0_48px_-8px_rgba(0,0,0,0.55)] sm:max-w-xl ${
                     open ? "translate-x-0" : "translate-x-full"
                 }`}
                 style={{
@@ -255,17 +255,18 @@ export function ProjectPerformanceMemberDetailPanel({
                 aria-labelledby="perf-member-detail-title"
                 onTransitionEnd={handleAsideTransitionEnd}
             >
-                <header className="sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-stone-100 bg-white/95 px-5 py-4 backdrop-blur-sm">
+                <header className="sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-stone-100 bg-white/95 px-5 py-4 backdrop-blur-sm dark:border-elivis-line dark:bg-elivis-surface/95 dark:backdrop-blur-sm">
                     <div className="flex min-w-0 items-center gap-3">
                         {variant.type === "member" ? (
                             <UserAvatar
                                 userId={variant.participant.id}
                                 label={variant.participant.name}
                                 avatarUrl={variant.participant.avatarUrl}
-                                sizeClass="h-12 w-12 text-sm ring-2 ring-stone-100"
+                                sizeClass="h-12 w-12 text-sm"
+                                ringClass="ring-2 ring-stone-100 dark:ring-elivis-line"
                             />
                         ) : (
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 to-stone-300 text-stone-600 ring-2 ring-stone-100">
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 to-stone-300 text-stone-600 ring-2 ring-stone-100 dark:from-elivis-surface-elevated dark:to-elivis-line/40 dark:text-elivis-ink-secondary dark:ring-elivis-line">
                                 <svg
                                     className="h-6 w-6"
                                     fill="none"
@@ -285,17 +286,17 @@ export function ProjectPerformanceMemberDetailPanel({
                         <div className="min-w-0">
                             <h2
                                 id="perf-member-detail-title"
-                                className="truncate text-lg font-semibold tracking-tight text-stone-900"
+                                className="truncate text-lg font-semibold tracking-tight text-stone-900 dark:text-elivis-ink"
                             >
                                 {title}
                             </h2>
-                            <p className="truncate text-xs text-stone-500">{subtitle}</p>
+                            <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">{subtitle}</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="shrink-0 rounded-xl p-2 text-stone-500 transition-all duration-200 hover:bg-stone-100 hover:text-stone-900 active:scale-95"
+                        className="shrink-0 rounded-xl p-2 text-stone-500 transition-all duration-200 hover:bg-stone-100 hover:text-stone-900 active:scale-95 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         aria-label={tp("detailCloseAria")}
                     >
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -305,22 +306,22 @@ export function ProjectPerformanceMemberDetailPanel({
                 </header>
 
                 <div
-                    className={`min-h-0 flex-1 overflow-y-auto px-5 py-6 transition-opacity ease-out ${
+                    className={`min-h-0 flex-1 overflow-y-auto bg-white px-5 py-6 transition-opacity ease-out dark:bg-elivis-surface ${
                         open ? "opacity-100" : "opacity-0"
                     }`}
                     style={{ transitionDuration: `${Math.min(280, PANEL_MS)}ms` }}
                 >
                     {/* 과부하 점수 */}
-                    <section className="overflow-hidden rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 shadow-sm ring-1 ring-stone-100/80">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400">
+                    <section className="overflow-hidden rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 shadow-sm ring-1 ring-stone-100/80 dark:border-elivis-line dark:bg-gradient-to-br dark:from-elivis-surface-elevated/90 dark:to-elivis-surface dark:shadow-none dark:ring-elivis-line/80">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400 dark:text-elivis-ink-secondary">
                             {tp("detailWorkloadHeading")}
                         </p>
                         <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl font-bold tabular-nums tracking-tight text-stone-900 sm:text-5xl">
+                                <span className="text-4xl font-bold tabular-nums tracking-tight text-stone-900 dark:text-elivis-ink sm:text-5xl">
                                     {rounded}
                                 </span>
-                                <span className="pb-1 text-sm font-medium text-stone-400">{tp("scoreUnit")}</span>
+                                <span className="pb-1 text-sm font-medium text-stone-400 dark:text-elivis-ink-secondary">{tp("scoreUnit")}</span>
                             </div>
                             <span
                                 className={`rounded-full px-3.5 py-1.5 text-xs font-bold shadow-sm ring-1 ${bandBadgeClass(band)}`}
@@ -329,7 +330,7 @@ export function ProjectPerformanceMemberDetailPanel({
                             </span>
                         </div>
                         <div className="mt-5">
-                            <div className="relative h-6 overflow-hidden rounded-full bg-stone-200/90 shadow-inner ring-1 ring-stone-200/60">
+                            <div className="relative h-6 overflow-hidden rounded-full bg-stone-200/90 shadow-inner ring-1 ring-stone-200/60 dark:bg-elivis-line/35 dark:shadow-none dark:ring-elivis-line/50">
                                 <div
                                     className={`h-full min-w-0 rounded-full shadow-sm ${bandBarClass(band)}`}
                                     style={{
@@ -340,20 +341,20 @@ export function ProjectPerformanceMemberDetailPanel({
                                     }}
                                 />
                             </div>
-                            <div className="mt-2 flex justify-between text-[11px] font-medium tabular-nums text-stone-400">
+                            <div className="mt-2 flex justify-between text-[11px] font-medium tabular-nums text-stone-400 dark:text-elivis-ink-secondary">
                                 <span>0</span>
-                                <span className="text-stone-300">—</span>
+                                <span className="text-stone-300 dark:text-elivis-ink-muted">—</span>
                                 <span>{WORKLOAD_CHART_MAX_SCORE}</span>
                             </div>
                         </div>
-                        <p className="mt-4 rounded-lg bg-white/70 px-3 py-2.5 text-sm leading-relaxed text-stone-700 ring-1 ring-stone-100/80">
+                        <p className="mt-4 rounded-lg bg-white/70 px-3 py-2.5 text-sm leading-relaxed text-stone-700 ring-1 ring-stone-100/80 dark:bg-elivis-surface/70 dark:text-elivis-ink dark:ring-elivis-line/70">
                             {tp(diagnosisKey(band))}
                         </p>
                     </section>
 
                     {/* 대시보드와 동일 6지표 */}
                     <section className="mt-7">
-                        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400">
+                        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400 dark:text-elivis-ink-secondary">
                             {tp("detailStatsHeading")}
                         </p>
                         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
@@ -385,21 +386,31 @@ export function ProjectPerformanceMemberDetailPanel({
                                         onClick={() => setStatFilter(filter)}
                                         className={`rounded-xl border px-3 py-3 text-center shadow-sm transition-all duration-200 ${
                                             selected
-                                                ? "border-stone-800 bg-stone-900 text-white ring-2 ring-stone-800 ring-offset-2"
-                                                : "border-stone-100 bg-white ring-1 ring-stone-50 hover:border-stone-300 hover:shadow-md"
+                                                ? "border-stone-800 bg-stone-900 text-white ring-2 ring-stone-800 ring-offset-2 ring-offset-white dark:border-elivis-accent dark:bg-elivis-accent-strong dark:ring-elivis-accent dark:ring-offset-elivis-surface"
+                                                : "border-stone-100 bg-white ring-1 ring-stone-50 hover:border-stone-300 hover:shadow-md dark:border-elivis-line dark:bg-elivis-surface dark:ring-0 dark:hover:border-elivis-line dark:hover:bg-elivis-surface-elevated"
                                         }`}
                                     >
                                         <p
-                                            className={`text-[10px] font-semibold ${selected ? "text-stone-300" : "text-stone-500"}`}
+                                            className={`text-[10px] font-semibold ${
+                                                selected
+                                                    ? "text-stone-300 dark:text-elivis-ink-secondary"
+                                                    : "text-stone-500 dark:text-elivis-ink-secondary"
+                                            }`}
                                         >
                                             {label}
                                         </p>
                                         <p
-                                            className={`mt-1.5 text-xl font-bold tabular-nums ${selected ? "text-white" : "text-stone-900"}`}
+                                            className={`mt-1.5 text-xl font-bold tabular-nums ${
+                                                selected ? "text-white dark:text-elivis-ink" : "text-stone-900 dark:text-elivis-ink"
+                                            }`}
                                         >
                                             {value}
                                             <span
-                                                className={`ml-0.5 text-xs font-semibold ${selected ? "text-stone-400" : "text-stone-400"}`}
+                                                className={`ml-0.5 text-xs font-semibold ${
+                                                    selected
+                                                        ? "text-stone-400 dark:text-elivis-ink-secondary"
+                                                        : "text-stone-400 dark:text-elivis-ink-secondary"
+                                                }`}
                                             >
                                                 {to("unit")}
                                             </span>
@@ -410,7 +421,7 @@ export function ProjectPerformanceMemberDetailPanel({
                         </div>
                         {statFilter !== "all" ? (
                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <span className="text-xs text-stone-500">
+                                <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                     {tp("detailFilterActive", {
                                         label:
                                             statFilter === "done"
@@ -427,7 +438,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                 <button
                                     type="button"
                                     onClick={() => setStatFilter("all")}
-                                    className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-600 transition-colors hover:bg-stone-50"
+                                    className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1 text-[11px] font-semibold text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                 >
                                     {tp("detailFilterClear")}
                                 </button>
@@ -437,20 +448,20 @@ export function ProjectPerformanceMemberDetailPanel({
 
                     {/* 업무 목록 */}
                     <section className="mt-8 pb-2">
-                        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400">
+                        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400 dark:text-elivis-ink-secondary">
                             {tp("detailTasksHeading")}
                         </p>
                         {sortedTasks.length === 0 ? (
-                            <p className="rounded-xl border border-dashed border-stone-200 py-10 text-center text-sm text-stone-400">
+                            <p className="rounded-xl border border-dashed border-stone-200 dark:border-elivis-line py-10 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">
                                 {tp("detailTasksEmpty")}
                             </p>
                         ) : filteredTasks.length === 0 ? (
-                            <p className="rounded-xl border border-dashed border-stone-200 py-10 text-center text-sm text-stone-400">
+                            <p className="rounded-xl border border-dashed border-stone-200 dark:border-elivis-line py-10 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">
                                 {tp("detailFilteredEmpty")}
                             </p>
                         ) : (
                             <>
-                                <ul className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-sm ring-1 ring-stone-100/60">
+                                <ul className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-sm ring-1 ring-stone-100/60 dark:border-elivis-line dark:bg-elivis-surface-elevated/35 dark:ring-elivis-line/50">
                                     {pageTasks.map((task) => {
                                         const st = tagColorOf(task.status.color);
                                         const pr = task.priority ? tagColorOf(task.priority.color) : null;
@@ -460,14 +471,14 @@ export function ProjectPerformanceMemberDetailPanel({
                                                 <button
                                                     type="button"
                                                     onClick={() => onOpenTask(task)}
-                                                    className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-stone-900 underline-offset-2 hover:text-stone-700 hover:underline"
+                                                    className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-stone-900 dark:text-elivis-ink underline-offset-2 hover:text-stone-700 hover:underline"
                                                     title={task.title}
                                                 >
                                                     {titleText}
                                                 </button>
                                             ) : (
                                                 <p
-                                                    className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900"
+                                                    className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900 dark:text-elivis-ink"
                                                     title={task.title}
                                                 >
                                                     {titleText}
@@ -476,7 +487,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                         return (
                                             <li
                                                 key={task.id}
-                                                className="border-b border-stone-100 px-4 py-3 transition-colors duration-200 last:border-b-0 hover:bg-stone-50/90"
+                                                className="border-b border-stone-100 px-4 py-3 transition-colors duration-200 last:border-b-0 hover:bg-stone-50/90 dark:border-elivis-line dark:hover:bg-elivis-surface-elevated/40"
                                             >
                                                 <div className="flex min-w-0 items-center gap-2">
                                                     {task.priority ? (
@@ -493,7 +504,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                                         </span>
                                                     ) : (
                                                         <span
-                                                            className="shrink-0 tabular-nums text-[11px] font-medium text-stone-400"
+                                                            className="shrink-0 tabular-nums text-[11px] font-medium text-stone-400 dark:text-elivis-ink-secondary"
                                                             aria-hidden
                                                         >
                                                             —
@@ -518,7 +529,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                 </ul>
 
                                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <p className="text-center text-[11px] tabular-nums text-stone-500 sm:text-left">
+                                    <p className="text-center text-[11px] tabular-nums text-stone-500 dark:text-elivis-ink-secondary sm:text-left">
                                         {tp("detailPageInfo", {
                                             current: safePage,
                                             totalPages,
@@ -535,7 +546,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                             type="button"
                                             disabled={safePage <= 1}
                                             onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                            className="min-w-[5rem] rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                            className="min-w-[5rem] rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-xs font-semibold text-stone-700 dark:text-elivis-ink shadow-sm transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:cursor-not-allowed disabled:opacity-35"
                                         >
                                             {tp("detailPaginationPrev")}
                                         </button>
@@ -543,7 +554,7 @@ export function ProjectPerformanceMemberDetailPanel({
                                             type="button"
                                             disabled={safePage >= totalPages}
                                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                            className="min-w-[5rem] rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                            className="min-w-[5rem] rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-xs font-semibold text-stone-700 dark:text-elivis-ink shadow-sm transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:cursor-not-allowed disabled:opacity-35"
                                         >
                                             {tp("detailPaginationNext")}
                                         </button>

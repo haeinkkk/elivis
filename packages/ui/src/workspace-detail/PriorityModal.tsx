@@ -53,28 +53,28 @@ export function PriorityModal({
 
     return createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
-            <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                <h3 className="mb-5 text-base font-semibold text-stone-800">
+            <div className="w-full max-w-sm rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <h3 className="mb-5 text-base font-semibold text-stone-800 dark:text-elivis-ink">
                     {editing ? t("priority.editTitle") : t("priority.addTitle")}
                 </h3>
 
                 {/* 이름 */}
                 <div className="mb-4">
-                    <label className="mb-1.5 block text-xs font-medium text-stone-600">{t("priority.nameLabel")}</label>
+                    <label className="mb-1.5 block text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("priority.nameLabel")}</label>
                     <input
                         autoFocus
                         value={name}
                         onChange={(e) => { setName(e.target.value); setError(""); }}
                         onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
                         placeholder={t("priority.namePlaceholder")}
-                        className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm outline-none transition-colors focus:border-stone-400"
+                        className="w-full rounded-xl border border-stone-200 dark:border-elivis-line px-3 py-2.5 text-sm outline-none transition-colors focus:border-stone-400"
                     />
                 </div>
 
                 {/* 가중치 */}
                 <div className="mb-4">
-                    <label className="mb-1.5 block text-xs font-medium text-stone-600">
-                        {t("priority.weightLabel")} <span className="text-stone-400 font-normal">{t("priority.weightNote")}</span>
+                    <label className="mb-1.5 block text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
+                        {t("priority.weightLabel")} <span className="text-stone-400 dark:text-elivis-ink-secondary font-normal">{t("priority.weightNote")}</span>
                     </label>
                     <div className="flex items-center gap-3">
                         <input
@@ -91,14 +91,14 @@ export function PriorityModal({
                             max={100}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
-                            className="w-16 rounded-lg border border-stone-200 px-2 py-1.5 text-center text-sm outline-none focus:border-stone-400"
+                            className="w-16 rounded-lg border border-stone-200 dark:border-elivis-line px-2 py-1.5 text-center text-sm outline-none focus:border-stone-400"
                         />
                     </div>
                 </div>
 
                 {/* 색상 */}
                 <div className="mb-5">
-                    <label className="mb-2 block text-xs font-medium text-stone-600">{t("priority.colorLabel")}</label>
+                    <label className="mb-2 block text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("priority.colorLabel")}</label>
                     <div className="flex flex-wrap items-center gap-2">
                         {COLOR_KEYS.map((ck) => (
                             <button
@@ -136,7 +136,7 @@ export function PriorityModal({
                     const pc = tagColorOf(color);
                     return (
                         <div className="mb-5 flex items-center gap-2">
-                            <span className="text-xs text-stone-400">{t("priority.preview")}</span>
+                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("priority.preview")}</span>
                             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${pc.badge}`} style={pc.badgeStyle}>
                                 <span className={`h-2 w-2 rounded-full ${pc.dot}`} style={pc.dotStyle} />
                                 {name || t("priority.noName")}
@@ -149,7 +149,7 @@ export function PriorityModal({
                 {error && <p className="mb-3 text-xs text-red-500">{error}</p>}
 
                 <div className="flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-stone-500 hover:bg-stone-50">{t("common.cancel")}</button>
+                    <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">{t("common.cancel")}</button>
                     <button type="button" onClick={submit} disabled={isPending || !name.trim()}
                         className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-40">
                         {editing ? t("common.save") : t("common.add")}

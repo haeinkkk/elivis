@@ -26,11 +26,11 @@ export function SignupFormContent({
     return (
         <>
             {showTitle ? (
-                <h1 className="text-center text-lg font-semibold text-stone-800">{t("title")}</h1>
+                <h1 className="text-center text-lg font-semibold text-stone-800 dark:text-elivis-ink">{t("title")}</h1>
             ) : null}
 
             {state.error && (
-                <p className="whitespace-pre-wrap rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                <p className="whitespace-pre-wrap rounded-xl bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                     {state.error}
                 </p>
             )}
@@ -38,7 +38,7 @@ export function SignupFormContent({
             <div>
                 <label
                     htmlFor={`${p}signup-email`}
-                    className="mb-1.5 block text-sm font-medium text-stone-600"
+                    className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                 >
                     {tAuth("emailLabel")}
                 </label>
@@ -48,7 +48,7 @@ export function SignupFormContent({
                     type="email"
                     autoComplete="email"
                     placeholder={tAuth("emailPlaceholder")}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                    className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                     disabled={isPending}
                     required
                 />
@@ -57,7 +57,7 @@ export function SignupFormContent({
             <div>
                 <label
                     htmlFor={`${p}signup-name`}
-                    className="mb-1.5 block text-sm font-medium text-stone-600"
+                    className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                 >
                     {t("nameLabel")}
                 </label>
@@ -67,7 +67,7 @@ export function SignupFormContent({
                     type="text"
                     autoComplete="name"
                     placeholder={t("namePlaceholder")}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                    className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                     disabled={isPending}
                 />
             </div>
@@ -75,7 +75,7 @@ export function SignupFormContent({
             <div>
                 <label
                     htmlFor={`${p}signup-password`}
-                    className="mb-1.5 block text-sm font-medium text-stone-600"
+                    className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                 >
                     {tAuth("passwordLabel")}
                 </label>
@@ -85,7 +85,7 @@ export function SignupFormContent({
                     type="password"
                     autoComplete="new-password"
                     placeholder={tAuth("passwordPlaceholder")}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                    className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                     disabled={isPending}
                     required
                     minLength={8}
@@ -95,7 +95,7 @@ export function SignupFormContent({
             <div>
                 <label
                     htmlFor={`${p}signup-confirm`}
-                    className="mb-1.5 block text-sm font-medium text-stone-600"
+                    className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                 >
                     {t("confirmPasswordLabel")}
                 </label>
@@ -105,7 +105,7 @@ export function SignupFormContent({
                     type="password"
                     autoComplete="new-password"
                     placeholder={t("confirmPasswordLabel")}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                    className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                     disabled={isPending}
                     required
                     minLength={8}
@@ -128,7 +128,7 @@ export function SignupFormContent({
             </button>
 
             {showLdapHint ? (
-                <p className="px-0.5 text-center text-xs text-stone-500">{tAuth("ldapLoginHint")}</p>
+                <p className="px-0.5 text-center text-xs text-stone-500 dark:text-elivis-ink-secondary">{tAuth("ldapLoginHint")}</p>
             ) : null}
         </>
     );

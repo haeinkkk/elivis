@@ -99,7 +99,7 @@ export function AppSidebar({
         <button
           type="button"
           onClick={() => onSizeChange("expanded")}
-          className="fixed left-4 top-1/2 z-[60] hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200/90 bg-white text-stone-600 shadow-lg ring-1 ring-stone-200/50 backdrop-blur-sm transition hover:border-stone-300 hover:bg-stone-50 hover:text-stone-800 hover:shadow-xl active:scale-[0.98] md:flex"
+          className="fixed left-4 top-1/2 z-[60] hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200/90 bg-white text-stone-600 shadow-lg ring-1 ring-stone-200/50 backdrop-blur-sm transition hover:border-stone-300 hover:bg-stone-50 hover:text-stone-800 hover:shadow-xl active:scale-[0.98] dark:border-elivis-line dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:shadow-none dark:ring-elivis-line dark:hover:border-elivis-line dark:hover:bg-elivis-surface dark:hover:text-elivis-ink dark:hover:shadow-none md:flex"
           aria-label={tSidebar("restore")}
           title={tSidebar("restore")}
         >
@@ -126,7 +126,7 @@ export function AppSidebar({
         tabIndex={0}
         onClick={onClose}
         onKeyDown={(e) => e.key === "Escape" && onClose()}
-        className={`fixed inset-0 z-40 bg-stone-900/20 backdrop-blur-[2px] md:hidden transition-opacity duration-200 ease-out ${
+        className={`fixed inset-0 z-40 bg-stone-900/20 backdrop-blur-[2px] dark:bg-black/50 md:hidden transition-opacity duration-200 ease-out ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!open}
@@ -135,14 +135,15 @@ export function AppSidebar({
 
       <aside
         className={`
-          fixed left-0 top-0 z-50 flex h-full max-w-[85vw] flex-col bg-white border-r border-stone-200 overflow-hidden
+          fixed left-0 top-0 z-50 flex h-full max-w-[85vw] flex-col overflow-hidden border-r border-stone-200 bg-white
+          dark:border-elivis-line dark:bg-elivis-surface
           transition-[width,opacity,transform] duration-200 ease-out
           ${size === "expanded" ? "w-[280px]" : size === "collapsed" ? "w-[72px]" : "w-0 border-r-0 opacity-0 pointer-events-none"}
           ${open ? "translate-x-0" : "-translate-x-full"} md:transform-none md:static
         `}
       >
         <div
-          className={`flex h-14 shrink-0 items-center gap-2 border-b border-stone-100 ${
+          className={`flex h-14 shrink-0 items-center gap-2 border-b border-stone-100 dark:border-elivis-line ${
             showLabels ? "px-4" : "justify-center px-2"
           }`}
         >
@@ -151,7 +152,7 @@ export function AppSidebar({
               href="/"
               className="inline-flex items-center gap-2"
             >
-              <span className="text-lg font-semibold tracking-tight text-stone-800">
+              <span className="text-lg font-semibold tracking-tight text-stone-800 dark:text-elivis-ink">
                 Elivis
               </span>
             </Link>
@@ -171,7 +172,7 @@ export function AppSidebar({
                     onClose();
                   }
                 }}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-600 transition-colors hover:bg-stone-100"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                 aria-label={tSidebar("collapse")}
               >
                 <svg
@@ -209,8 +210,8 @@ export function AppSidebar({
                       flex items-center rounded-lg text-sm font-medium transition-colors
                       ${showLabels ? "gap-3 px-3 py-2.5" : "justify-center px-2 py-2.5"}
                       ${isActive
-                        ? "bg-orange-50 text-orange-800"
-                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                        ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                       }
                     `}
                   >
@@ -233,7 +234,7 @@ export function AppSidebar({
                 className={`
                   w-full flex items-center rounded-lg text-sm font-medium transition-colors
                   ${showLabels ? "gap-3 px-3 py-2.5" : "justify-center px-2 py-2.5"}
-                  text-stone-600 hover:bg-stone-100 hover:text-stone-800
+                  text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink
                 `}
               >
                 <span className="relative shrink-0">
@@ -268,12 +269,14 @@ export function AppSidebar({
           {teamFavorites.length > 0 && (
             <div
               className={`${
-                showLabels ? "my-4 border-t border-stone-100 pt-4" : "my-3 border-t border-stone-100 pt-3"
+                showLabels
+                  ? "my-4 border-t border-stone-100 pt-4 dark:border-elivis-line"
+                  : "my-3 border-t border-stone-100 pt-3 dark:border-elivis-line"
               }`}
             >
               {showLabels ? (
                 <>
-                  <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400">
+                  <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-elivis-ink-secondary">
                     {tSidebar("favoriteTeams")}
                   </p>
                   <ul className="mt-1 space-y-0.5">
@@ -287,12 +290,12 @@ export function AppSidebar({
                             title={fav.team.name}
                             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                               isActive
-                                ? "bg-orange-50 text-orange-800"
-                                : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                                ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                                : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                             }`}
                           >
                             <svg
-                              className="h-3.5 w-3.5 shrink-0 text-amber-400"
+                              className="h-3.5 w-3.5 shrink-0 text-amber-400 dark:text-elivis-accent"
                               viewBox="0 0 24 24"
                               fill="currentColor"
                             >
@@ -322,8 +325,10 @@ export function AppSidebar({
                         href={`/teams/${fav.team.id}`}
                         onClick={onClose}
                         title={fav.team.name}
-                        className={`flex justify-center rounded-lg px-2 py-2 transition-colors hover:bg-stone-100 ${
-                          isActive ? "text-orange-700" : "text-amber-400"
+                        className={`flex justify-center rounded-lg px-2 py-2 transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated ${
+                          isActive
+                            ? "text-orange-700 dark:text-elivis-accent-hover"
+                            : "text-amber-400 dark:text-elivis-accent"
                         }`}
                       >
                         <svg
@@ -345,12 +350,14 @@ export function AppSidebar({
           {projectFavorites.length > 0 && (
             <div
               className={`${
-                showLabels ? "my-4 border-t border-stone-100 pt-4" : "my-3 border-t border-stone-100 pt-3"
+                showLabels
+                  ? "my-4 border-t border-stone-100 pt-4 dark:border-elivis-line"
+                  : "my-3 border-t border-stone-100 pt-3 dark:border-elivis-line"
               }`}
             >
               {showLabels ? (
                 <>
-                  <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400">
+                  <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-elivis-ink-secondary">
                     {tSidebar("favoriteProjects")}
                   </p>
                   <ul className="mt-1 space-y-0.5">
@@ -363,12 +370,12 @@ export function AppSidebar({
                             onClick={onClose}
                             className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${
                               isActive
-                                ? "bg-orange-50 text-orange-800"
-                                : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                                ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                                : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                             }`}
                           >
                             <svg
-                              className="h-3.5 w-3.5 shrink-0 text-amber-400"
+                              className="h-3.5 w-3.5 shrink-0 text-amber-400 dark:text-elivis-accent"
                               viewBox="0 0 24 24"
                               fill="currentColor"
                             >
@@ -392,8 +399,10 @@ export function AppSidebar({
                         href={`/projects/${fav.project.id}`}
                         onClick={onClose}
                         title={fav.project.name}
-                        className={`flex justify-center rounded-lg px-2 py-2 transition-colors hover:bg-stone-100 ${
-                          isActive ? "text-orange-700" : "text-amber-400"
+                        className={`flex justify-center rounded-lg px-2 py-2 transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated ${
+                          isActive
+                            ? "text-orange-700 dark:text-elivis-accent-hover"
+                            : "text-amber-400 dark:text-elivis-accent"
                         }`}
                       >
                         <svg
@@ -413,7 +422,9 @@ export function AppSidebar({
 
           <div
             className={`${
-              showLabels ? "my-4 border-t border-stone-100 pt-4" : "my-3 border-t border-stone-100 pt-3"
+              showLabels
+                ? "my-4 border-t border-stone-100 pt-4 dark:border-elivis-line"
+                : "my-3 border-t border-stone-100 pt-3 dark:border-elivis-line"
             }`}
           >
             {showLabels ? (
@@ -424,11 +435,11 @@ export function AppSidebar({
                   onClick={() => setWorkspaceExpanded((v) => !v)}
                   className="flex w-full items-center justify-between px-3 py-1 text-left"
                 >
-                  <span className="text-xs font-medium uppercase tracking-wider text-stone-400">
+                  <span className="text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-elivis-ink-secondary">
                     {tNav("workspace")}
                   </span>
                   <svg
-                    className={`h-3.5 w-3.5 text-stone-400 transition-transform ${workspaceExpanded ? "rotate-180" : ""}`}
+                    className={`h-3.5 w-3.5 text-stone-400 transition-transform dark:text-elivis-ink-secondary ${workspaceExpanded ? "rotate-180" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -440,7 +451,7 @@ export function AppSidebar({
                 {workspaceExpanded && (
                   <ul className="mt-1 space-y-0.5">
                     {workspaces.length === 0 ? (
-                      <li className="px-3 py-2 text-xs text-stone-400">
+                      <li className="px-3 py-2 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                         워크스페이스가 없습니다
                       </li>
                     ) : (
@@ -455,13 +466,15 @@ export function AppSidebar({
                               title={displayName}
                               className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                                 isActive
-                                  ? "bg-orange-50 text-orange-800"
-                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                                  ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                               }`}
                             >
                               <span
                                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-semibold ${
-                                  isActive ? "bg-orange-200 text-orange-800" : "bg-stone-200 text-stone-600"
+                                  isActive
+                                    ? "bg-orange-200 text-orange-800 dark:bg-elivis-accent/40 dark:text-elivis-accent-hover"
+                                    : "bg-stone-200 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
                                 }`}
                               >
                                 {displayName[0]?.toUpperCase() ?? "W"}
@@ -471,7 +484,7 @@ export function AppSidebar({
                             <button
                               type="button"
                               onClick={() => setRenameWorkspace(ws)}
-                              className="mr-1 shrink-0 self-center rounded-md p-1.5 text-stone-400 opacity-70 transition-opacity hover:bg-stone-100 hover:text-stone-600 md:opacity-0 md:group-hover:opacity-100"
+                              className="mr-1 shrink-0 self-center rounded-md p-1.5 text-stone-400 dark:text-elivis-ink-secondary opacity-70 transition-opacity hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600 md:opacity-0 md:group-hover:opacity-100"
                               aria-label={tSidebar("editWorkspaceDisplayName")}
                               title={tSidebar("editWorkspaceDisplayName")}
                             >
@@ -496,7 +509,7 @@ export function AppSidebar({
                 href="/mywork"
                 onClick={onClose}
                 title={tNav("workspace")}
-                className={`flex justify-center rounded-lg px-2 py-2.5 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-800`}
+                className={`flex justify-center rounded-lg px-2 py-2.5 text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-800`}
               >
                 <svg className="h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
@@ -508,7 +521,9 @@ export function AppSidebar({
 
         {/* 관리자 버튼 — SUPER_ADMIN 전용 */}
         {isSuperAdmin && (
-          <div className={`shrink-0 border-t border-stone-100 ${showLabels ? "p-3" : "p-2"}`}>
+          <div
+            className={`shrink-0 border-t border-stone-100 dark:border-elivis-line ${showLabels ? "p-3" : "p-2"}`}
+          >
             <Link
               href="/admin"
               target="_blank"
@@ -516,7 +531,7 @@ export function AppSidebar({
               onClick={onClose}
               className={`
                 flex items-center rounded-lg text-xs font-medium text-stone-400 transition-colors
-                hover:bg-stone-100 hover:text-stone-600
+                hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-muted dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink-secondary
                 ${showLabels ? "gap-2 px-3 py-2" : "justify-center px-2 py-2"}
               `}
             >

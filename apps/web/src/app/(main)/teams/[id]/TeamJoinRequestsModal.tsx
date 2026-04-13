@@ -130,20 +130,20 @@ export function TeamJoinRequestsModal({
                 onClick={() => !busy && onClose()}
             />
             <div
-                className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(85vh,640px)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 bg-white shadow-xl sm:w-full"
+                className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(85vh,640px)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl sm:w-full"
                 role="dialog"
                 aria-modal
                 aria-labelledby="team-join-requests-modal-title"
             >
-                <div className="border-b border-stone-100 px-5 py-4">
+                <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                     <h2
                         id="team-join-requests-modal-title"
-                        className="text-base font-semibold text-stone-800"
+                        className="text-base font-semibold text-stone-800 dark:text-elivis-ink"
                     >
                         {t("title")}
                     </h2>
-                    <p className="mt-0.5 text-sm text-stone-500">
-                        <span className="font-medium text-stone-700">{teamName}</span>
+                    <p className="mt-0.5 text-sm text-stone-500 dark:text-elivis-ink-secondary">
+                        <span className="font-medium text-stone-700 dark:text-elivis-ink">{teamName}</span>
                         {" · "}
                         {t("desc")}
                     </p>
@@ -151,7 +151,7 @@ export function TeamJoinRequestsModal({
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
                     {loadState === "loading" ? (
-                        <p className="py-8 text-center text-sm text-stone-500">{t("loading")}</p>
+                        <p className="py-8 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("loading")}</p>
                     ) : null}
 
                     {loadState === "error" && error ? (
@@ -161,19 +161,19 @@ export function TeamJoinRequestsModal({
                     ) : null}
 
                     {loadState === "idle" && error ? (
-                        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                        <p className="mb-3 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-800">
                             {error}
                         </p>
                     ) : null}
 
                     {loadState === "idle" && !error && requests.length === 0 ? (
-                        <p className="rounded-lg border border-dashed border-stone-200 bg-stone-50/80 px-4 py-10 text-center text-sm text-stone-500">
+                        <p className="rounded-lg border border-dashed border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 px-4 py-10 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                             {t("empty")}
                         </p>
                     ) : null}
 
                     {loadState === "idle" && requests.length > 0 ? (
-                        <ul className="divide-y divide-stone-100 rounded-xl border border-stone-100">
+                        <ul className="divide-y divide-stone-100 dark:divide-elivis-line rounded-xl border border-stone-100 dark:border-elivis-line">
                             {requests.map((row) => {
                                 const u = row.applicant;
                                 const isRowBusy = rowBusy(u.id);
@@ -191,11 +191,11 @@ export function TeamJoinRequestsModal({
                                                 ringClass="ring-0"
                                             />
                                             <div className="min-w-0">
-                                                <p className="truncate font-medium text-stone-800">
+                                                <p className="truncate font-medium text-stone-800 dark:text-elivis-ink">
                                                     {displayUserName(u)}
                                                 </p>
-                                                <p className="truncate text-xs text-stone-500">{u.email}</p>
-                                                <p className="mt-0.5 text-xs text-stone-400">
+                                                <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">{u.email}</p>
+                                                <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                     {t("requestedAt")}:{" "}
                                                     {formatRequestedAt(row.createdAt, locale)}
                                                 </p>
@@ -206,7 +206,7 @@ export function TeamJoinRequestsModal({
                                                 type="button"
                                                 disabled={busy}
                                                 onClick={() => handleReject(u.id)}
-                                                className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50 sm:text-sm"
+                                                className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1.5 text-xs font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50 sm:text-sm"
                                             >
                                                 {isRowBusy && pendingAction === "reject"
                                                     ? t("processing")
@@ -230,12 +230,12 @@ export function TeamJoinRequestsModal({
                     ) : null}
                 </div>
 
-                <div className="border-t border-stone-100 px-5 py-3">
+                <div className="border-t border-stone-100 dark:border-elivis-line px-5 py-3">
                     <button
                         type="button"
                         disabled={busy}
                         onClick={onClose}
-                        className="w-full rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                        className="w-full rounded-lg border border-stone-200 dark:border-elivis-line py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                     >
                         {tCommon("close")}
                     </button>

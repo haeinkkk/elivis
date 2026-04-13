@@ -35,7 +35,7 @@ export function SummaryTab({
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             {/* 서브탭 헤더 */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 bg-white px-5 py-2">
+            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-5 py-2">
                 {(["timeline", "dashboard"] as const).map((id) => (
                     <button
                         key={id}
@@ -43,18 +43,18 @@ export function SummaryTab({
                         onClick={() => setSubTab(id)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                             subTab === id
-                                ? "bg-stone-100 text-stone-900"
-                                : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
+                                ? "bg-stone-100 text-stone-900 dark:bg-elivis-surface-elevated dark:text-elivis-ink"
+                                : "text-stone-500 hover:bg-stone-50 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         }`}
                     >
                         {id === "timeline" ? t("tabs.timeline") : t("tabs.dashboard")}
                     </button>
                 ))}
                 {subTab === "timeline" && (
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-50">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-1.5 text-xs text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">
                         <input
                             type="checkbox"
-                            className="h-3.5 w-3.5 rounded border-stone-300 accent-amber-500"
+                            className="h-3.5 w-3.5 rounded border-stone-300 dark:border-elivis-line accent-amber-500"
                             checked={showCompleted}
                             onChange={(e) => setShowCompleted(e.target.checked)}
                         />

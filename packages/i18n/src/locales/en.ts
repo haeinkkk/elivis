@@ -507,6 +507,12 @@ export const en = {
           memberJoined: "{actor} joined the team.",
           memberLeader: "{actor} was set as leader.",
           projectLinked: "Project \"{name}\" was linked to the team.",
+          pagination: {
+            pageSize: "Per page",
+            prev: "Previous",
+            next: "Next",
+            summary: "{start}–{end} of {total} · page {page} of {pages}",
+          },
         },
         banner: {
           title: "Team banner",
@@ -810,6 +816,7 @@ export const en = {
       mySettings:        "My Settings",
       logout:            "Logout",
       language:          "Language",
+      darkModeAria:      "Dark mode",
     },
     sidebar: {
       collapse:        "Collapse sidebar",
@@ -906,6 +913,10 @@ export const en = {
       groupCount: "{count} items",
       showCompletedTasks: "Show completed tasks",
       completedSectionTitle: "Completed",
+      sectionsExpandAll: "Expand all",
+      sectionsExpandAllTitle: "Expand all workspace sections",
+      sectionsCollapseAll: "Collapse all",
+      sectionsCollapseAllTitle: "Collapse all workspace sections",
     },
     myworkPerformance: {
       title: "Work overview",
@@ -1002,6 +1013,12 @@ export const en = {
           taskCreated: "Added task «{title}».",
           taskDeleted: "Deleted task «{title}».",
           unknown: "Activity",
+          pagination: {
+            pageSize: "Per page",
+            prev: "Previous",
+            next: "Next",
+            summary: "{start}–{end} of {total} · page {page} of {pages}",
+          },
         },
         backToListAria: "Back to project list",
         defaultDescription: "Project details",
@@ -1185,6 +1202,8 @@ export const en = {
           request: "Request",
           requestTaskTitle: "Request this task from a teammate",
           chipAll: "All",
+          filterSearchPlaceholder: "Search…",
+          filterNoResults: "No matching items.",
         },
         calendar: {
           today: "Today",
@@ -1468,6 +1487,9 @@ export const en = {
         mywork: "My Workspace", summary: "Task Summary", requests: "Requests",
         calendar: "Calendar", timeline: "Timeline", dashboard: "Task Dashboard",
       },
+      aria: {
+        subNav: "Workspace sub-navigation",
+      },
       common: {
         cancel: "Cancel", save: "Save", delete: "Delete", edit: "Edit", add: "Add",
         none: "None", nameInput: "Enter name", customColor: "Custom color",
@@ -1517,6 +1539,12 @@ export const en = {
         filterStatus: "Status", filterPriority: "Priority",
         allStatuses: "All statuses", allPriorities: "All priorities",
         sort: "Sort", reset: "Reset",
+        filterSearchPlaceholder: "Search…",
+        filterNoResults: "No matching items.",
+        expandAll: "Expand all",
+        expandAllTitle: "Expand all subtasks",
+        collapseAll: "Collapse all",
+        collapseAllTitle: "Collapse all subtasks",
       },
       sort: {
         default: "Default", status: "By status", priority: "By priority",
@@ -1623,6 +1651,8 @@ export const en = {
         uploading: "Uploading…", dropHere: "Drop file here",
         dragOrClick: "Drag or click to upload",
         noFiles: "No attachments.",
+        optionSearchPlaceholder: "Search options…",
+        noOptionsMatch: "No matching options.",
       },
     },
     adminUsers: {

@@ -10,9 +10,24 @@ export { UserAvatar, getAvatarColor, getInitials, toAvatarSrc } from "./UserAvat
 
 export { StatusDropdown, STATUS_STYLE, STATUS_ORDER } from "./StatusDropdown";
 export { LanguageSelector } from "./LanguageSelector";
+export { ElivisSelect } from "./ElivisSelect";
+export type { ElivisSelectOption, ElivisSelectProps, ElivisSelectVariant } from "./ElivisSelect";
+export { ElivisFilterSelect } from "./ElivisFilterSelect";
+export type { ElivisFilterSelectOption, ElivisFilterSelectProps } from "./ElivisFilterSelect";
+export { ElivisDetailTabBar, ElivisDetailSettingsNav } from "./ElivisDetailNavigation";
+export type {
+    ElivisDetailTabBarItem,
+    ElivisDetailTabBarProps,
+    ElivisDetailSettingsNavItem,
+    ElivisDetailSettingsNavProps,
+} from "./ElivisDetailNavigation";
 export { ProjectFavoriteButton } from "./ProjectFavoriteButton";
 export { TeamFavoriteButton } from "./TeamFavoriteButton";
 export { WorkspaceSidebarLabelModal } from "./WorkspaceSidebarLabelModal";
+
+export { DARK_MODE_STORAGE_KEY } from "./theme/constants";
+export { ThemeProvider, useTheme } from "./theme/ThemeProvider";
+export { DarkModeSwitch } from "./theme/DarkModeSwitch";
 
 export { AppHeader, type QuickSearchResult } from "./AppHeader";
 export { AppSidebar, type SidebarSize } from "./AppSidebar";

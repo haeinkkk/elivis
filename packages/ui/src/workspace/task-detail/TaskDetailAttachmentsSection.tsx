@@ -57,7 +57,7 @@ export function TaskDetailAttachmentsSection({
     return (
         <div>
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                     {t("taskDetail.attachments")}
                 </h3>
                 {!readOnly && (
@@ -66,7 +66,7 @@ export function TaskDetailAttachmentsSection({
                             type="button"
                             onClick={() => fileRef.current?.click()}
                             disabled={uploading}
-                            className="flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-50 disabled:opacity-40"
+                            className="flex items-center gap-1 rounded-lg border border-stone-200 dark:border-elivis-line px-2 py-1 text-xs text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-40"
                         >
                             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path
@@ -112,13 +112,13 @@ export function TaskDetailAttachmentsSection({
                 }}
                 className={`mb-3 flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-xs transition-all ${readOnly ? "cursor-default" : "cursor-pointer"} ${
                     isDragOver
-                        ? "scale-[1.01] border-stone-500 bg-stone-100 text-stone-600"
-                        : "border-stone-200 bg-stone-50/50 text-stone-400 hover:border-stone-300 hover:bg-stone-50"
+                        ? "scale-[1.01] border-stone-500 bg-stone-100 text-stone-600 dark:border-elivis-accent dark:bg-elivis-surface-elevated dark:text-elivis-ink"
+                        : "border-stone-200 bg-stone-50/50 text-stone-400 hover:border-stone-300 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface-elevated/90 dark:text-elivis-ink-secondary dark:hover:border-elivis-ink-muted dark:hover:bg-elivis-surface-elevated"
                 }`}
             >
                 {uploading ? (
                     <>
-                        <svg className="h-5 w-5 animate-spin text-stone-400" fill="none" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 animate-spin text-stone-400 dark:text-elivis-ink-secondary" fill="none" viewBox="0 0 24 24">
                             <circle
                                 className="opacity-25"
                                 cx="12"
@@ -133,12 +133,12 @@ export function TaskDetailAttachmentsSection({
                                 d="M4 12a8 8 0 018-8v8H4z"
                             />
                         </svg>
-                        <span>{t("taskDetail.uploading")}</span>
+                        <span className="dark:text-elivis-ink-secondary">{t("taskDetail.uploading")}</span>
                     </>
                 ) : isDragOver ? (
                     <>
                         <svg
-                            className="h-6 w-6 text-stone-500"
+                            className="h-6 w-6 text-stone-500 dark:text-elivis-ink-secondary"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -153,11 +153,11 @@ export function TaskDetailAttachmentsSection({
                         <span className="font-medium">{t("taskDetail.dropHere")}</span>
                     </>
                 ) : readOnly ? (
-                    <span className="text-stone-300">첨부파일 보기 전용</span>
+                    <span className="text-stone-300 dark:text-elivis-ink-secondary">첨부파일 보기 전용</span>
                 ) : (
                     <>
                         <svg
-                            className="h-5 w-5 text-stone-300"
+                            className="h-5 w-5 text-stone-300 dark:text-elivis-ink-muted"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -169,21 +169,21 @@ export function TaskDetailAttachmentsSection({
                                 d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                             />
                         </svg>
-                        <span>{t("taskDetail.dragOrClick")}</span>
+                        <span className="dark:text-elivis-ink-secondary">{t("taskDetail.dragOrClick")}</span>
                     </>
                 )}
             </div>
 
             {loading ? (
-                <p className="text-xs text-stone-400">{t("taskDetail.commentsLoading")}</p>
+                <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("taskDetail.commentsLoading")}</p>
             ) : attachments.length === 0 ? (
-                <p className="text-xs text-stone-300">{t("taskDetail.noFiles")}</p>
+                <p className="text-xs text-stone-300 dark:text-elivis-ink-secondary">{t("taskDetail.noFiles")}</p>
             ) : (
                 <ul className="space-y-1.5">
                     {attachments.map((a) => (
                         <li
                             key={a.id}
-                            className="flex items-center gap-2 rounded-lg border border-stone-100 bg-white px-3 py-2"
+                            className="flex items-center gap-2 rounded-lg border border-stone-100 dark:border-elivis-line bg-white px-3 py-2 dark:bg-elivis-surface-elevated"
                         >
                             <span className="text-base">{taskDetailFileIcon(a.mimeType)}</span>
                             <div className="min-w-0 flex-1">
@@ -191,11 +191,11 @@ export function TaskDetailAttachmentsSection({
                                     href={taskDetailServerUrl(a.fileUrl)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block truncate text-xs font-medium text-stone-700 hover:underline"
+                                    className="block truncate text-xs font-medium text-stone-700 dark:text-elivis-ink hover:underline"
                                 >
                                     {a.fileName}
                                 </a>
-                                <span className="text-[10px] text-stone-400">
+                                <span className="text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                                     {formatTaskDetailBytes(a.fileSize)}
                                 </span>
                             </div>
@@ -203,7 +203,7 @@ export function TaskDetailAttachmentsSection({
                                 <button
                                     type="button"
                                     onClick={() => remove(a.id)}
-                                    className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 hover:text-red-400"
+                                    className="shrink-0 rounded p-0.5 text-stone-300 hover:bg-red-50 hover:text-red-400 dark:text-elivis-ink-muted dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                 >
                                     <svg
                                         className="h-3.5 w-3.5"

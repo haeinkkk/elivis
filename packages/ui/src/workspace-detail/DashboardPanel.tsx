@@ -111,7 +111,7 @@ export function DashboardPanel({
                   : t("dashboard.statusSemanticDone");
 
     return (
-        <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-stone-50/40 p-5">
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-stone-50/40 p-5 dark:bg-elivis-bg">
             {/* ── 상단 지표 카드 (프로젝트 대시보드와 동일 6종) ── */}
             <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
                 {[
@@ -120,71 +120,71 @@ export function DashboardPanel({
                         label: t("dashboard.statTotal"),
                         value: totalTasks,
                         sub: t("dashboard.noDateCount", { count: noDate }),
-                        color: "text-stone-900",
-                        bg: "bg-white border border-stone-100",
+                        color: "text-stone-900 dark:text-elivis-ink",
+                        bg: "bg-white border border-stone-100 dark:border-elivis-line dark:bg-elivis-surface-elevated",
                     },
                     {
                         key: "done",
                         label: t("dashboard.statDone"),
                         value: completedCount,
                         sub: t("dashboard.achievement", { pct: progressPct }),
-                        color: "text-green-700",
-                        bg: "bg-green-50 border border-green-100",
+                        color: "text-green-700 dark:text-green-400",
+                        bg: "bg-green-50 border border-green-100 dark:border-emerald-900/50 dark:bg-emerald-950/35",
                     },
                     {
                         key: "inProgress",
                         label: t("dashboard.statInProgress"),
                         value: inProgressCount,
                         sub: "",
-                        color: "text-blue-600",
-                        bg: "bg-blue-50 border border-blue-100",
+                        color: "text-blue-600 dark:text-blue-400",
+                        bg: "bg-blue-50 border border-blue-100 dark:border-blue-900/50 dark:bg-blue-950/35",
                     },
                     {
                         key: "review",
                         label: t("dashboard.statReview"),
                         value: reviewCount,
                         sub: "",
-                        color: "text-purple-600",
-                        bg: "bg-purple-50 border border-purple-100",
+                        color: "text-purple-600 dark:text-purple-300",
+                        bg: "bg-purple-50 border border-purple-100 dark:border-purple-900/50 dark:bg-purple-950/35",
                     },
                     {
                         key: "overdue",
                         label: t("dashboard.statOverdue"),
                         value: overdueCount,
                         sub: t("dashboard.overdueNote"),
-                        color: "text-red-600",
-                        bg: "bg-red-50 border border-red-100",
+                        color: "text-red-600 dark:text-red-400",
+                        bg: "bg-red-50 border border-red-100 dark:border-red-900/50 dark:bg-red-950/35",
                     },
                     {
                         key: "onHold",
                         label: t("dashboard.statOnHold"),
                         value: onHoldCount,
                         sub: "",
-                        color: "text-orange-600",
-                        bg: "bg-orange-50 border border-orange-100",
+                        color: "text-orange-600 dark:text-elivis-accent-hover",
+                        bg: "bg-orange-50 border border-orange-100 dark:border-elivis-accent/35 dark:bg-elivis-accent-strong/25",
                     },
                 ].map(({ key, label, value, sub, color, bg }) => (
                     <div key={key} className={`rounded-2xl ${bg} px-5 py-4`}>
-                        <p className="text-xs font-medium text-stone-500">{label}</p>
+                        <p className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{label}</p>
                         <p className={`mt-1 text-4xl font-bold tracking-tight ${color}`}>{value}</p>
-                        {sub ? <p className="mt-1 text-[11px] text-stone-400">{sub}</p> : null}
+                        {sub ? <p className="mt-1 text-[11px] text-stone-400 dark:text-elivis-ink-secondary">{sub}</p> : null}
                     </div>
                 ))}
             </div>
 
             {/* ── 진행률 ── */}
-            <div className="mb-5 rounded-2xl border border-stone-100 bg-white p-5">
+            <div className="mb-5 rounded-2xl border border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5">
                 <div className="mb-3 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-stone-700">{t("dashboard.progress")}</span>
-                    <span className="text-2xl font-bold text-stone-900">{progressPct}%</span>
+                    <span className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">{t("dashboard.progress")}</span>
+                    <span className="text-2xl font-bold text-stone-900 dark:text-elivis-ink">{progressPct}%</span>
                 </div>
-                <div className="h-4 w-full overflow-hidden rounded-full bg-stone-100">
+                <div className="h-4 w-full overflow-hidden rounded-full bg-stone-100 dark:bg-elivis-surface-elevated">
                     <div
                         className="h-full rounded-full bg-green-500 transition-all duration-700"
                         style={{ width: `${progressPct}%` }}
                     />
                 </div>
-                <p className="mt-2 text-xs text-stone-400">
+                <p className="mt-2 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                     {t("dashboard.progressDetail", { completed: completedCount, total: totalTasks })}
                 </p>
             </div>
@@ -192,22 +192,22 @@ export function DashboardPanel({
             {/* ── 중단 2열 ── */}
             <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {/* 의미(semantic)별 — 동일 표시명 status 중복 제거 */}
-                <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                    <h3 className="text-sm font-semibold text-stone-700">
+                <div className="rounded-2xl border border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5">
+                    <h3 className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                         {t("dashboard.statusBreakdown")}
                     </h3>
-                    <p className="mt-0.5 text-xs text-stone-400">{t("dashboard.statusBreakdownHint")}</p>
+                    <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("dashboard.statusBreakdownHint")}</p>
                     {totalTasks === 0 ? (
-                        <p className="mt-4 text-xs text-stone-400">{t("dashboard.noTasks")}</p>
+                        <p className="mt-4 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("dashboard.noTasks")}</p>
                     ) : (
                         <div className="mt-4 space-y-3">
                             {semanticDistCounts.map(({ sem, count, color }) => (
                                 <div key={sem} className="flex items-center gap-2.5">
-                                    <span className="w-16 shrink-0 truncate text-xs font-medium text-stone-600 sm:w-20">
+                                    <span className="w-16 shrink-0 truncate text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary sm:w-20">
                                         {semanticLabel(sem)}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="h-6 overflow-hidden rounded-md bg-stone-100">
+                                        <div className="h-6 overflow-hidden rounded-md bg-stone-100 dark:bg-elivis-surface-elevated">
                                             <div
                                                 className="h-full rounded-md transition-all duration-500 ease-out"
                                                 style={{
@@ -218,7 +218,7 @@ export function DashboardPanel({
                                             />
                                         </div>
                                     </div>
-                                    <span className="w-6 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-600">
+                                    <span className="w-6 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-600 dark:text-elivis-ink-secondary">
                                         {count}
                                     </span>
                                 </div>
@@ -228,12 +228,12 @@ export function DashboardPanel({
                 </div>
 
                 {/* 우선순위별 */}
-                <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                    <h3 className="mb-4 text-sm font-semibold text-stone-700">
+                <div className="rounded-2xl border border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5">
+                    <h3 className="mb-4 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                         {t("dashboard.priorityBreakdown")}
                     </h3>
                     {byPriority.length === 0 && noPriority === totalTasks ? (
-                        <p className="text-xs text-stone-400">{t("dashboard.noTasks")}</p>
+                        <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("dashboard.noTasks")}</p>
                     ) : (
                         <div className="space-y-3">
                             {byPriority.map((p) => {
@@ -252,11 +252,11 @@ export function DashboardPanel({
                                                 />
                                                 {p.name}
                                             </span>
-                                            <span className="text-xs tabular-nums text-stone-500">
+                                            <span className="text-xs tabular-nums text-stone-500 dark:text-elivis-ink-secondary">
                                                 {t("dashboard.items", { count: p.count })} · {pct}%
                                             </span>
                                         </div>
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100 dark:bg-elivis-surface-elevated">
                                             <div
                                                 className={`h-full rounded-full ${color.dot} transition-all duration-500`}
                                                 style={{ width: `${pct}%`, ...color.dotStyle }}
@@ -272,17 +272,17 @@ export function DashboardPanel({
                                     return (
                                         <div>
                                             <div className="mb-1.5 flex items-center justify-between">
-                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-500">
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                                     {t("dashboard.noPriority")}
                                                 </span>
-                                                <span className="text-xs tabular-nums text-stone-500">
+                                                <span className="text-xs tabular-nums text-stone-500 dark:text-elivis-ink-secondary">
                                                     {t("dashboard.items", { count: noPriority })} · {pct}%
                                                 </span>
                                             </div>
-                                            <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
+                                            <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100 dark:bg-elivis-surface-elevated">
                                                 <div
-                                                    className="h-full rounded-full bg-stone-300 transition-all duration-500"
+                                                    className="h-full rounded-full bg-stone-300 dark:bg-elivis-surface-elevated transition-all duration-500"
                                                     style={{ width: `${pct}%` }}
                                                 />
                                             </div>
@@ -295,15 +295,15 @@ export function DashboardPanel({
             </div>
 
             {/* ── 기한 임박 업무 전체 목록 ── */}
-            <div className="rounded-2xl border border-stone-100 bg-white p-5">
-                <h3 className="mb-4 text-sm font-semibold text-stone-700">
+            <div className="rounded-2xl border border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5">
+                <h3 className="mb-4 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                     {t("dashboard.upcomingTitle")}{" "}
-                    <span className="ml-1 text-xs font-normal text-stone-400">
+                    <span className="ml-1 text-xs font-normal text-stone-400 dark:text-elivis-ink-secondary">
                         {t("dashboard.upcomingNote")}
                     </span>
                 </h3>
                 {upcomingTasks.length === 0 ? (
-                    <p className="text-xs text-stone-400">{t("dashboard.noUpcoming")}</p>
+                    <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("dashboard.noUpcoming")}</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {upcomingTasks.map((task) => {
@@ -319,14 +319,14 @@ export function DashboardPanel({
                                       : t("timeline.daysLeft", { count: diff });
                             const labelBg =
                                 diff < 0
-                                    ? "bg-red-100 text-red-600"
+                                    ? "bg-red-100 text-red-600 dark:bg-red-950/45 dark:text-red-300"
                                     : diff === 0
-                                      ? "bg-orange-100 text-orange-600"
-                                      : "bg-stone-100 text-stone-500";
+                                      ? "bg-orange-100 text-orange-600 dark:bg-elivis-accent-strong/35 dark:text-elivis-accent-hover"
+                                      : "bg-stone-100 text-stone-500 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary";
                             return (
                                 <div
                                     key={task.id}
-                                    className="flex items-center gap-3 rounded-xl border border-stone-100 px-4 py-3"
+                                    className="flex items-center gap-3 rounded-xl border border-stone-100 dark:border-elivis-line px-4 py-3"
                                 >
                                     <span
                                         className={`h-2.5 w-2.5 shrink-0 rounded-full ${color.dot}`}
@@ -335,11 +335,11 @@ export function DashboardPanel({
                                     <div className="min-w-0 flex-1">
                                         <p
                                             title={task.title}
-                                            className="truncate text-xs font-semibold text-stone-800"
+                                            className="truncate text-xs font-semibold text-stone-800 dark:text-elivis-ink"
                                         >
                                             {formatTaskTitleForList(task.title)}
                                         </p>
-                                        <p className="mt-0.5 truncate text-[11px] text-stone-400">
+                                        <p className="mt-0.5 truncate text-[11px] text-stone-400 dark:text-elivis-ink-secondary">
                                             {task.status.name}
                                         </p>
                                     </div>

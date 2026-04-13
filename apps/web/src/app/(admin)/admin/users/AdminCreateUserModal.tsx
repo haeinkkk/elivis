@@ -99,19 +99,19 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                 aria-hidden
             />
 
-            <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
+            <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl">
                 {/* 헤더 */}
-                <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                     <h2
                         id="create-user-title"
-                        className="text-base font-semibold text-stone-800"
+                        className="text-base font-semibold text-stone-800 dark:text-elivis-ink"
                     >
                         {t("modalTitle")}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                         aria-label={t("modalClose")}
                     >
                         <svg
@@ -136,7 +136,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     <div>
                         <label
                             htmlFor="new-user-email"
-                            className="mb-1.5 block text-sm font-medium text-stone-700"
+                            className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {tAuth("emailLabel")}
                             <span className="ml-1 text-red-500">*</span>
@@ -151,7 +151,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                             value={form.email}
                             onChange={(e) => onChange("email", e.target.value)}
                             placeholder="user@example.com"
-                            className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                            className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3.5 py-2.5 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                         />
                     </div>
 
@@ -159,7 +159,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     <div>
                         <label
                             htmlFor="new-user-name"
-                            className="mb-1.5 block text-sm font-medium text-stone-700"
+                            className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("colName")}
                             <span className="ml-1 text-red-500">*</span>
@@ -173,7 +173,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                             value={form.name}
                             onChange={(e) => onChange("name", e.target.value)}
                             placeholder={t("placeholderNameExample")}
-                            className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                            className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3.5 py-2.5 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                         />
                     </div>
 
@@ -181,7 +181,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     <div>
                         <label
                             htmlFor="new-user-password"
-                            className="mb-1.5 block text-sm font-medium text-stone-700"
+                            className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {tAuth("passwordLabel")}
                             <span className="ml-1 text-red-500">*</span>
@@ -196,13 +196,13 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                                 value={form.password}
                                 onChange={(e) => onChange("password", e.target.value)}
                                 placeholder={t("placeholderPassword")}
-                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 pr-10 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                                className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3.5 py-2.5 pr-10 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                             />
                             <button
                                 type="button"
                                 tabIndex={-1}
                                 onClick={() => setShowPassword((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink"
                                 aria-label={
                                     showPassword ? t("ariaHidePassword") : t("ariaShowPassword")
                                 }
@@ -249,7 +249,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     <div>
                         <label
                             htmlFor="new-user-password-confirm"
-                            className="mb-1.5 block text-sm font-medium text-stone-700"
+                            className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("passwordConfirmLabel")}
                             <span className="ml-1 text-red-500">*</span>
@@ -267,19 +267,19 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                                     setError(null);
                                 }}
                                 placeholder={t("placeholderConfirmPassword")}
-                                className={`w-full rounded-xl border bg-stone-50 px-3.5 py-2.5 pr-10 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:bg-white disabled:opacity-50 ${
+                                className={`w-full rounded-xl border bg-stone-50 px-3.5 py-2.5 pr-10 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:bg-white disabled:opacity-50 dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:bg-elivis-surface ${
                                     confirmPassword && confirmPassword !== form.password
-                                        ? "border-red-300 focus:border-red-300 focus:ring-2 focus:ring-red-100"
+                                        ? "border-red-300 focus:border-red-300 focus:ring-2 focus:ring-red-100 dark:border-red-800 dark:focus:border-red-500 dark:focus:ring-red-900/40"
                                         : confirmPassword && confirmPassword === form.password
-                                          ? "border-green-300 focus:border-green-300 focus:ring-2 focus:ring-green-100"
-                                          : "border-stone-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-200"
+                                          ? "border-green-300 focus:border-green-300 focus:ring-2 focus:ring-green-100 dark:border-green-700 dark:focus:border-green-500 dark:focus:ring-green-900/40"
+                                          : "border-stone-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-200 dark:border-elivis-line dark:focus:border-elivis-accent dark:focus:ring-elivis-accent/30"
                                 }`}
                             />
                             <button
                                 type="button"
                                 tabIndex={-1}
                                 onClick={() => setShowConfirm((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink"
                                 aria-label={
                                     showConfirm ? t("ariaHidePassword") : t("ariaShowPassword")
                                 }
@@ -363,7 +363,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     <div>
                         <label
                             htmlFor="new-user-role"
-                            className="mb-1.5 block text-sm font-medium text-stone-700"
+                            className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("systemRoleLabel")}
                         </label>
@@ -374,7 +374,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                             onChange={(e) =>
                                 onChange("systemRole", e.target.value)
                             }
-                            className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-800 outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                            className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3.5 py-2.5 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                         >
                             <option value="USER">
                                 {t("roleSelectOption", {
@@ -394,7 +394,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                     {/* 오류 */}
                     {error && (
                         <div
-                            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                            className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-800"
                             role="alert"
                         >
                             {error}
@@ -407,7 +407,7 @@ export function AdminCreateUserModal({ open, onClose, onCreated }: AdminCreateUs
                             type="button"
                             onClick={onClose}
                             disabled={pending}
-                            className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 disabled:opacity-50"
+                            className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                         >
                             {t("cancel")}
                         </button>

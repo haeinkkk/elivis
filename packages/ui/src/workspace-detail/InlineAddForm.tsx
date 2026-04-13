@@ -41,15 +41,30 @@ export function InlineAddForm({
     }
 
     return (
-        <div className="flex items-center gap-2 rounded-md border border-stone-300 bg-white px-2 py-1.5">
-            <input autoFocus className="min-w-0 flex-1 text-sm outline-none placeholder:text-stone-400"
+        <div className="flex items-center gap-2 rounded-md border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2 py-1.5">
+            <input
+                autoFocus
+                className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400 dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted"
                 placeholder={placeholderText} value={title} onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onCancel(); }}
                 disabled={isPending}
             />
-            <button type="button" onClick={onCancel} className="shrink-0 text-xs text-stone-400 hover:text-stone-600" disabled={isPending}>{t("common.cancel")}</button>
-            <button type="button" onClick={submit} disabled={isPending || !title.trim()}
-                className="shrink-0 rounded bg-stone-800 px-2 py-0.5 text-xs text-white hover:bg-stone-700 disabled:opacity-40">{t("common.add")}</button>
+            <button
+                type="button"
+                onClick={onCancel}
+                className="shrink-0 text-xs text-stone-400 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
+                disabled={isPending}
+            >
+                {t("common.cancel")}
+            </button>
+            <button
+                type="button"
+                onClick={submit}
+                disabled={isPending || !title.trim()}
+                className="shrink-0 rounded bg-stone-800 px-2 py-0.5 text-xs text-white hover:bg-stone-700 disabled:opacity-40 dark:bg-elivis-accent dark:hover:bg-elivis-accent-hover"
+            >
+                {t("common.add")}
+            </button>
         </div>
     );
 }

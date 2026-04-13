@@ -59,12 +59,14 @@ function TeamListCard({
     const bannerThumb = listBannerSrc(team.bannerUrl);
     const leaderLabel = team.createdBy?.name?.trim() || team.createdBy?.email || null;
     return (
-        <li className={`group rounded-lg border border-stone-200/90 bg-white transition-all hover:border-stone-300 hover:shadow-sm ${compact ? "" : "hover:shadow-md"}`}>
+        <li
+            className={`group rounded-lg border border-stone-200/90 bg-white transition-all hover:border-stone-300 hover:shadow-sm dark:border-elivis-line dark:bg-elivis-surface dark:hover:border-elivis-line ${compact ? "" : "hover:shadow-md dark:hover:shadow-md"}`}
+        >
             <div className={`flex items-start gap-3 sm:gap-4 ${compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5"}`}>
                 {/* 배너 썸네일 — 클릭 시 팀 이동 */}
                 <Link href={`/teams/${team.id}`} tabIndex={-1} className="shrink-0">
                     {bannerThumb ? (
-                        <span className="relative block h-14 w-28 overflow-hidden rounded-lg bg-stone-100 sm:h-16 sm:w-32">
+                        <span className="relative block h-14 w-28 overflow-hidden rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated sm:h-16 sm:w-32">
                             <img
                                 src={bannerThumb}
                                 alt=""
@@ -72,9 +74,9 @@ function TeamListCard({
                             />
                         </span>
                     ) : (
-                        <span className="relative block h-14 w-28 overflow-hidden rounded-lg bg-stone-100 sm:h-16 sm:w-32">
+                        <span className="relative block h-14 w-28 overflow-hidden rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated sm:h-16 sm:w-32">
                             <span
-                                className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 via-stone-100 to-stone-200 text-stone-500 transition-colors group-hover:text-stone-600"
+                                className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 via-stone-100 to-stone-200 text-stone-500 transition-colors group-hover:text-stone-600 dark:from-elivis-surface-elevated dark:via-elivis-surface dark:to-elivis-surface-elevated dark:text-elivis-ink-secondary dark:group-hover:text-elivis-ink-muted"
                                 aria-hidden
                             >
                                 <svg
@@ -99,7 +101,7 @@ function TeamListCard({
                 <Link href={`/teams/${team.id}`} className="min-w-0 flex-1 block">
                     <div className="flex min-w-0 items-center gap-1.5">
                         <h3
-                            className={`min-w-0 truncate font-semibold text-stone-800 transition-colors group-hover:text-stone-900 ${
+                            className={`min-w-0 truncate font-semibold text-stone-800 transition-colors group-hover:text-stone-900 dark:text-elivis-ink dark:group-hover:text-elivis-ink ${
                                 compact ? "text-sm sm:text-[15px]" : ""
                             }`}
                         >
@@ -113,14 +115,14 @@ function TeamListCard({
                             onRemove={() => removeTeamFavoriteAction(team.id)}
                         />
                         {team.hiddenFromUsers ? (
-                            <span className="shrink-0 rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                            <span className="shrink-0 rounded-md border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-2 py-0.5 text-[11px] font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                 {t("cardHidden")}
                             </span>
                         ) : null}
                     </div>
                     <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <p
-                            className={`text-stone-500 line-clamp-1 ${compact ? "text-xs sm:text-sm" : "text-sm"}`}
+                            className={`line-clamp-1 text-stone-500 dark:text-elivis-ink-secondary ${compact ? "text-xs sm:text-sm" : "text-sm"}`}
                             title={team.shortDescription ?? undefined}
                         >
                             {team.shortDescription
@@ -128,29 +130,29 @@ function TeamListCard({
                                 : t("dashPlaceholder")}
                         </p>
                         <div
-                            className={`flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-stone-500 sm:gap-x-4 ${
+                            className={`flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-stone-500 dark:text-elivis-ink-secondary sm:gap-x-4 ${
                                 compact ? "text-[11px] sm:text-xs" : "text-xs"
                             }`}
                         >
                             <span>
                                 {t("labelMembers")}{" "}
-                                <span className="font-medium text-stone-600">
+                                <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("cardMembersCount", { count: team._count.members })}
                                 </span>
                             </span>
                             {leaderLabel ? (
                                 <>
-                                    <span className="text-stone-300 sm:inline">|</span>
+                                    <span className="text-stone-300 dark:text-elivis-line sm:inline">|</span>
                                     <span>
                                         {t("cardLeader")}{" "}
-                                        <span className="font-medium text-stone-600">{leaderLabel}</span>
+                                        <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">{leaderLabel}</span>
                                     </span>
                                 </>
                             ) : null}
-                            <span className="text-stone-300 sm:inline">|</span>
+                            <span className="text-stone-300 dark:text-elivis-line sm:inline">|</span>
                             <span>
                                 {t("labelCreated")}{" "}
-                                <span className="font-medium text-stone-600">
+                                <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                     {new Date(team.createdAt).toLocaleDateString(locale)}
                                 </span>
                             </span>
@@ -159,7 +161,11 @@ function TeamListCard({
                 </Link>
 
                 {/* 화살표 */}
-                <Link href={`/teams/${team.id}`} tabIndex={-1} className="shrink-0 self-center text-stone-300 transition-transform group-hover:translate-x-0.5">
+                <Link
+                    href={`/teams/${team.id}`}
+                    tabIndex={-1}
+                    className="shrink-0 self-center text-stone-300 transition-transform group-hover:translate-x-0.5 dark:text-elivis-ink-muted"
+                >
                     <svg
                         className="h-5 w-5"
                         fill="none"
@@ -201,11 +207,11 @@ function SortablePinRow({
         <div
             ref={setNodeRef}
             style={style}
-            className="flex items-center gap-3 rounded-lg border border-stone-200 bg-white px-3 py-2"
+            className="flex items-center gap-3 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2"
         >
             <button
                 type="button"
-                className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg border border-dashed border-stone-300 bg-stone-50 text-stone-500 active:cursor-grabbing"
+                className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg border border-dashed border-stone-300 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface text-stone-500 dark:text-elivis-ink-secondary active:cursor-grabbing"
                 aria-label={t("pinModal.dragAria")}
                 {...attributes}
                 {...listeners}
@@ -225,8 +231,8 @@ function SortablePinRow({
                 </svg>
             </button>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-stone-800">{name}</p>
-                <p className="truncate text-xs text-stone-500">{subtitle}</p>
+                <p className="truncate text-sm font-medium text-stone-800 dark:text-elivis-ink">{name}</p>
+                <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">{subtitle}</p>
             </div>
         </div>
     );
@@ -341,10 +347,10 @@ export function TeamsPageClient({
             <div className="w-full max-w-full">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">
+                        <h2 className="text-2xl font-semibold text-stone-800 dark:text-elivis-ink sm:text-3xl">
                             {t("title")}
                         </h2>
-                        <p className="mt-2 text-stone-600">{t("subtitle")}</p>
+                        <p className="mt-2 text-stone-600 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
                     </div>
                     <Link
                         href="/teams/new"
@@ -375,7 +381,7 @@ export function TeamsPageClient({
                         name="q"
                         defaultValue={searchQuery}
                         placeholder={t("searchPlaceholder")}
-                        className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                        className="min-w-0 flex-1 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                     />
                     <div className="flex shrink-0 items-center gap-2">
                         <button
@@ -387,7 +393,7 @@ export function TeamsPageClient({
                         {searchQuery ? (
                             <Link
                                 href="/teams"
-                                className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                                className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                             >
                                 {t("reset")}
                             </Link>
@@ -399,7 +405,7 @@ export function TeamsPageClient({
                     <div className="mt-12 flex flex-col items-center justify-center py-16 text-center sm:mt-16 sm:py-24">
                         <span className="flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
                             <svg
-                                className="h-14 w-14 text-stone-800 sm:h-16 sm:w-16"
+                                className="h-14 w-14 text-stone-800 dark:text-elivis-ink sm:h-16 sm:w-16"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 strokeWidth={1.5}
@@ -412,7 +418,7 @@ export function TeamsPageClient({
                                 />
                             </svg>
                         </span>
-                        <p className="mt-4 text-xl font-medium text-stone-800 sm:text-2xl">
+                        <p className="mt-4 text-xl font-medium text-stone-800 dark:text-elivis-ink sm:text-2xl">
                             {searchQuery ? t("emptySearch") : t("emptyNone")}{" "}
                             <span className="inline-block">😢</span>
                         </p>
@@ -433,7 +439,7 @@ export function TeamsPageClient({
                                     <div className="flex min-w-0 items-end gap-2">
                                         <h3
                                             id="teams-mine-heading"
-                                            className="text-base font-semibold text-stone-900 sm:text-lg"
+                                            className="text-base font-semibold text-stone-900 dark:text-elivis-ink sm:text-lg"
                                         >
                                             {t("myTeamsTitle")}
                                         </h3>
@@ -441,26 +447,26 @@ export function TeamsPageClient({
                                             <button
                                                 type="button"
                                                 onClick={() => setPinModalOpen(true)}
-                                                className="inline-flex h-7 items-center rounded-md border border-stone-200 bg-white px-2.5 text-xs font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50"
+                                                className="inline-flex h-7 items-center rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 text-xs font-medium text-stone-700 dark:text-elivis-ink shadow-sm transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                             >
                                                 {t("pinOrderButton")}
                                             </button>
                                         ) : null}
                                     </div>
-                                    <p className="mt-1 text-xs text-stone-500">
+                                    <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("maxVisibleNote", { max: MY_TEAMS_PAGE_SIZE })}
                                     </p>
                                 </div>
                                 {myTeams.length > MY_TEAMS_PAGE_SIZE ? (
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-xs tabular-nums text-stone-400">
+                                        <span className="text-xs tabular-nums text-stone-400 dark:text-elivis-ink-secondary">
                                             {safePage}/{totalPages}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                             disabled={safePage <= 1}
-                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:pointer-events-none disabled:opacity-50"
                                             aria-label={t("pagePrev")}
                                         >
                                             <svg
@@ -483,7 +489,7 @@ export function TeamsPageClient({
                                                 setCurrentPage((p) => Math.min(totalPages, p + 1))
                                             }
                                             disabled={safePage >= totalPages}
-                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:pointer-events-none disabled:opacity-50"
                                             aria-label={t("pageNext")}
                                         >
                                             <svg
@@ -504,7 +510,7 @@ export function TeamsPageClient({
                                 ) : null}
                             </div>
                             {myTeams.length === 0 ? (
-                                <p className="mt-3 text-sm text-stone-500">
+                                <p className="mt-3 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                     {searchQuery ? t("myTeamsEmptySearch") : t("myTeamsEmptyNone")}
                                 </p>
                             ) : (
@@ -529,11 +535,11 @@ export function TeamsPageClient({
                             >
                                 <h3
                                     id="teams-public-heading"
-                                    className="text-base font-semibold text-stone-900 sm:text-lg"
+                                    className="text-base font-semibold text-stone-900 dark:text-elivis-ink sm:text-lg"
                                 >
                                     {t("publicTitle")}
                                 </h3>
-                                <p className="mt-1 text-xs text-stone-500">
+                                <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("publicNote")}
                                 </p>
                                 <ul className="mt-3 space-y-2">
@@ -548,7 +554,7 @@ export function TeamsPageClient({
                                 </ul>
                                 <div ref={publicSentinelRef} className="h-10" aria-hidden />
                                 {publicLoadingMore ? (
-                                    <p className="mt-2 text-xs text-stone-500">{t("loadingMorePublic")}</p>
+                                    <p className="mt-2 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("loadingMorePublic")}</p>
                                 ) : null}
                             </section>
                         ) : null}
@@ -564,23 +570,23 @@ export function TeamsPageClient({
                                   onClick={() => setPinModalOpen(false)}
                               />
                               <aside
-                                  className="fixed left-1/2 top-1/2 z-[71] w-[min(92vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 bg-white shadow-xl"
+                                  className="fixed left-1/2 top-1/2 z-[71] w-[min(92vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl"
                                   role="dialog"
                                   aria-modal="true"
                               >
-                                  <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
+                                  <div className="flex items-center justify-between gap-3 border-b border-stone-100 dark:border-elivis-line px-4 py-3">
                                       <div className="min-w-0">
-                                          <h2 className="truncate text-sm font-semibold text-stone-900">
+                                          <h2 className="truncate text-sm font-semibold text-stone-900 dark:text-elivis-ink">
                                               {t("pinModal.title")}
                                           </h2>
-                                          <p className="mt-0.5 text-xs text-stone-500">
+                                          <p className="mt-0.5 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                               {t("pinModal.desc")}
                                           </p>
                                       </div>
                                       <button
                                           type="button"
                                           onClick={() => setPinModalOpen(false)}
-                                          className="flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-700"
+                                          className="flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                                           aria-label={t("pinModal.close")}
                                       >
                                           <svg
@@ -629,16 +635,16 @@ export function TeamsPageClient({
                                           </SortableContext>
                                       </DndContext>
                                       {pinError ? (
-                                          <p className="mt-3 text-sm text-red-600">{pinError}</p>
+                                          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pinError}</p>
                                       ) : null}
                                   </div>
 
-                                  <div className="flex items-center justify-end gap-2 border-t border-stone-100 px-4 py-3">
+                                  <div className="flex items-center justify-end gap-2 border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                                       <button
                                           type="button"
                                           disabled={saving}
                                           onClick={() => setPinModalOpen(false)}
-                                          className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                                          className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                                       >
                                           {t("pinModal.cancel")}
                                       </button>

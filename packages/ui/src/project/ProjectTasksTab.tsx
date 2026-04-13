@@ -16,6 +16,7 @@ import { formatTaskTitleForList } from "../utils/task-title-display";
 import { tagColorOf } from "../utils/tag-colors";
 import TaskDetailPanel from "../workspace/TaskDetailPanel";
 
+import { ElivisFilterSelect } from "../ElivisFilterSelect";
 import { TaskRequestModal } from "./TaskRequestModal";
 
 type SelectedTaskInfo = {
@@ -58,7 +59,7 @@ function fmtTaskDate(iso: string | null | undefined, locale: string): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AssigneeChip({ assignee }: { assignee: ApiWorkspaceTask["assignee"] }) {
-    if (!assignee) return <span className="text-xs text-stone-400">—</span>;
+    if (!assignee) return <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">—</span>;
     const name = assignee.name?.trim() || assignee.email.split("@")[0];
     return (
         <div className="flex items-center gap-1.5">
@@ -66,84 +67,14 @@ function AssigneeChip({ assignee }: { assignee: ApiWorkspaceTask["assignee"] }) 
                 <img
                     src={assignee.avatarUrl}
                     alt={name}
-                    className="h-5 w-5 rounded-full object-cover ring-1 ring-white"
+                    className="h-5 w-5 rounded-full object-cover ring-1 ring-white dark:ring-elivis-surface"
                 />
             ) : (
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-200 text-[10px] font-semibold text-stone-600">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-[10px] font-semibold text-stone-600 dark:text-elivis-ink-secondary">
                     {name[0]?.toUpperCase()}
                 </span>
             )}
-            <span className="max-w-[80px] truncate text-xs text-stone-600">{name}</span>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 필터/정렬 드롭다운
-// ─────────────────────────────────────────────────────────────────────────────
-
-function FilterDropdown<T extends string>({
-    value,
-    options,
-    onChange,
-    label,
-}: {
-    value: T;
-    options: { value: T; label: string }[];
-    onChange: (v: T) => void;
-    label: string;
-}) {
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handler(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        }
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
-    const current = options.find((o) => o.value === value);
-    const isActive = value !== options[0]?.value;
-
-    return (
-        <div ref={ref} className="relative">
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
-                    isActive
-                        ? "border-stone-800 bg-stone-800 text-white"
-                        : "border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50"
-                }`}
-            >
-                {isActive ? current?.label : label}
-                <svg className="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            {open && (
-                <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-stone-200 bg-white py-1 shadow-xl">
-                    {options.map((opt) => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => { onChange(opt.value); setOpen(false); }}
-                            className={`flex w-full items-center justify-between px-3 py-1.5 text-xs transition-colors hover:bg-stone-50 ${
-                                value === opt.value ? "font-semibold text-stone-900" : "text-stone-600"
-                            }`}
-                        >
-                            {opt.label}
-                            {value === opt.value && (
-                                <svg className="h-3 w-3 text-stone-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            )}
+            <span className="max-w-[80px] truncate text-xs text-stone-600 dark:text-elivis-ink-secondary">{name}</span>
         </div>
     );
 }
@@ -201,8 +132,8 @@ function TaskRow({
             <tr
                 className={`group border-b transition-colors ${
                     isTop
-                        ? "border-stone-200 bg-white hover:bg-stone-50/60"
-                        : "border-stone-100 bg-stone-50/20 hover:bg-stone-50/40"
+                        ? "border-stone-200 bg-white hover:bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface dark:hover:bg-elivis-surface-elevated/70"
+                        : "border-stone-100 bg-stone-50/20 hover:bg-stone-50/40 dark:border-elivis-line dark:bg-elivis-surface-elevated/20 dark:hover:bg-elivis-surface-elevated/45"
                 }`}
             >
                 {/* 제목 */}
@@ -212,7 +143,7 @@ function TaskRow({
                             <button
                                 type="button"
                                 onClick={() => setExpanded((v) => !v)}
-                                className="flex h-4 w-4 shrink-0 items-center justify-center text-stone-400 hover:text-stone-600"
+                                className="flex h-4 w-4 shrink-0 items-center justify-center text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink"
                             >
                                 <svg
                                     className={`h-3 w-3 transition-transform ${expanded ? "rotate-90" : ""}`}
@@ -231,7 +162,9 @@ function TaskRow({
                             onClick={() => onOpenPanel(task)}
                             title={task.title}
                             className={`flex-1 truncate text-left hover:underline ${
-                                isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"
+                                isTop
+                                    ? "text-sm font-semibold text-stone-900 dark:text-elivis-ink"
+                                    : "text-sm text-stone-600 dark:text-elivis-ink-secondary"
                             }`}
                         >
                             {formatTaskTitleForList(task.title)}
@@ -263,7 +196,7 @@ function TaskRow({
                             {task.priority.name}
                         </button>
                     ) : (
-                        <span className="text-xs text-stone-300">—</span>
+                        <span className="text-xs text-stone-300 dark:text-elivis-ink-muted">—</span>
                     )}
                 </td>
 
@@ -275,7 +208,7 @@ function TaskRow({
                             <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); onRequestTask(task); }}
-                                className="whitespace-nowrap rounded-md border border-stone-200 bg-white px-2 py-0.5 text-[11px] font-medium text-stone-500 transition-colors hover:border-stone-700 hover:bg-stone-700 hover:text-white"
+                                className="whitespace-nowrap rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2 py-0.5 text-[11px] font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:border-stone-700 hover:bg-stone-700 hover:text-white dark:hover:border-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                                 title={tList("requestTaskTitle")}
                             >
                                 {tList("request")}
@@ -285,7 +218,7 @@ function TaskRow({
                 </td>
 
                 {/* 시작일 */}
-                <td className="hidden py-2 pr-2 text-xs text-stone-500 md:table-cell">
+                <td className="hidden py-2 pr-2 text-xs text-stone-500 dark:text-elivis-ink-secondary md:table-cell">
                     {fmtTaskDate(task.startDate, locale)}
                 </td>
 
@@ -300,16 +233,16 @@ function TaskRow({
                             const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
                             const color =
                                 diff < 0
-                                    ? "text-red-500 font-semibold"
+                                    ? "font-semibold text-red-500 dark:text-red-400"
                                     : diff === 0
-                                    ? "text-orange-500 font-semibold"
-                                    : diff <= 3
-                                    ? "text-yellow-600"
-                                    : "text-stone-500";
+                                      ? "font-semibold text-orange-500 dark:text-orange-400"
+                                      : diff <= 3
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : "text-stone-500 dark:text-elivis-ink-secondary";
                             return <span className={color}>{fmtTaskDate(task.dueDate, locale)}</span>;
                         })()
                     ) : (
-                        <span className="text-stone-300">—</span>
+                        <span className="text-stone-300 dark:text-elivis-ink-muted">—</span>
                     )}
                 </td>
 
@@ -348,13 +281,13 @@ function TableHead() {
     const t = useTranslations("projects.detail.tasksList");
     return (
         <thead>
-            <tr className="border-b border-stone-200 bg-stone-50/60">
-                <th className="py-2 pl-3 pr-3 text-left text-xs font-medium text-stone-500">{t("colTask")}</th>
-                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">{t("colStatus")}</th>
-                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500">{t("colPriority")}</th>
-                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 sm:table-cell">{t("colAssignee")}</th>
-                <th className="hidden py-2 pr-2 text-left text-xs font-medium text-stone-500 md:table-cell">{t("colStart")}</th>
-                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 md:table-cell">{t("colDue")}</th>
+            <tr className="border-b border-stone-200 bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface-elevated/70">
+                <th className="py-2 pl-3 pr-3 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("colTask")}</th>
+                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("colStatus")}</th>
+                <th className="py-2 pr-2 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("colPriority")}</th>
+                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary sm:table-cell">{t("colAssignee")}</th>
+                <th className="hidden py-2 pr-2 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary md:table-cell">{t("colStart")}</th>
+                <th className="hidden py-2 pr-3 text-left text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary md:table-cell">{t("colDue")}</th>
             </tr>
         </thead>
     );
@@ -384,7 +317,7 @@ function MemberHeaderRow({
     const tDetail = useTranslations("projects.detail");
     return (
         <tbody>
-            <tr className={isFirst ? "" : "border-t-4 border-stone-100"}>
+            <tr className={isFirst ? "" : "border-t-4 border-stone-100 dark:border-elivis-line"}>
                 <td colSpan={6} className="px-3 py-0">
                     <button
                         type="button"
@@ -392,7 +325,7 @@ function MemberHeaderRow({
                         className="flex w-full items-center gap-2.5 py-3 text-left"
                     >
                         <svg
-                            className={`h-3.5 w-3.5 shrink-0 text-stone-400 transition-transform duration-150 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
+                            className={`h-3.5 w-3.5 shrink-0 text-stone-400 transition-transform duration-150 dark:text-elivis-ink-secondary ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={2.5}
@@ -405,17 +338,17 @@ function MemberHeaderRow({
                             <img
                                 src={avatarUrl}
                                 alt={name}
-                                className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-stone-200"
+                                className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-stone-200 dark:ring-elivis-line"
                             />
                         ) : (
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink">
                                 {name[0]?.toUpperCase() ?? "?"}
                             </span>
                         )}
 
-                        <span className="text-sm font-semibold text-stone-800">{name}</span>
+                        <span className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{name}</span>
                         {role && (
-                            <span className="text-xs text-stone-400">
+                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                 {role === "LEADER"
                                     ? tDetail("viewerRoles.LEADER")
                                     : role === "DEPUTY_LEADER"
@@ -423,7 +356,7 @@ function MemberHeaderRow({
                                       : tDetail("viewerRoles.MEMBER")}
                             </span>
                         )}
-                        <span className="ml-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500">
+                        <span className="ml-1 rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-[11px] font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {taskCount}
                         </span>
                     </button>
@@ -527,14 +460,14 @@ function MemberFilterBar({
     const t = useTranslations("projects.detail.tasksList");
     if (members.length <= 1) return null;
     return (
-        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-stone-100 bg-stone-50/40 px-4 py-2 sm:px-5">
+        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-stone-100 bg-stone-50/40 dark:border-elivis-line dark:bg-elivis-surface-elevated/35 px-4 py-2 sm:px-5">
             <button
                 type="button"
                 onClick={() => onSelect(null)}
                 className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                     selectedId === null
-                        ? "bg-stone-800 text-white"
-                        : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+                        ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                        : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                 }`}
             >
                 {t("chipAll")}
@@ -549,8 +482,8 @@ function MemberFilterBar({
                         onClick={() => onSelect(isSelected ? null : m.id)}
                         className={`flex shrink-0 items-center gap-1.5 rounded-full py-1 pl-1.5 pr-2.5 text-xs font-medium transition-colors ${
                             isSelected
-                                ? "bg-stone-800 text-white"
-                                : "bg-white border border-stone-200 text-stone-700 hover:bg-stone-50"
+                                ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                                : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         }`}
                     >
                         {m.avatarUrl ? (
@@ -561,7 +494,9 @@ function MemberFilterBar({
                             />
                         ) : (
                             <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
-                                isSelected ? "bg-white/20 text-white" : "bg-stone-200 text-stone-600"
+                                isSelected
+                                    ? "bg-white/20 text-white dark:bg-elivis-surface/50 dark:text-elivis-ink"
+                                    : "bg-stone-200 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
                             }`}>
                                 {initial}
                             </span>
@@ -628,6 +563,11 @@ export function ProjectTasksTab({
     function toggleCollapse(key: string) {
         setCollapsedMap((prev) => ({ ...prev, [key]: !prev[key] }));
     }
+
+    const allMemberSectionsExpanded =
+        viewMode === "all" ||
+        projectTasksData.every(({ workspace }) => !collapsedMap[workspace.id]);
+    const treeBulkOpen = globalDefaultExpanded && allMemberSectionsExpanded;
 
     // 모든 워크스페이스 업무에 소유자·상태·우선순위 컨텍스트 부착
     const allEnrichedTasks: EnrichedTask[] = projectTasksData.flatMap(
@@ -766,9 +706,9 @@ export function ProjectTasksTab({
     return (
         <div className="flex h-full flex-col">
             {/* ── 툴바 ── */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 bg-white px-4 py-2 sm:px-5">
+            <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 sm:px-5">
                 {/* 뷰 토글 */}
-                <div className="flex rounded-lg border border-stone-200 bg-stone-50 p-0.5">
+                <div className="flex rounded-lg border border-stone-200 bg-stone-50 p-0.5 dark:border-elivis-line dark:bg-elivis-surface-elevated/40">
                     {(["all", "by-member"] as const).map((v) => (
                         <button
                             key={v}
@@ -776,8 +716,8 @@ export function ProjectTasksTab({
                             onClick={() => setViewMode(v)}
                             className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                                 viewMode === v
-                                    ? "bg-white text-stone-800 shadow-sm"
-                                    : "text-stone-500 hover:text-stone-700"
+                                    ? "bg-white text-stone-800 shadow-sm dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:shadow-none dark:ring-1 dark:ring-elivis-line"
+                                    : "text-stone-500 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                             }`}
                         >
                             {v === "all" ? tList("viewAll") : tList("viewByMember")}
@@ -785,30 +725,36 @@ export function ProjectTasksTab({
                     ))}
                 </div>
 
-                <div className="h-4 w-px bg-stone-200" />
+                <div className="h-4 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                 {/* 필터 */}
-                <FilterDropdown
+                <ElivisFilterSelect
                     value={filterStatusName}
                     options={statusOptions}
                     onChange={setFilterStatusName}
                     label={tList("filterStatus")}
+                    searchPlaceholder={tList("filterSearchPlaceholder")}
+                    noResultsText={tList("filterNoResults")}
                 />
-                <FilterDropdown
+                <ElivisFilterSelect
                     value={filterPriorityName}
                     options={priorityOptions}
                     onChange={setFilterPriorityName}
                     label={tList("filterPriority")}
+                    searchPlaceholder={tList("filterSearchPlaceholder")}
+                    noResultsText={tList("filterNoResults")}
                 />
 
-                <div className="h-4 w-px bg-stone-200" />
+                <div className="h-4 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                 {/* 정렬 */}
-                <FilterDropdown
+                <ElivisFilterSelect
                     value={sortBy}
                     options={sortOptions}
                     onChange={setSortBy}
                     label={tList("sort")}
+                    searchPlaceholder={tList("filterSearchPlaceholder")}
+                    noResultsText={tList("filterNoResults")}
                 />
 
                 {hasFilter && (
@@ -820,7 +766,7 @@ export function ProjectTasksTab({
                             setFilterMemberId(null);
                             setSortBy("default");
                         }}
-                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                     >
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -832,25 +778,18 @@ export function ProjectTasksTab({
                 <div className="ml-auto flex items-center gap-1">
                     <button
                         type="button"
-                        onClick={handleExpandAll}
-                        title={tList("expandAllTitle")}
-                        className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
+                        onClick={() => (treeBulkOpen ? handleCollapseAll() : handleExpandAll())}
+                        title={treeBulkOpen ? tList("collapseAllTitle") : tList("expandAllTitle")}
+                        className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:border-elivis-line dark:hover:bg-elivis-surface-elevated"
                     >
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            {treeBulkOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            )}
                         </svg>
-                        {tList("expandAll")}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleCollapseAll}
-                        title={tList("collapseAllTitle")}
-                        className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
-                    >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                        {tList("collapseAll")}
+                        {treeBulkOpen ? tList("collapseAll") : tList("expandAll")}
                     </button>
                 </div>
             </div>
@@ -863,15 +802,15 @@ export function ProjectTasksTab({
             />
 
             {/* ── 본문 ── */}
-            <div className="min-h-0 flex-1 overflow-auto">
+            <div className="min-h-0 flex-1 overflow-auto bg-white dark:bg-elivis-surface">
                 {totalTopTaskCount === 0 ? (
                     <div className="flex items-center justify-center py-20 text-center">
                         <div>
                             <p className="text-4xl">📋</p>
-                            <p className="mt-3 text-sm font-semibold text-stone-700">
+                            <p className="mt-3 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                                 {tDetail("tasksEmptyTitle")}
                             </p>
-                            <p className="mt-1 text-xs text-stone-400">
+                            <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                 {tDetail("tasksEmptySubtitle")}
                             </p>
                         </div>
@@ -880,7 +819,7 @@ export function ProjectTasksTab({
                     <div className="flex items-center justify-center py-20 text-center">
                         <div>
                             <p className="text-4xl">🔍</p>
-                            <p className="mt-3 text-sm font-semibold text-stone-700">
+                            <p className="mt-3 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                                 {tDetail("tasksFilterEmpty")}
                             </p>
                         </div>
@@ -952,7 +891,7 @@ export function ProjectTasksTab({
                                             ))}
                                             {section.tasks.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={6} className="py-4 text-center text-xs text-stone-400">
+                                                    <td colSpan={6} className="py-4 text-center text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                         {tDetail("tasksFilterEmpty")}
                                                     </td>
                                                 </tr>

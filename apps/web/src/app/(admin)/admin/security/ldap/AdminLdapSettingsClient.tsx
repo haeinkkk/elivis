@@ -139,20 +139,20 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
     }
 
     const inputClass =
-        "mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 shadow-sm outline-none transition-colors focus:border-orange-400 focus:ring-2 focus:ring-orange-200";
+        "mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 shadow-sm outline-none transition-colors focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:shadow-none dark:focus:border-elivis-accent dark:focus:ring-elivis-accent/30";
 
     return (
         <div className="w-full max-w-full space-y-6">
             <div>
-                <h1 className="text-lg font-semibold text-stone-800">{t("pageTitle")}</h1>
-                <p className="mt-2 text-sm text-stone-600">{t("intro")}</p>
+                <h1 className="text-lg font-semibold text-stone-800 dark:text-elivis-ink">{t("pageTitle")}</h1>
+                <p className="mt-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
                 <label className="flex cursor-pointer items-start gap-3">
                     <input
                         type="checkbox"
-                        className="mt-1 h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                        className="mt-1 h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                         checked={enabled}
                         onChange={(e) => {
                             setEnabled(e.target.checked);
@@ -160,12 +160,12 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                         }}
                         disabled={savePending}
                     />
-                    <span className="text-sm font-semibold text-stone-800">{t("enabled")}</span>
+                    <span className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("enabled")}</span>
                 </label>
 
                 <div className="mt-5 space-y-4">
                     <div>
-                        <label htmlFor="ldap-url" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-url" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("url")}
                         </label>
                         <input
@@ -177,11 +177,11 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                             autoComplete="off"
                             disabled={savePending}
                         />
-                        <p className="mt-1 text-xs text-stone-500">{t("urlHint")}</p>
+                        <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("urlHint")}</p>
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-dn-template" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-dn-template" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("userDnTemplate")}
                         </label>
                         <input
@@ -193,11 +193,11 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                             autoComplete="off"
                             disabled={savePending}
                         />
-                        <p className="mt-1 text-xs text-stone-500">{t("userDnTemplateHint")}</p>
+                        <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("userDnTemplateHint")}</p>
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-search-base" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-search-base" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("searchBase")}
                         </label>
                         <input
@@ -211,7 +211,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-filter" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-filter" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("searchFilter")}
                         </label>
                         <input
@@ -222,11 +222,11 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                             autoComplete="off"
                             disabled={savePending}
                         />
-                        <p className="mt-1 text-xs text-stone-500">{t("searchFilterHint")}</p>
+                        <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("searchFilterHint")}</p>
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-bind-dn" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-bind-dn" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("bindDn")}
                         </label>
                         <input
@@ -240,7 +240,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-bind-pass" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-bind-pass" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("bindPassword")}
                         </label>
                         <input
@@ -254,12 +254,12 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                             disabled={savePending}
                         />
                         {hasBindPassword ? (
-                            <p className="mt-1 text-xs text-stone-500">{t("bindPasswordHint")}</p>
+                            <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("bindPasswordHint")}</p>
                         ) : null}
-                        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-stone-600">
+                        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-stone-600 dark:text-elivis-ink-secondary">
                             <input
                                 type="checkbox"
-                                className="h-3.5 w-3.5 rounded border-stone-300 text-orange-600"
+                                className="h-3.5 w-3.5 rounded border-stone-300 dark:border-elivis-line text-orange-600"
                                 checked={clearBindPass}
                                 onChange={(e) => setClearBindPass(e.target.checked)}
                                 disabled={savePending}
@@ -269,7 +269,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-name-attr" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-name-attr" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("nameAttribute")}
                         </label>
                         <input
@@ -283,7 +283,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     </div>
 
                     <div>
-                        <label htmlFor="ldap-timeout" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-timeout" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("timeoutMs")}
                         </label>
                         <input
@@ -299,7 +299,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     </div>
                 </div>
 
-                <p className="mt-4 text-xs text-stone-500">
+                <p className="mt-4 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                     {t("updatedAtLabel")}: {formatUpdated(updatedAt, locale)}
                 </p>
 
@@ -313,38 +313,38 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                         {savePending ? t("saving") : t("save")}
                     </button>
                     {saveError && (
-                        <p className="text-xs text-red-600" role="alert">
+                        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                             {saveError}
                         </p>
                     )}
                     {saveOk && !saveError && (
-                        <p className="text-xs text-green-600" role="status">
+                        <p className="text-xs text-green-600 dark:text-emerald-400" role="status">
                             {t("saveSuccess")}
                         </p>
                     )}
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{t("statusLabel")}</p>
-                <p className="mt-2 text-sm font-medium text-stone-800">
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">{t("statusLabel")}</p>
+                <p className="mt-2 text-sm font-medium text-stone-800 dark:text-elivis-ink">
                     {ldapTabVisible ? (
-                        <span className="inline-flex items-center rounded-lg bg-green-50 px-2.5 py-1 text-green-800">
+                        <span className="inline-flex items-center rounded-lg bg-green-50 dark:bg-green-950/30 px-2.5 py-1 text-green-800 dark:text-green-200">
                             {t("statusOn")}
                         </span>
                     ) : (
-                        <span className="inline-flex items-center rounded-lg bg-stone-100 px-2.5 py-1 text-stone-700">
+                        <span className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated px-2.5 py-1 text-stone-700 dark:text-elivis-ink">
                             {t("statusOff")}
                         </span>
                     )}
                 </p>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-semibold text-stone-800">{t("testSection")}</h2>
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("testSection")}</h2>
                 <form onSubmit={onTest} className="mt-4 space-y-4">
                     <div>
-                        <label htmlFor="ldap-test-email" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-test-email" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("testEmail")}
                         </label>
                         <input
@@ -358,7 +358,7 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                         />
                     </div>
                     <div>
-                        <label htmlFor="ldap-test-pass" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="ldap-test-pass" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("testPassword")}
                         </label>
                         <input
@@ -374,26 +374,26 @@ export function AdminLdapSettingsClient({ initial }: { initial: ApiAdminAuthSett
                     <button
                         type="submit"
                         disabled={testPending}
-                        className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-medium text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+                        className="rounded-xl border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-xs font-medium text-stone-800 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                     >
                         {testPending ? t("testing") : t("testButton")}
                     </button>
                     {testError && (
-                        <p className="text-xs text-red-600" role="alert">
+                        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                             {testError}
                         </p>
                     )}
                     {testOk && !testError && (
-                        <p className="text-xs text-green-600" role="status">
+                        <p className="text-xs text-green-600 dark:text-emerald-400" role="status">
                             {t("testOk")}
                         </p>
                     )}
                 </form>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold text-stone-700">{t("hintTitle")}</p>
-                <p className="mt-2 whitespace-pre-line text-sm text-stone-600">{t("hintBody")}</p>
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-xs font-semibold text-stone-700 dark:text-elivis-ink">{t("hintTitle")}</p>
+                <p className="mt-2 whitespace-pre-line text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("hintBody")}</p>
             </div>
         </div>
     );

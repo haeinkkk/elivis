@@ -204,7 +204,7 @@ function AvatarUpload({ user }: { user: UserProfile | null }) {
                     type="button"
                     onClick={handleRemove}
                     disabled={isPending}
-                    className="text-xs text-stone-400 underline-offset-2 transition hover:text-red-500 hover:underline disabled:opacity-50"
+                    className="text-xs text-stone-400 dark:text-elivis-ink-secondary underline-offset-2 transition hover:text-red-500 hover:underline disabled:opacity-50"
                 >
                     {t("avatarRemove")}
                 </button>
@@ -232,24 +232,24 @@ function ProfileTab({ user }: { user: UserProfile | null }) {
         <div className="space-y-8">
             {/* 프로필 사진 */}
             <div>
-                <p className="mb-4 text-sm font-medium text-stone-700">
+                <p className="mb-4 text-sm font-medium text-stone-700 dark:text-elivis-ink">
                     {t("profile.avatarLabel")}
                 </p>
                 <AvatarUpload user={user} />
             </div>
 
-            <div className="h-px bg-stone-100" />
+            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
             {/* 기본 정보 폼 */}
             <div>
-                <h2 className="mb-5 text-base font-semibold text-stone-800">
+                <h2 className="mb-5 text-base font-semibold text-stone-800 dark:text-elivis-ink">
                     {t("profile.sectionTitle")}
                 </h2>
 
                 <form action={action} className="space-y-5">
                     {/* 이름 */}
                     <div className="space-y-1.5">
-                        <label htmlFor="name" className="block text-sm font-medium text-stone-700">
+                        <label htmlFor="name" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("profile.nameLabel")}
                         </label>
                         <input
@@ -258,13 +258,13 @@ function ProfileTab({ user }: { user: UserProfile | null }) {
                             type="text"
                             defaultValue={user?.name ?? ""}
                             placeholder={t("profile.namePlaceholder")}
-                            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100"
+                            className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100"
                         />
                     </div>
 
                     {/* 프로필 메시지 */}
                     <div className="space-y-1.5">
-                        <label htmlFor="bio" className="block text-sm font-medium text-stone-700">
+                        <label htmlFor="bio" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("profile.bioLabel")}
                         </label>
                         <textarea
@@ -274,14 +274,14 @@ function ProfileTab({ user }: { user: UserProfile | null }) {
                             maxLength={200}
                             defaultValue={user?.bio ?? ""}
                             placeholder={t("profile.bioPlaceholder")}
-                            className="w-full resize-none rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100"
+                            className="w-full resize-none rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100"
                         />
                         <p className="text-right text-xs text-stone-300">최대 200자</p>
                     </div>
 
                     {/* 이메일 (읽기 전용) */}
                     <div className="space-y-1.5">
-                        <label htmlFor="email" className="block text-sm font-medium text-stone-700">
+                        <label htmlFor="email" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("profile.emailLabel")}
                         </label>
                         <input
@@ -289,34 +289,34 @@ function ProfileTab({ user }: { user: UserProfile | null }) {
                             type="email"
                             value={user?.email ?? ""}
                             readOnly
-                            className="w-full cursor-not-allowed rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-400 outline-none"
+                            className="w-full cursor-not-allowed rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-400 dark:text-elivis-ink-secondary outline-none"
                         />
-                        <p className="text-xs text-stone-400">{t("profile.emailNote")}</p>
+                        <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("profile.emailNote")}</p>
                     </div>
 
                     {/* 역할 */}
                     <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-stone-700">
+                        <label className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("profile.roleLabel")}
                         </label>
-                        <p className="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-400">
+                        <p className="rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-400 dark:text-elivis-ink-secondary">
                             {roleLabel}
                         </p>
                     </div>
 
                     {/* 가입일 */}
                     <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-stone-700">
+                        <label className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("profile.joinedLabel")}
                         </label>
-                        <p className="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-400">
+                        <p className="rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-400 dark:text-elivis-ink-secondary">
                             {user ? formatDate(user.createdAt) : "—"}
                         </p>
                     </div>
 
                     {/* 메시지 */}
                     {state.error && (
-                        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500">
+                        <p className="rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-500">
                             {state.error}
                         </p>
                     )}
@@ -388,15 +388,15 @@ function SecurityTab({ user }: { user: UserProfile | null }) {
     const [state, action, isPending] = useActionState(changePasswordAction, initial);
 
     if (user?.authProvider === "LDAP") {
-        return <p className="text-sm text-stone-600">{t("ldapOnly")}</p>;
+        return <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("ldapOnly")}</p>;
     }
 
     return (
         <div className="max-w-md space-y-5">
-            <h2 className="text-base font-semibold text-stone-800">{t("title")}</h2>
+            <h2 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("title")}</h2>
             <form action={action} className="space-y-4">
                 <div className="space-y-1.5">
-                    <label htmlFor="currentPassword" className="block text-sm font-medium text-stone-700">
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                         {t("current")}
                     </label>
                     <input
@@ -409,7 +409,7 @@ function SecurityTab({ user }: { user: UserProfile | null }) {
                     />
                 </div>
                 <div className="space-y-1.5">
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-stone-700">
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                         {t("new")}
                     </label>
                     <input
@@ -423,7 +423,7 @@ function SecurityTab({ user }: { user: UserProfile | null }) {
                     />
                 </div>
                 <div className="space-y-1.5">
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-stone-700">
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                         {t("confirm")}
                     </label>
                     <input
@@ -437,7 +437,7 @@ function SecurityTab({ user }: { user: UserProfile | null }) {
                     />
                 </div>
                 {state.error && (
-                    <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500">{state.error}</p>
+                    <p className="rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-500">{state.error}</p>
                 )}
                 {state.success && (
                     <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-600">
@@ -555,27 +555,27 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
 
     return (
         <div className="space-y-8">
-            <p className="text-sm text-stone-600">{t("intro")}</p>
+            <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
             {error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500">{error}</p>
+                <p className="rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-500">{error}</p>
             )}
             <section>
-                <h2 className="mb-3 text-base font-semibold text-stone-800">{t("teamsTitle")}</h2>
+                <h2 className="mb-3 text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("teamsTitle")}</h2>
                 {teams.length === 0 ? (
-                    <p className="text-sm text-stone-400">{t("emptyTeams")}</p>
+                    <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("emptyTeams")}</p>
                 ) : (
-                    <ul className="divide-y divide-stone-100 rounded-xl border border-stone-200">
+                    <ul className="divide-y divide-stone-100 dark:divide-elivis-line rounded-xl border border-stone-200 dark:border-elivis-line">
                         {teams.map((row) => (
                             <li
                                 key={row.id}
                                 className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <span className="min-w-0 truncate text-sm font-medium text-stone-800">
+                                <span className="min-w-0 truncate text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                     {row.name}
                                 </span>
                                 <div className="flex flex-wrap items-center gap-5 sm:shrink-0 sm:gap-6">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-stone-500">{t("pushLabel")}</span>
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("pushLabel")}</span>
                                         <NotifySwitch
                                             enabled={row.notifyPushEnabled}
                                             pending={pending}
@@ -587,7 +587,7 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-stone-500">{t("emailLabel")}</span>
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("emailLabel")}</span>
                                         <NotifySwitch
                                             enabled={row.notifyEmailEnabled}
                                             pending={pending}
@@ -605,22 +605,22 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
                 )}
             </section>
             <section>
-                <h2 className="mb-3 text-base font-semibold text-stone-800">{t("projectsTitle")}</h2>
+                <h2 className="mb-3 text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("projectsTitle")}</h2>
                 {projects.length === 0 ? (
-                    <p className="text-sm text-stone-400">{t("emptyProjects")}</p>
+                    <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("emptyProjects")}</p>
                 ) : (
-                    <ul className="divide-y divide-stone-100 rounded-xl border border-stone-200">
+                    <ul className="divide-y divide-stone-100 dark:divide-elivis-line rounded-xl border border-stone-200 dark:border-elivis-line">
                         {projects.map((row) => (
                             <li
                                 key={row.id}
                                 className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <span className="min-w-0 truncate text-sm font-medium text-stone-800">
+                                <span className="min-w-0 truncate text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                     {row.name}
                                 </span>
                                 <div className="flex flex-wrap items-center gap-5 sm:shrink-0 sm:gap-6">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-stone-500">{t("pushLabel")}</span>
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("pushLabel")}</span>
                                         <NotifySwitch
                                             enabled={row.notifyPushEnabled}
                                             pending={pending}
@@ -632,7 +632,7 @@ function PreferencesTab({ initial }: { initial: ApiNotificationPreferences | nul
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-stone-500">{t("emailLabel")}</span>
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("emailLabel")}</span>
                                         <NotifySwitch
                                             enabled={row.notifyEmailEnabled}
                                             pending={pending}
@@ -700,16 +700,16 @@ export function SettingsClient({ user, notificationPrefs }: SettingsClientProps)
                 </div>
 
                 <div className="min-w-0">
-                    <h1 className="truncate text-xl font-bold text-stone-800 sm:text-2xl">
+                    <h1 className="truncate text-xl font-bold text-stone-800 dark:text-elivis-ink sm:text-2xl">
                         {user?.name ?? user?.email ?? "—"}
                     </h1>
                     {user?.name && (
-                        <p className="mt-0.5 truncate text-sm text-stone-400">{user.email}</p>
+                        <p className="mt-0.5 truncate text-sm text-stone-400 dark:text-elivis-ink-secondary">{user.email}</p>
                     )}
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         {/* 역할 배지 */}
-                        <span className="inline-flex h-[22px] items-center gap-1 rounded-full bg-stone-200 px-2.5 text-xs font-medium text-stone-600">
-                            <span className="text-stone-400">#</span>
+                        <span className="inline-flex h-[22px] items-center gap-1 rounded-full bg-stone-200 dark:bg-elivis-surface-elevated px-2.5 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
+                            <span className="text-stone-400 dark:text-elivis-ink-secondary">#</span>
                             {user?.systemRole === "SUPER_ADMIN"
                                 ? t("profile.roleAdmin")
                                 : t("profile.roleUser")}
@@ -769,7 +769,7 @@ export function SettingsClient({ user, notificationPrefs }: SettingsClientProps)
                 </nav>
 
                 {/* 콘텐츠 영역 */}
-                <div className="min-w-0 flex-1 rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm sm:p-7">
+                <div className="min-w-0 flex-1 rounded-2xl border border-stone-200/80 bg-white dark:bg-elivis-surface p-5 shadow-sm sm:p-7">
                     {activeTab === "profile" ? (
                         <ProfileTab user={user} />
                     ) : activeTab === "security" ? (

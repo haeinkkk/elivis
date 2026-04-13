@@ -107,14 +107,14 @@ export function PostDetailPanel({
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex shrink-0 items-start justify-between border-b border-stone-100 px-6 py-4">
+            <div className="flex shrink-0 items-start justify-between border-b border-stone-100 dark:border-elivis-line px-6 py-4">
                 <div className="flex-1 pr-4">
                     <div className="mb-2 flex items-center gap-2">
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${badgeCls}`}>
                             {badgeLabel}
                         </span>
                         {post.isPinned && (
-                            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-500 ring-1 ring-amber-200">
+                            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-500 ring-1 ring-amber-200 dark:bg-amber-950/35 dark:text-amber-300 dark:ring-amber-800/50">
                                 <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
                                 </svg>
@@ -122,10 +122,10 @@ export function PostDetailPanel({
                             </span>
                         )}
                     </div>
-                    <h2 className="text-base font-bold leading-snug text-stone-900">{post.title}</h2>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-400">
+                    <h2 className="text-base font-bold leading-snug text-stone-900 dark:text-elivis-ink">{post.title}</h2>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                         <TeamCommunityAuthorAvatar author={post.author} sizeClass="h-5 w-5" />
-                        <span className="font-medium text-stone-600">
+                        <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                             {displayTeamPostAuthorName(post.author)}
                         </span>
                         <span>·</span>
@@ -140,8 +140,8 @@ export function PostDetailPanel({
                             title={post.isPinned ? tDet("unpin") : tDet("pinNotice")}
                             className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
                                 post.isPinned
-                                    ? "text-amber-500 hover:bg-amber-50"
-                                    : "text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                                    ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+                                    : "text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                             }`}
                         >
                             <svg
@@ -163,7 +163,7 @@ export function PostDetailPanel({
                         <button
                             type="button"
                             onClick={onEdit}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                             title={tDet("editTooltip")}
                         >
                             <svg
@@ -185,7 +185,7 @@ export function PostDetailPanel({
                         <button
                             type="button"
                             onClick={onDelete}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 dark:text-elivis-ink-secondary dark:hover:bg-red-950/40 dark:hover:text-red-400"
                             title={tDet("deleteTooltip")}
                         >
                             <svg
@@ -206,7 +206,7 @@ export function PostDetailPanel({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                     >
                         <svg
                             className="h-4 w-4"
@@ -222,16 +222,16 @@ export function PostDetailPanel({
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                <div className="bg-white px-6 py-5">
+                <div className="bg-white dark:bg-elivis-surface px-6 py-5">
                     <div
-                        className="prose prose-sm max-w-none text-stone-700 [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 [&_blockquote]:pl-3 [&_blockquote]:text-stone-500 [&_code]:rounded [&_code]:bg-stone-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.82em] [&_h2]:text-base [&_h2]:font-bold [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:pl-5 [&_p]:my-1 [&_ul]:pl-5"
+                        className="prose prose-sm max-w-none text-stone-700 dark:text-elivis-ink [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 dark:[&_blockquote]:border-elivis-line [&_blockquote]:pl-3 [&_blockquote]:text-stone-500 dark:[&_blockquote]:text-elivis-ink-secondary [&_code]:rounded [&_code]:bg-stone-100 dark:[&_code]:bg-elivis-surface-elevated [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.82em] [&_h2]:text-base [&_h2]:font-bold [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:pl-5 [&_p]:my-1 [&_ul]:pl-5 dark:prose-invert"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                     />
                 </div>
 
                 {(post.attachments ?? []).length > 0 && (
-                    <div className="border-t border-stone-100 bg-stone-50/40 px-6 py-3">
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                    <div className="border-t border-stone-100 bg-stone-50/40 px-6 py-3 dark:border-elivis-line dark:bg-elivis-bg/50">
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                             {tDet("attachments")}
                         </p>
                         <div className="flex flex-col gap-1.5">
@@ -242,9 +242,9 @@ export function PostDetailPanel({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     download={att.name}
-                                    className="group flex items-center gap-2.5 rounded-lg border border-stone-100 bg-white px-3 py-2 transition-colors hover:border-stone-300 hover:bg-stone-50"
+                                    className="group flex items-center gap-2.5 rounded-lg border border-stone-100 bg-white px-3 py-2 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:hover:border-elivis-line dark:hover:bg-elivis-surface-elevated"
                                 >
-                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-stone-100 text-stone-400 group-hover:bg-stone-200">
+                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-stone-100 text-stone-400 group-hover:bg-stone-200 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:group-hover:bg-elivis-surface">
                                         {att.mimeType.startsWith("image/") ? (
                                             <svg
                                                 className="h-4 w-4"
@@ -276,13 +276,13 @@ export function PostDetailPanel({
                                         )}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-xs font-medium text-stone-700 group-hover:text-stone-900">
+                                        <p className="truncate text-xs font-medium text-stone-700 group-hover:text-stone-900 dark:text-elivis-ink dark:group-hover:text-elivis-ink">
                                             {att.name}
                                         </p>
-                                        <p className="text-[10px] text-stone-400">{formatBytes(att.size)}</p>
+                                        <p className="text-[10px] text-stone-400 dark:text-elivis-ink-secondary">{formatBytes(att.size)}</p>
                                     </div>
                                     <svg
-                                        className="h-3.5 w-3.5 shrink-0 text-stone-300 group-hover:text-stone-500"
+                                        className="h-3.5 w-3.5 shrink-0 text-stone-300 group-hover:text-stone-500 dark:text-elivis-ink-muted dark:group-hover:text-elivis-ink-secondary"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         strokeWidth={2}
@@ -300,10 +300,10 @@ export function PostDetailPanel({
                     </div>
                 )}
 
-                <div className="border-t border-stone-100 bg-stone-50/60">
+                <div className="border-t border-stone-100 bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-bg/60">
                     <div className="flex items-center gap-2 px-6 pt-4 pb-2">
                         <svg
-                            className="h-3.5 w-3.5 text-stone-400"
+                            className="h-3.5 w-3.5 text-stone-400 dark:text-elivis-ink-secondary"
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.8}
@@ -315,9 +315,9 @@ export function PostDetailPanel({
                                 d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
                             />
                         </svg>
-                        <span className="text-xs font-semibold text-stone-500">
+                        <span className="text-xs font-semibold text-stone-500 dark:text-elivis-ink-secondary">
                             {tDet("commentsLabel")}{" "}
-                            <span className="text-stone-700">{flatComments.length}</span>
+                            <span className="text-stone-700 dark:text-elivis-ink">{flatComments.length}</span>
                         </span>
                     </div>
 
@@ -333,7 +333,7 @@ export function PostDetailPanel({
 
                     <div className="px-6 pb-6">
                         {commentTree.length === 0 ? (
-                            <p className="py-4 text-center text-xs text-stone-400">{t("comments.empty")}</p>
+                            <p className="py-4 text-center text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("comments.empty")}</p>
                         ) : (
                             <div className="flex flex-col gap-4">
                                 {commentTree.map((c) => (

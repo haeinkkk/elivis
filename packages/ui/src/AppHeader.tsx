@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { Locale } from "@repo/i18n";
 
+import { DarkModeSwitch } from "./theme/DarkModeSwitch";
 import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { StatusDropdown } from "./StatusDropdown";
@@ -156,12 +157,12 @@ export function AppHeader({
         (quickData?.tasks.length ?? 0);
 
     return (
-        <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 bg-white/80 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
+        <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 dark:border-elivis-line bg-white/80 dark:bg-elivis-surface/90 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
             {/* 좌측: 사이드바 토글(모바일 전용) */}
             <button
                 type="button"
                 onClick={onMenuClick}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 md:hidden"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700 md:hidden"
                 aria-label={t("openMenu")}
             >
                 <svg
@@ -186,13 +187,10 @@ export function AppHeader({
                     className="relative hidden w-full sm:block sm:max-w-[200px] md:max-w-xs lg:max-w-md"
                 >
                     <div
-                        className={`
-              flex w-full items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2 transition-all
-              focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-300/20
-            `}
+                        className={`flex w-full items-center gap-2 rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 px-3 py-2 transition-all focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-300/20 dark:focus-within:border-elivis-accent dark:focus-within:ring-elivis-accent/30`}
                     >
                         <svg
-                            className="h-4 w-4 shrink-0 text-stone-400"
+                            className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.5}
@@ -226,27 +224,27 @@ export function AppHeader({
                             aria-haspopup="listbox"
                             autoComplete="off"
                             onFocus={() => accessToken && setQuickOpen(true)}
-                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
+                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:outline-none"
                         />
                     </div>
 
                     {showQuickPanel && (
                         <div
-                            className="absolute left-0 right-0 top-full z-[60] mt-1 max-h-[min(70vh,24rem)] overflow-auto rounded-xl border border-stone-200 bg-white py-2 text-left shadow-lg"
+                            className="absolute left-0 right-0 top-full z-[60] mt-1 max-h-[min(70vh,24rem)] overflow-auto rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface-elevated py-2 text-left shadow-lg dark:shadow-none"
                             role="listbox"
                         >
                             {quickLoading && (
-                                <p className="px-3 py-2 text-sm text-stone-500">{t("searchLoading")}</p>
+                                <p className="px-3 py-2 text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("searchLoading")}</p>
                             )}
                             {!quickLoading && quickError && (
-                                <p className="px-3 py-2 text-sm text-red-600">{t("searchError")}</p>
+                                <p className="px-3 py-2 text-sm text-red-600 dark:text-red-400">{t("searchError")}</p>
                             )}
                             {!quickLoading && !quickError && quickData && totalQuickHits === 0 && (
-                                <p className="px-3 py-2 text-sm text-stone-500">{t("searchEmpty")}</p>
+                                <p className="px-3 py-2 text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("searchEmpty")}</p>
                             )}
                             {!quickLoading && !quickError && quickData && quickData.teams.length > 0 && (
                                 <div className="mb-1">
-                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                                         {t("searchSectionTeams")}
                                     </p>
                                     <ul className="space-y-0.5">
@@ -254,14 +252,14 @@ export function AppHeader({
                                             <li key={team.id}>
                                                 <Link
                                                     href={`/teams/${encodeURIComponent(team.id)}`}
-                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                                     onClick={() => {
                                                         setQuickOpen(false);
                                                         setSearchQuery("");
                                                     }}
                                                 >
                                                     <span className="truncate font-medium">{team.name}</span>
-                                                    <span className="text-xs text-stone-400">{t("searchHintTeam")}</span>
+                                                    <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("searchHintTeam")}</span>
                                                 </Link>
                                             </li>
                                         ))}
@@ -270,7 +268,7 @@ export function AppHeader({
                             )}
                             {!quickLoading && !quickError && quickData && quickData.projects.length > 0 && (
                                 <div className="mb-1">
-                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                                         {t("searchSectionProjects")}
                                     </p>
                                     <ul className="space-y-0.5">
@@ -278,14 +276,14 @@ export function AppHeader({
                                             <li key={p.id}>
                                                 <Link
                                                     href={`/projects/${encodeURIComponent(p.id)}`}
-                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                                     onClick={() => {
                                                         setQuickOpen(false);
                                                         setSearchQuery("");
                                                     }}
                                                 >
                                                     <span className="truncate font-medium">{p.name}</span>
-                                                    <span className="truncate text-xs text-stone-400">
+                                                    <span className="truncate text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                         {p.teamName
                                                             ? `${p.teamName} · ${t("searchHintProject")}`
                                                             : t("searchHintProject")}
@@ -298,7 +296,7 @@ export function AppHeader({
                             )}
                             {!quickLoading && !quickError && quickData && quickData.tasks.length > 0 && (
                                 <div>
-                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                                         {t("searchSectionMyTasks")}
                                     </p>
                                     <ul className="space-y-0.5">
@@ -306,14 +304,14 @@ export function AppHeader({
                                             <li key={task.id}>
                                                 <Link
                                                     href={`/mywork/${encodeURIComponent(task.workspaceId)}`}
-                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 hover:bg-stone-50"
+                                                    className="flex flex-col px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                                     onClick={() => {
                                                         setQuickOpen(false);
                                                         setSearchQuery("");
                                                     }}
                                                 >
                                                     <span className="truncate font-medium">{task.title}</span>
-                                                    <span className="truncate text-xs text-stone-400">
+                                                    <span className="truncate text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                         {task.workspaceLabel
                                                             ? `${task.workspaceLabel} · ${task.projectName}`
                                                             : task.projectName}
@@ -331,6 +329,7 @@ export function AppHeader({
 
             {/* 우측: 언어 + 알림 + 프로필 */}
             <div className="flex items-center gap-1 shrink-0">
+                <DarkModeSwitch />
                 {/* 언어 전환 드롭다운 */}
                 <LanguageSelector variant="header" align="right" onSelectLocale={onSelectLocale} />
 
@@ -342,7 +341,7 @@ export function AppHeader({
                     <button
                         type="button"
                         onClick={() => setUserMenuOpen((v) => !v)}
-                        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-stone-100 focus:outline-none"
+                        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated focus:outline-none"
                         aria-label={t("userMenu")}
                         aria-expanded={userMenuOpen}
                     >
@@ -354,7 +353,7 @@ export function AppHeader({
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-amber-100 text-sm font-semibold text-amber-700">
+                                <div className="flex h-full w-full items-center justify-center bg-amber-100 dark:bg-elivis-accent-strong/35 text-sm font-semibold text-amber-700 dark:text-elivis-accent-hover">
                                     {(user?.name ?? user?.email ?? "?")[0]?.toUpperCase()}
                                 </div>
                             )}
@@ -362,7 +361,7 @@ export function AppHeader({
                     </button>
 
                     {userMenuOpen && (
-                        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-stone-200 bg-white shadow-lg">
+                        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface-elevated shadow-lg dark:shadow-none">
                             <div className="flex items-center gap-3 rounded-t-xl px-4 py-3">
                                 {/* 아바타 */}
                                 <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full">
@@ -373,16 +372,16 @@ export function AppHeader({
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-amber-100 text-sm font-semibold text-amber-700">
+                                        <div className="flex h-full w-full items-center justify-center bg-amber-100 dark:bg-elivis-accent-strong/35 text-sm font-semibold text-amber-700 dark:text-elivis-accent-hover">
                                             {(user?.name ?? user?.email ?? "?")[0]?.toUpperCase()}
                                         </div>
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-stone-800">
+                                    <p className="truncate text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                                         {user?.name ?? "—"}
                                     </p>
-                                    <p className="truncate text-xs text-stone-500">
+                                    <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {user?.email ?? "—"}
                                     </p>
                                     {user?.status && (
@@ -396,11 +395,11 @@ export function AppHeader({
                                 </div>
                             </div>
 
-                            <div className="h-px bg-stone-100" />
+                            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
                             <Link
                                 href="/settings"
-                                className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 hover:bg-stone-50"
+                                className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                 onClick={() => setUserMenuOpen(false)}
                             >
                                 <svg
@@ -409,7 +408,7 @@ export function AppHeader({
                                     viewBox="0 0 24 24"
                                     strokeWidth={1.5}
                                     stroke="currentColor"
-                                    className="h-4 w-4 shrink-0 text-stone-400"
+                                    className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -425,12 +424,12 @@ export function AppHeader({
                                 <span>{t("mySettings")}</span>
                             </Link>
 
-                            <div className="h-px bg-stone-100" />
+                            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
                             <form action={logoutAction}>
                                 <button
                                     type="submit"
-                                    className="flex w-full items-center justify-between rounded-b-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                                    className="flex w-full items-center justify-between rounded-b-xl px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
                                 >
                                     <span>{t("logout")}</span>
                                     <svg

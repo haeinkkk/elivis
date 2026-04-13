@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
+import { ElivisSelect } from "../../ElivisSelect";
+
 export function TaskDetailSimpleSelect<T extends { id: string; name: string; color: string }>({
     value,
     items,
@@ -18,19 +20,20 @@ export function TaskDetailSimpleSelect<T extends { id: string; name: string; col
     disabled?: boolean;
 }) {
     const t = useTranslations("workspace");
+    const options = [
+        ...(nullable ? [{ value: "", label: placeholder ?? t("taskDetail.none") }] : []),
+        ...items.map((item) => ({ value: item.id, label: item.name })),
+    ];
     return (
-        <select
+        <ElivisSelect
+            searchable
+            variant="field"
             value={value ?? ""}
-            onChange={(e) => !disabled && onChange(e.target.value || null)}
+            onValueChange={(v) => !disabled && onChange(v || null)}
             disabled={disabled}
-            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-stone-400 disabled:cursor-default disabled:opacity-70"
-        >
-            {nullable && <option value="">{placeholder ?? t("taskDetail.none")}</option>}
-            {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                    {item.name}
-                </option>
-            ))}
-        </select>
+            options={options}
+            searchPlaceholder={t("taskDetail.optionSearchPlaceholder")}
+            noResultsText={t("taskDetail.noOptionsMatch")}
+        />
     );
 }

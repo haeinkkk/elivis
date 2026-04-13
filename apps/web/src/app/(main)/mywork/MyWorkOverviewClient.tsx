@@ -18,7 +18,7 @@ import { tagColorOf, WorkspaceTaskDetailPanel as TaskDetailPanel } from "@repo/u
 function AllDoneIllustration() {
     return (
         <span
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 dark:bg-elivis-surface-elevated text-stone-400 dark:text-elivis-ink-secondary"
             aria-hidden
         >
             <svg
@@ -197,8 +197,8 @@ function groupByDeadline(
         {
             key: "overdue",
             label: labels.overdue,
-            badge: "bg-red-100 text-red-700",
-            dot: "bg-red-500",
+            badge: "bg-red-100 text-red-700 dark:bg-red-950/45 dark:text-red-300",
+            dot: "bg-red-500 dark:bg-red-400",
             items: sort(
                 topTasks.filter((t) => {
                     const d = diff(t);
@@ -209,15 +209,15 @@ function groupByDeadline(
         {
             key: "today",
             label: labels.today,
-            badge: "bg-orange-100 text-orange-700",
-            dot: "bg-orange-500",
+            badge: "bg-orange-100 text-orange-700 dark:bg-elivis-accent-strong/35 dark:text-elivis-accent-hover",
+            dot: "bg-orange-500 dark:bg-elivis-accent",
             items: sort(topTasks.filter((t) => diff(t) === 0)),
         },
         {
             key: "soon",
             label: labels.soon,
-            badge: "bg-yellow-100 text-yellow-700",
-            dot: "bg-yellow-500",
+            badge: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-200",
+            dot: "bg-yellow-500 dark:bg-yellow-400",
             items: sort(
                 topTasks.filter((t) => {
                     const d = diff(t);
@@ -228,8 +228,8 @@ function groupByDeadline(
         {
             key: "week",
             label: labels.week,
-            badge: "bg-blue-100 text-blue-700",
-            dot: "bg-blue-400",
+            badge: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
+            dot: "bg-blue-400 dark:bg-blue-400",
             items: sort(
                 topTasks.filter((t) => {
                     const d = diff(t);
@@ -240,8 +240,8 @@ function groupByDeadline(
         {
             key: "later",
             label: labels.later,
-            badge: "bg-stone-100 text-stone-600",
-            dot: "bg-stone-400",
+            badge: "bg-stone-100 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary",
+            dot: "bg-stone-400 dark:bg-elivis-ink-muted",
             items: sort(
                 topTasks.filter((t) => {
                     const d = diff(t);
@@ -252,8 +252,8 @@ function groupByDeadline(
         {
             key: "nodate",
             label: labels.nodate,
-            badge: "bg-stone-100 text-stone-500",
-            dot: "bg-stone-300",
+            badge: "bg-stone-100 text-stone-500 dark:bg-elivis-surface-elevated dark:text-elivis-ink-muted",
+            dot: "bg-stone-300 dark:bg-elivis-ink-secondary",
             items: [...topTasks.filter((t) => !t.dueDate)].sort(
                 (a, b) => (b.priority?.value ?? 0) - (a.priority?.value ?? 0),
             ),
@@ -277,16 +277,16 @@ function dueDateLabel(
 }
 
 function dueDateColor(task: EnrichedTask): string {
-    if (!task.dueDate) return "text-stone-400";
+    if (!task.dueDate) return "text-stone-400 dark:text-elivis-ink-secondary";
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const due = new Date(task.dueDate);
     due.setHours(0, 0, 0, 0);
     const d = Math.round((due.getTime() - today.getTime()) / 86400000);
-    if (d < 0) return "text-red-500 font-semibold";
-    if (d === 0) return "text-orange-500 font-semibold";
-    if (d <= 3) return "text-yellow-600";
-    return "text-stone-500";
+    if (d < 0) return "font-semibold text-red-500 dark:text-red-400";
+    if (d === 0) return "font-semibold text-orange-500 dark:text-elivis-accent-hover";
+    if (d <= 3) return "text-yellow-600 dark:text-yellow-300";
+    return "text-stone-500 dark:text-elivis-ink-secondary";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -355,7 +355,7 @@ function OverviewTimelineTitleRow({
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
                 disabled={isPending}
-                className="min-w-0 flex-1 truncate rounded border border-stone-200 bg-white px-1 py-0 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+                className="min-w-0 flex-1 truncate rounded border border-stone-200 bg-stone-50 px-1 py-0 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink"
             />
         );
     }
@@ -369,7 +369,7 @@ function OverviewTimelineTitleRow({
                     onOpenDetail();
                 }}
                 title={task.title}
-                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 dark:text-elivis-ink hover:underline"
             >
                 {formatTaskTitleForList(task.title)}
             </button>
@@ -380,7 +380,7 @@ function OverviewTimelineTitleRow({
                     setDraft(task.title);
                     setEditingTitle(true);
                 }}
-                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover:opacity-100"
+                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover:opacity-100 dark:text-elivis-ink-muted dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink-secondary"
                 title={t("taskRow.editTitle")}
                 aria-label={t("taskRow.editTitle")}
             >
@@ -440,7 +440,7 @@ function TimelineTaskCard({
                         priorities: task._priorities,
                     });
             }}
-            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md"
+            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-stone-100 bg-stone-50 px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md dark:border-elivis-line dark:bg-elivis-surface dark:shadow-none dark:hover:border-elivis-line dark:hover:shadow-none"
         >
             <span
                 className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`}
@@ -449,7 +449,7 @@ function TimelineTaskCard({
             <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-center gap-1.5">
                     {showWorkspaceName && (
-                        <span className="max-w-[120px] shrink-0 truncate rounded-md bg-stone-100 px-1.5 py-px text-[11px] font-medium text-stone-500">
+                        <span className="max-w-[120px] shrink-0 truncate rounded-md bg-stone-100 dark:bg-elivis-surface-elevated px-1.5 py-px text-[11px] font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {task._workspaceName}
                         </span>
                     )}
@@ -469,7 +469,10 @@ function TimelineTaskCard({
                             />
                         </div>
                     ) : (
-                        <p title={task.title} className="truncate text-sm font-medium text-stone-800">
+                        <p
+                            title={task.title}
+                            className="truncate text-sm font-medium text-stone-800 dark:text-elivis-ink"
+                        >
                             {formatTaskTitleForList(task.title)}
                         </p>
                     )}
@@ -490,7 +493,7 @@ function TimelineTaskCard({
                         </span>
                     )}
                     {task.assignee && (
-                        <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                        <span className="flex items-center gap-1 text-[11px] text-stone-400 dark:text-elivis-ink-secondary">
                             {task.assignee.avatarUrl ? (
                                 <img
                                     src={task.assignee.avatarUrl}
@@ -498,7 +501,7 @@ function TimelineTaskCard({
                                     alt=""
                                 />
                             ) : (
-                                <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">
+                                <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-[9px] font-semibold">
                                     {(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}
                                 </span>
                             )}
@@ -507,7 +510,9 @@ function TimelineTaskCard({
                     )}
                 </div>
             </div>
-            <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>{dueDateLabel(task, tTimeline)}</span>
+            <span className={`shrink-0 text-xs ${dueDateColor(task)}`}>
+                {dueDateLabel(task, tTimeline)}
+            </span>
         </div>
     );
 }
@@ -556,8 +561,14 @@ function TimelineView({
                     <div className="flex justify-center" aria-hidden>
                         {emptyVisual ?? <AllDoneIllustration />}
                     </div>
-                    <p className="mt-3 text-sm font-semibold text-stone-700">{emptyTitle}</p>
-                    {emptyDesc ? <p className="mt-1 text-xs text-stone-400">{emptyDesc}</p> : null}
+                    <p className="mt-3 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
+                        {emptyTitle}
+                    </p>
+                    {emptyDesc ? (
+                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
+                            {emptyDesc}
+                        </p>
+                    ) : null}
                 </div>
             </div>
         );
@@ -573,16 +584,16 @@ function TimelineView({
                         >
                             {group.label}
                         </span>
-                        <span className="mt-1 text-[10px] text-stone-400">
+                        <span className="mt-1 text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                             {tMywork("groupCount", { count: group.items.length })}
                         </span>
                     </div>
                     <div className="relative flex w-7 shrink-0 flex-col items-center">
                         <div
-                            className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`}
+                            className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-stone-100 ring-2 ring-stone-200/90 ring-offset-1 ring-offset-stone-100 dark:border-elivis-bg dark:ring-elivis-line dark:ring-offset-elivis-bg ${group.dot}`}
                         />
                         {gi < groups.length - 1 && (
-                            <div className="mt-1 w-0.5 flex-1 bg-stone-200" />
+                            <div className="mt-1 w-0.5 flex-1 bg-stone-200 dark:bg-elivis-surface-elevated" />
                         )}
                     </div>
                     <div className="flex-1 space-y-2 pb-6 pl-3 pr-4 pt-4">
@@ -603,15 +614,15 @@ function TimelineView({
             {showCompleted && hasCompletedList && (
                 <div className="flex min-h-0">
                     <div className="flex w-32 shrink-0 flex-col items-end pr-4 pt-5">
-                        <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+                        <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800 dark:bg-emerald-950/45 dark:text-green-300">
                             {tMywork("completedSectionTitle")}
                         </span>
-                        <span className="mt-1 text-[10px] text-stone-400">
+                        <span className="mt-1 text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                             {tMywork("groupCount", { count: completedTasks.length })}
                         </span>
                     </div>
                     <div className="relative flex w-7 shrink-0 flex-col items-center">
-                        <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white bg-green-500 ring-2 ring-green-200 ring-offset-1" />
+                        <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-stone-100 bg-green-500 ring-2 ring-green-200 ring-offset-1 ring-offset-stone-100 dark:border-elivis-bg dark:bg-emerald-500 dark:ring-emerald-900/60 dark:ring-offset-elivis-bg" />
                     </div>
                     <div className="flex-1 space-y-2 pb-6 pl-3 pr-4 pt-4">
                         {completedTasks.map((task) => (
@@ -635,7 +646,13 @@ function TimelineView({
 // 통계 카드 행
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType<typeof computeStats>) {
+export function StatsRow({
+    total,
+    completed,
+    overdue,
+    dueSoon,
+    pct,
+}: ReturnType<typeof computeStats>) {
     const td = useTranslations("workspace.dashboard");
     const tm = useTranslations("mywork");
     const cards = [
@@ -643,39 +660,43 @@ export function StatsRow({ total, completed, overdue, dueSoon, pct }: ReturnType
             label: td("totalTasks"),
             value: total,
             sub: tm("statsCompletedRate", { pct }),
-            color: "text-stone-900",
-            bg: "bg-white border border-stone-100",
+            color: "text-stone-900 dark:text-elivis-ink",
+            bg: "rounded-2xl border border-stone-100 bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface-elevated",
         },
         {
             label: td("completed"),
             value: completed,
             sub: tm("statsCompletedShare", { pct }),
-            color: "text-green-700",
-            bg: "bg-green-50 border border-green-100",
+            color: "text-green-700 dark:text-green-400",
+            bg: "rounded-2xl border border-green-100 bg-green-50 dark:border-emerald-900/50 dark:bg-emerald-950/35",
         },
         {
             label: td("overdue"),
             value: overdue,
             sub: td("overdueNote"),
-            color: "text-red-600",
-            bg: "bg-red-50 border border-red-100",
+            color: "text-red-600 dark:text-red-400",
+            bg: "rounded-2xl border border-red-100 bg-red-50 dark:border-red-900/50 dark:bg-red-950/35",
         },
         {
             label: td("dueSoon"),
             value: dueSoon,
             sub: tm("statsDueSoonSub"),
-            color: "text-orange-600",
-            bg: "bg-orange-50 border border-orange-100",
+            color: "text-orange-600 dark:text-elivis-accent-hover",
+            bg: "rounded-2xl border border-orange-100 bg-orange-50 dark:border-elivis-accent/35 dark:bg-elivis-accent-strong/25",
         },
     ];
 
     return (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {cards.map(({ label, value, sub, color, bg }) => (
-                <div key={label} className={`rounded-2xl ${bg} px-4 py-4`}>
-                    <p className="text-xs font-medium text-stone-500">{label}</p>
+                <div key={label} className={`${bg} px-4 py-4`}>
+                    <p className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
+                        {label}
+                    </p>
                     <p className={`mt-1 text-3xl font-bold tracking-tight ${color}`}>{value}</p>
-                    <p className="mt-1 text-[11px] text-stone-400">{sub}</p>
+                    <p className="mt-1 text-[11px] text-stone-400 dark:text-elivis-ink-secondary">
+                        {sub}
+                    </p>
                 </div>
             ))}
         </div>
@@ -722,6 +743,22 @@ export function MyWorkOverviewClient({
         setCollapsedMap((prev) => ({ ...prev, [wsId]: !prev[wsId] }));
     }
 
+    const allWorkspaceSectionsExpanded =
+        workspaceData.length === 0 ||
+        workspaceData.every(({ workspace }) => !collapsedMap[workspace.id]);
+
+    function handleToggleWorkspaceSections() {
+        if (allWorkspaceSectionsExpanded) {
+            const next: Record<string, boolean> = {};
+            workspaceData.forEach(({ workspace }) => {
+                next[workspace.id] = true;
+            });
+            setCollapsedMap(next);
+        } else {
+            setCollapsedMap({});
+        }
+    }
+
     function mergeTaskUpdate(updated: ApiWorkspaceTask) {
         setWorkspaceData((prev) =>
             prev.map((w) => ({
@@ -757,13 +794,17 @@ export function MyWorkOverviewClient({
             {!timelineOnly && (
                 <>
                     {/* 헤더 */}
-                    <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-6">
-                        <h1 className="text-lg font-bold text-stone-800 sm:text-xl">{tm("title")}</h1>
-                        <p className="text-xs text-stone-400 sm:text-sm">{tm("subtitle")}</p>
+                    <div className="border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-elivis-line dark:bg-elivis-surface sm:px-6">
+                        <h1 className="text-lg font-bold text-stone-800 dark:text-elivis-ink sm:text-xl">
+                            {tm("title")}
+                        </h1>
+                        <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary sm:text-sm">
+                            {tm("subtitle")}
+                        </p>
                     </div>
 
                     {/* 상단 통계 */}
-                    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
+                    <div className="border-b border-stone-200 bg-stone-50 px-4 py-4 dark:border-elivis-line dark:bg-elivis-surface sm:px-6">
                         <StatsRow {...stats} />
                     </div>
                 </>
@@ -771,56 +812,93 @@ export function MyWorkOverviewClient({
 
             {/* 뷰 모드 토글 (관리자 실적·minimalChrome 이면 숨김) */}
             {!(timelineOnly && minimalChrome) && (
-                <div className="border-b border-stone-200 bg-white/95 px-4 py-2 sm:px-6">
+                <div className="border-b border-stone-200 bg-stone-50/95 px-4 py-2 backdrop-blur-sm dark:border-elivis-line dark:bg-elivis-surface dark:backdrop-blur-sm sm:px-6">
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 rounded-lg bg-stone-200/70 p-0.5 dark:bg-elivis-bg dark:p-0.5">
                             {(["combined", "by-workspace"] as const).map((mode) => (
                                 <button
                                     key={mode}
                                     type="button"
                                     onClick={() => setViewMode(mode)}
-                                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                                         viewMode === mode
-                                            ? "bg-stone-100 text-stone-900"
-                                            : "text-stone-500 hover:bg-stone-50 hover:text-stone-700"
+                                            ? "bg-stone-50 text-stone-900 shadow-sm dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:shadow-none"
+                                            : "text-stone-500 hover:bg-stone-50/90 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated/80 dark:hover:text-elivis-ink"
                                     }`}
                                 >
-                                    {mode === "combined" ? tm("viewCombined") : tm("viewByWorkspace")}
+                                    {mode === "combined"
+                                        ? tm("viewCombined")
+                                        : tm("viewByWorkspace")}
                                 </button>
                             ))}
                         </div>
-                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-50">
+                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-100 dark:border-elivis-line dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface dark:hover:text-elivis-ink">
                             <input
                                 type="checkbox"
-                                className="h-3.5 w-3.5 rounded border-stone-300 accent-amber-500"
+                                className="h-3.5 w-3.5 rounded border-stone-300 dark:border-elivis-line accent-amber-500"
                                 checked={showCompleted}
                                 onChange={(e) => setShowCompleted(e.target.checked)}
                             />
                             <span>{tm("showCompletedTasks")}</span>
                         </label>
+                        {viewMode === "by-workspace" && hasAnyTask && workspaceData.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={handleToggleWorkspaceSections}
+                                title={
+                                    allWorkspaceSectionsExpanded
+                                        ? tm("sectionsCollapseAllTitle")
+                                        : tm("sectionsExpandAllTitle")
+                                }
+                                className="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:border-elivis-line dark:hover:bg-elivis-surface-elevated"
+                            >
+                                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {allWorkspaceSectionsExpanded ? (
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 5l7 7-7 7"
+                                        />
+                                    ) : (
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    )}
+                                </svg>
+                                {allWorkspaceSectionsExpanded
+                                    ? tm("sectionsCollapseAll")
+                                    : tm("sectionsExpandAll")}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* 타임라인 본문 */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-stone-50/40 px-4 py-5 sm:px-6">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-stone-50/40 px-4 py-5 dark:bg-elivis-bg sm:px-6">
                 {!hasAnyTask ? (
                     <div className="flex flex-1 flex-col items-center justify-center py-20 text-center">
                         <div>
                             <div className="flex justify-center" aria-hidden>
                                 <AllDoneIllustration />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-stone-700">
+                            <p className="mt-3 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                                 {tm("emptyNoTasks")}
                             </p>
-                            <p className="mt-1 text-xs text-stone-400">{tm("emptyNoTasksDesc")}</p>
+                            <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
+                                {tm("emptyNoTasksDesc")}
+                            </p>
                         </div>
                     </div>
                 ) : viewMode === "combined" ? (
                     /* ── 전체 타임라인 (좌측 정렬, full width) ── */
                     <div className="w-full">
                         {!minimalChrome && (
-                            <p className="mb-4 text-xs font-medium text-stone-400">
+                            <p className="mb-4 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                 {tm("totalTasksLine", {
                                     count: allEnrichedTasks.filter((t) => !t.parentId).length,
                                 })}
@@ -862,19 +940,22 @@ export function MyWorkOverviewClient({
                             const isCollapsed = !!collapsedMap[workspace.id];
 
                             return (
-                                <div
-                                    key={workspace.id}
-                                    className={idx > 0 ? "mt-6 border-t border-stone-200 pt-6" : ""}
-                                >
+                                <div key={workspace.id}>
+                                    {idx > 0 ? (
+                                        <div
+                                            className="-mx-4 mb-5 h-px shrink-0 bg-stone-200 sm:-mx-6 dark:bg-elivis-line"
+                                            aria-hidden
+                                        />
+                                    ) : null}
                                     {/* 섹션 헤더 — 클릭 시 접기/펼치기 */}
                                     <button
                                         type="button"
                                         onClick={() => toggleCollapse(workspace.id)}
-                                        className="mb-4 flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-stone-100/60"
+                                        className="mb-4 flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-stone-100/60 dark:hover:bg-elivis-surface-elevated/80"
                                     >
                                         {/* 접기 화살표 */}
                                         <svg
-                                            className={`h-4 w-4 shrink-0 text-stone-400 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
+                                            className={`h-4 w-4 shrink-0 text-stone-400 transition-transform duration-200 dark:text-elivis-ink-secondary ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={2}
@@ -887,7 +968,7 @@ export function MyWorkOverviewClient({
                                             />
                                         </svg>
 
-                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500">
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated text-stone-500 dark:text-elivis-ink-secondary">
                                             <svg
                                                 className="h-3.5 w-3.5"
                                                 fill="none"
@@ -903,14 +984,14 @@ export function MyWorkOverviewClient({
                                             </svg>
                                         </span>
                                         <div className="min-w-0 flex-1">
-                                            <span className="text-sm font-semibold text-stone-800">
+                                            <span className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                                                 {workspace.project.name}
                                             </span>
-                                            <span className="ml-2 text-xs text-stone-400">
+                                            <span className="ml-2 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                 {teamLabel}
                                             </span>
                                         </div>
-                                        <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                                        <span className="shrink-0 rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2.5 py-0.5 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                             {tm("workspaceTaskCount", { count: topCount })}
                                         </span>
                                     </button>

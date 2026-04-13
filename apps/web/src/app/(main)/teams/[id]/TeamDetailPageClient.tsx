@@ -6,6 +6,8 @@ import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import {
+    ElivisDetailSettingsNav,
+    ElivisDetailTabBar,
     TeamActivityLogSection,
     TeamAddMemberModal,
     TeamCommunityTab,
@@ -209,12 +211,12 @@ export function TeamDetailPageClient({
                     onAfterBannerMutation={() => router.refresh()}
                 />
             )}
-            <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
+            <div className="border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
                         onClick={() => router.push("/teams")}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                         aria-label={t("aria.backToTeams")}
                     >
                         <svg
@@ -233,7 +235,7 @@ export function TeamDetailPageClient({
                     </button>
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                            <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">
+                            <h1 className="truncate text-lg font-semibold text-stone-800 dark:text-elivis-ink sm:text-xl">
                                 {team.name}
                             </h1>
                             <TeamFavoriteButton
@@ -244,7 +246,7 @@ export function TeamDetailPageClient({
                                 onRemove={() => removeTeamFavoriteAction(team.id)}
                             />
                         </div>
-                        <p className="truncate text-xs text-stone-500 sm:text-sm">
+                        <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary sm:text-sm">
                             {team.shortDescription?.trim() || t("header.shortDescriptionFallback")}
                         </p>
                     </div>
@@ -252,11 +254,11 @@ export function TeamDetailPageClient({
                         <button
                             type="button"
                             onClick={() => setMembersModalOpen(true)}
-                            className="relative shrink-0 flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 pl-3 text-left transition-colors hover:bg-stone-100"
+                            className="relative shrink-0 flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 pl-3 text-left transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                             aria-haspopup="dialog"
                             aria-expanded={membersModalOpen}
                         >
-                            <span className="whitespace-nowrap text-sm font-medium text-stone-600">
+                            <span className="whitespace-nowrap text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                 {t("labels.membersTotal", { count: team.members.length })}
                             </span>
                             {stackMembers.length > 0 && (
@@ -272,19 +274,19 @@ export function TeamDetailPageClient({
                                     onClick={() => setMembersModalOpen(false)}
                                 />
                                 <div
-                                    className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(80vh,520px)] w-full max-w-md -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 bg-white shadow-xl"
+                                    className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(80vh,520px)] w-full max-w-md -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl"
                                     role="dialog"
                                     aria-modal
                                     aria-labelledby="team-members-modal-title"
                                 >
-                                    <div className="border-b border-stone-100 px-5 py-4">
+                                    <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                                         <h2
                                             id="team-members-modal-title"
-                                            className="text-base font-semibold text-stone-800"
+                                            className="text-base font-semibold text-stone-800 dark:text-elivis-ink"
                                         >
                                             {t("labels.members")}
                                         </h2>
-                                        <p className="mt-0.5 text-sm text-stone-500">
+                                        <p className="mt-0.5 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("labels.membersTotal", { count: team.members.length })}
                                         </p>
                                     </div>
@@ -292,7 +294,7 @@ export function TeamDetailPageClient({
                                         {team.members.map((m) => (
                                             <li
                                                 key={m.user.id}
-                                                className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-stone-700"
+                                                className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-stone-700 dark:text-elivis-ink"
                                             >
                                                 <UserAvatar
                                                     userId={m.user.id}
@@ -302,24 +304,24 @@ export function TeamDetailPageClient({
                                                     ringClass="ring-0"
                                                 />
                                                 <div className="min-w-0 flex-1 truncate">
-                                                    <span className="font-medium text-stone-800">
+                                                    <span className="font-medium text-stone-800 dark:text-elivis-ink">
                                                         {displayUserName(m.user)}
                                                     </span>
-                                                    <p className="truncate text-xs text-stone-500">
+                                                    <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                         {m.user.email}
                                                     </p>
                                                 </div>
-                                                <span className="shrink-0 text-xs text-stone-500">
+                                                <span className="shrink-0 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                     {t(`roles.${roleLabel(m.role)}` as any)}
                                                 </span>
                                             </li>
                                         ))}
                                     </ul>
-                                    <div className="border-t border-stone-100 px-5 py-3">
+                                    <div className="border-t border-stone-100 dark:border-elivis-line px-5 py-3">
                                         <button
                                             type="button"
                                             onClick={() => setMembersModalOpen(false)}
-                                            className="w-full rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                            className="w-full rounded-lg border border-stone-200 dark:border-elivis-line py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                         >
                                             {t("common.close")}
                                         </button>
@@ -331,42 +333,26 @@ export function TeamDetailPageClient({
                 </div>
             </div>
 
-            <div className="border-b border-stone-200 bg-white/95">
-                <div className="flex items-end justify-between gap-2 px-4 sm:px-5 md:px-6">
-                    <nav className="flex gap-0 overflow-x-auto" aria-label={t("aria.subNav")}>
-                        {TABS.map((tab) => (
-                            <button
-                                key={tab}
-                                type="button"
-                                onClick={() => setActiveTab(tab)}
-                                className={`
-                    shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors
-                    sm:px-5
-                    ${
-                        activeTab === tab
-                            ? "border-stone-800 text-stone-800"
-                            : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700"
-                    }
-                  `}
-                            >
-                                {t(`tabs.${tab}` as any)}
-                            </button>
-                        ))}
-                    </nav>
-
-                    <span className="hidden sm:block pb-2" aria-hidden />
-                </div>
-            </div>
+            <ElivisDetailTabBar
+                ariaLabel={t("aria.subNav")}
+                layout="trailingSpacer"
+                items={TABS.map((tab) => ({
+                    id: tab,
+                    label: t(`tabs.${tab}` as any),
+                }))}
+                activeId={activeTab}
+                onSelect={(id) => setActiveTab(id as TeamTab)}
+            />
 
             <div className={`min-h-0 flex-1 ${activeTab === "community" ? "flex flex-col" : "p-4 sm:p-5 md:p-6"}`}>
                 {activeTab === "projects" && (
                     <div className="space-y-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
+                                <h2 className="text-base font-semibold text-stone-800 dark:text-elivis-ink sm:text-lg">
                                     {t("projects.title")}
                                 </h2>
-                                <p className="mt-1 text-sm text-stone-500">
+                                <p className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("projects.desc")}
                                 </p>
                             </div>
@@ -379,11 +365,11 @@ export function TeamDetailPageClient({
                         </div>
 
                         {projects.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/50 px-6 py-12 text-center">
-                                <p className="text-sm text-stone-600">
+                            <div className="rounded-xl border border-dashed border-stone-200 dark:border-elivis-line bg-stone-50/50 px-6 py-12 text-center">
+                                <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("projects.emptyTitle")}
                                 </p>
-                                <p className="mt-2 text-xs text-stone-400">
+                                <p className="mt-2 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("projects.emptyDesc")}
                                 </p>
                             </div>
@@ -393,9 +379,9 @@ export function TeamDetailPageClient({
                                     <li key={p.id}>
                                         <Link
                                             href={`/projects/${p.id}`}
-                                            className="group flex cursor-pointer items-start gap-4 rounded-xl border border-stone-200 bg-white p-4 transition-all hover:border-stone-300 hover:shadow-md sm:p-5"
+                                            className="group flex cursor-pointer items-start gap-4 rounded-xl border border-stone-200 bg-white p-4 transition-all hover:border-stone-300 hover:shadow-md dark:border-elivis-line dark:bg-elivis-surface dark:hover:border-elivis-line dark:hover:shadow-md sm:p-5"
                                         >
-                                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500 transition-colors group-hover:bg-stone-200 group-hover:text-stone-600 sm:h-11 sm:w-11">
+                                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500 transition-colors group-hover:bg-stone-200 group-hover:text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:group-hover:bg-white/10 dark:group-hover:text-elivis-ink sm:h-11 sm:w-11">
                                                 <svg
                                                     className="h-5 w-5 sm:h-6 sm:w-6"
                                                     fill="none"
@@ -411,39 +397,39 @@ export function TeamDetailPageClient({
                                                 </svg>
                                             </span>
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="font-semibold text-stone-800 transition-colors group-hover:text-stone-900">
+                                                <h3 className="font-semibold text-stone-800 transition-colors group-hover:text-stone-900 dark:text-elivis-ink dark:group-hover:text-elivis-ink">
                                                     {p.name}
                                                 </h3>
                                                 <p
-                                                    className="mt-1 text-sm text-stone-500 line-clamp-2"
+                                                    className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary line-clamp-2"
                                                     title={p.description ?? undefined}
                                                 >
                                                     {p.description?.trim()
                                                         ? truncateText(p.description.trim(), 120)
                                                         : t("projects.noDescription")}
                                                 </p>
-                                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500">
+                                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                     <span>
                                                         {t("projects.meta.members")}{" "}
-                                                        <span className="font-medium text-stone-600">
+                                                        <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                                             {t("projects.meta.membersCount", { count: p._count.members })}
                                                         </span>
                                                     </span>
-                                                    <span className="text-stone-300">|</span>
+                                                    <span className="text-stone-300 dark:text-elivis-line">|</span>
                                                     <span>
                                                         {t("projects.meta.tasks")}{" "}
-                                                        <span className="font-medium text-stone-600">
+                                                        <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                                             {t("projects.meta.tasksCount", { count: p._count.tasks })}
                                                         </span>
                                                     </span>
-                                                    <span className="text-stone-300">|</span>
+                                                    <span className="text-stone-300 dark:text-elivis-line">|</span>
                                                     <span>
                                                         {t("projects.meta.created")}{" "}
                                                         {formatTeamDetailDate(p.createdAt, locale)}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className="shrink-0 self-center text-stone-400">
+                                            <span className="shrink-0 self-center text-stone-400 dark:text-elivis-ink-muted">
                                                 <svg
                                                     className="h-5 w-5"
                                                     fill="none"
@@ -473,13 +459,13 @@ export function TeamDetailPageClient({
                 )}
 
                 {activeTab === "members" && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-6">
+                    <div className="rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0 flex-1">
-                                <h2 className="text-base font-semibold text-stone-800 sm:text-lg">
+                                <h2 className="text-base font-semibold text-stone-800 dark:text-elivis-ink sm:text-lg">
                                     {t("members.title")}
                                 </h2>
-                                <p className="mt-1 text-sm text-stone-500">
+                                <p className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("members.desc")}
                                 </p>
                             </div>
@@ -488,7 +474,7 @@ export function TeamDetailPageClient({
                                     <button
                                         type="button"
                                         onClick={() => setJoinRequestsModalOpen(true)}
-                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2.5 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                     >
                                         <svg
                                             className="h-4 w-4"
@@ -528,7 +514,7 @@ export function TeamDetailPageClient({
                                     <button
                                         type="button"
                                         onClick={() => setComposeChangeOpen(true)}
-                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2.5 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                     >
                                         <svg
                                             className="h-4 w-4"
@@ -556,16 +542,16 @@ export function TeamDetailPageClient({
                         <div className="mt-6 overflow-x-auto">
                             <table className="w-full min-w-[480px] text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-stone-200">
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.name")}</th>
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.email")}</th>
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.role")}</th>
-                                        <th className="pb-2 pr-4 font-medium text-stone-600">{t("members.table.joinedAt")}</th>
+                                    <tr className="border-b border-stone-200 dark:border-elivis-line">
+                                        <th className="pb-2 pr-4 font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("members.table.name")}</th>
+                                        <th className="pb-2 pr-4 font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("members.table.email")}</th>
+                                        <th className="pb-2 pr-4 font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("members.table.role")}</th>
+                                        <th className="pb-2 pr-4 font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("members.table.joinedAt")}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="text-stone-600">
+                                <tbody className="text-stone-600 dark:text-elivis-ink-secondary">
                                     {team.members.map((m) => (
-                                        <tr key={m.user.id} className="border-b border-stone-100">
+                                        <tr key={m.user.id} className="border-b border-stone-100 dark:border-elivis-line">
                                             <td className="py-3 pr-4">
                                                 <div className="flex items-center gap-3">
                                                     <UserAvatar
@@ -575,7 +561,7 @@ export function TeamDetailPageClient({
                                                         sizeClass="h-9 w-9 text-sm"
                                                         ringClass="ring-0"
                                                     />
-                                                    <span className="font-medium text-stone-800">
+                                                    <span className="font-medium text-stone-800 dark:text-elivis-ink">
                                                         {displayUserName(m.user)}
                                                     </span>
                                                 </div>
@@ -604,53 +590,25 @@ export function TeamDetailPageClient({
                 {/* ── 설정 탭 ──────────────────────────────────────────────────── */}
                 {activeTab === "settings" && (
                     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-                        <nav
-                            className="flex shrink-0 gap-1 overflow-x-auto pb-1 lg:w-44 lg:flex-col lg:overflow-x-visible lg:pb-0"
-                            aria-label={t("aria.settingsSubNav")}
-                        >
-                            {ALL_SETTINGS_SUB_TABS.map(({ id, icon }) => {
-                                const isActive = settingsSubTab === id;
-                                return (
-                                    <button
-                                        key={id}
-                                        type="button"
-                                        onClick={() => setSettingsSubTab(id)}
-                                        className={[
-                                            "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                                            "whitespace-nowrap lg:w-full",
-                                            isActive
-                                                ? "bg-stone-200 text-stone-900"
-                                                : "text-stone-500 hover:bg-stone-50 hover:text-stone-700",
-                                        ].join(" ")}
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={1.5}
-                                            stroke="currentColor"
-                                            className="h-4 w-4 shrink-0"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d={icon}
-                                            />
-                                        </svg>
-                                        {t(`settings.subTabs.${id}` as any)}
-                                    </button>
-                                );
-                            })}
-                        </nav>
+                        <ElivisDetailSettingsNav
+                            ariaLabel={t("aria.settingsSubNav")}
+                            items={ALL_SETTINGS_SUB_TABS.map(({ id, icon }) => ({
+                                id,
+                                label: t(`settings.subTabs.${id}` as any),
+                                iconPath: icon,
+                            }))}
+                            activeId={settingsSubTab}
+                            onSelect={(id) => setSettingsSubTab(id as TeamSettingsSubTab)}
+                        />
 
-                        <div className="min-w-0 flex-1 rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm sm:p-7">
+                        <div className="min-w-0 flex-1 rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm dark:border-elivis-line dark:bg-elivis-surface sm:p-7">
                             {settingsSubTab === "team" && (
                                 <div className="space-y-8">
                                     <div>
-                                        <h2 className="mb-1 text-base font-semibold text-stone-800">
+                                        <h2 className="mb-1 text-base font-semibold text-stone-800 dark:text-elivis-ink">
                                             {t("settings.team.name.title")}
                                         </h2>
-                                        <p className="text-sm text-stone-500">
+                                        <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("settings.team.name.desc")}
                                         </p>
                                         {team.viewerRole === "LEADER" ? (
@@ -662,10 +620,10 @@ export function TeamDetailPageClient({
                                                     onChange={(e) => setNameDraft(e.target.value)}
                                                     disabled={namePending}
                                                     placeholder={t("settings.team.name.placeholder")}
-                                                    className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
+                                                    className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
                                                 />
                                                 {nameError ? (
-                                                    <p className="text-sm text-red-600">{nameError}</p>
+                                                    <p className="text-sm text-red-600 dark:text-red-400">{nameError}</p>
                                                 ) : null}
                                                 <button
                                                     type="button"
@@ -694,19 +652,19 @@ export function TeamDetailPageClient({
                                                 </button>
                                             </div>
                                         ) : (
-                                            <p className="mt-4 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-700">
+                                            <p className="mt-4 rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-700 dark:text-elivis-ink">
                                                 {team.name}
                                             </p>
                                         )}
                                     </div>
 
-                                    <div className="h-px bg-stone-100" />
+                                    <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
                                     <div>
-                                        <h2 className="mb-1 text-base font-semibold text-stone-800">
+                                        <h2 className="mb-1 text-base font-semibold text-stone-800 dark:text-elivis-ink">
                                             {t("settings.team.shortDesc.title")}
                                         </h2>
-                                        <p className="text-sm text-stone-500">
+                                        <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("settings.team.shortDesc.desc")}
                                         </p>
                                         {team.viewerRole === "LEADER" ? (
@@ -718,10 +676,10 @@ export function TeamDetailPageClient({
                                                     onChange={(e) => setShortDescDraft(e.target.value)}
                                                     disabled={shortDescPending}
                                                     placeholder={t("settings.team.shortDesc.placeholder")}
-                                                    className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
+                                                    className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition placeholder:text-stone-300 focus:border-stone-400 focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
                                                 />
                                                 {shortDescError ? (
-                                                    <p className="text-sm text-red-600">
+                                                    <p className="text-sm text-red-600 dark:text-red-400">
                                                         {shortDescError}
                                                     </p>
                                                 ) : null}
@@ -758,7 +716,7 @@ export function TeamDetailPageClient({
                                                 </button>
                                             </div>
                                         ) : (
-                                            <p className="mt-4 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-700">
+                                            <p className="mt-4 rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-700 dark:text-elivis-ink">
                                                 {team.shortDescription?.trim() ||
                                                     t("settings.team.shortDesc.empty")}
                                             </p>
@@ -827,20 +785,20 @@ export function TeamDetailPageClient({
                         }}
                     />
                     <div
-                        className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(80vh,560px)] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 bg-white shadow-xl"
+                        className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(80vh,560px)] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl"
                         role="dialog"
                         aria-modal
                         aria-labelledby="compose-change-modal-title"
                     >
-                        <div className="flex items-start justify-between border-b border-stone-100 px-5 py-4">
+                        <div className="flex items-start justify-between border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                             <div>
                                 <h3
                                     id="compose-change-modal-title"
-                                    className="text-base font-semibold text-stone-800"
+                                    className="text-base font-semibold text-stone-800 dark:text-elivis-ink"
                                 >
                                     {t("members.composeChangeModal.title")}
                                 </h3>
-                                <p className="mt-0.5 text-sm text-stone-500">
+                                <p className="mt-0.5 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("members.composeChangeModal.desc")}
                                 </p>
                             </div>
@@ -853,7 +811,7 @@ export function TeamDetailPageClient({
                                     setDelegateError(null);
                                 }}
                                 disabled={delegatePending || removePending}
-                                className="ml-4 shrink-0 rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 disabled:opacity-40"
+                                className="ml-4 shrink-0 rounded-lg p-1.5 text-stone-400 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600 disabled:opacity-40"
                                 aria-label={t("common.close")}
                             >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -873,7 +831,7 @@ export function TeamDetailPageClient({
                                 return (
                                     <li
                                         key={m.user.id}
-                                        className="flex flex-col gap-2 border-b border-stone-100 px-2 py-3 last:border-0"
+                                        className="flex flex-col gap-2 border-b border-stone-100 dark:border-elivis-line px-2 py-3 last:border-0"
                                     >
                                         <div className="flex items-center gap-3">
                                             <UserAvatar
@@ -885,7 +843,7 @@ export function TeamDetailPageClient({
                                             />
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-stone-800 truncate">
+                                                    <span className="font-medium text-stone-800 dark:text-elivis-ink truncate">
                                                         {displayUserName(m.user)}
                                                     </span>
                                                     <span
@@ -899,7 +857,7 @@ export function TeamDetailPageClient({
                                                         {t(`roles.${roleLabel(m.role)}` as any)}
                                                     </span>
                                                 </div>
-                                                <p className="truncate text-xs text-stone-500">{m.user.email}</p>
+                                                <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">{m.user.email}</p>
                                             </div>
                                             {!isLeaderRow && !isDelegateConfirming && !isRemoveConfirming && (
                                                 <div className="flex shrink-0 items-center gap-1.5">
@@ -911,7 +869,7 @@ export function TeamDetailPageClient({
                                                             setRemoveConfirmUserId(null);
                                                             setDelegateConfirmUserId(m.user.id);
                                                         }}
-                                                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800 disabled:opacity-40"
+                                                        className="rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800 disabled:opacity-40"
                                                     >
                                                         {t("members.composeChangeModal.delegateLeader")}
                                                     </button>
@@ -923,7 +881,7 @@ export function TeamDetailPageClient({
                                                             setDelegateConfirmUserId(null);
                                                             setRemoveConfirmUserId(m.user.id);
                                                         }}
-                                                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                                                        className="rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 disabled:opacity-40"
                                                     >
                                                         {t("members.composeChangeModal.removeMember")}
                                                     </button>
@@ -963,7 +921,7 @@ export function TeamDetailPageClient({
                                                         type="button"
                                                         disabled={isDelegating}
                                                         onClick={() => setDelegateConfirmUserId(null)}
-                                                        className="rounded-md border border-amber-200 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-60"
+                                                        className="rounded-md border border-amber-200 bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-elivis-accent-hover transition-colors hover:bg-amber-50 disabled:opacity-60"
                                                     >
                                                         {t("common.cancel")}
                                                     </button>
@@ -972,8 +930,8 @@ export function TeamDetailPageClient({
                                         )}
 
                                         {isRemoveConfirming && (
-                                            <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-                                                <span className="text-xs text-red-700">
+                                            <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2">
+                                                <span className="text-xs text-red-700 dark:text-red-300">
                                                     {t("members.composeChangeModal.removeConfirmLabel")}
                                                 </span>
                                                 <div className="flex shrink-0 items-center gap-1.5">
@@ -1002,7 +960,7 @@ export function TeamDetailPageClient({
                                                         type="button"
                                                         disabled={isRemoving}
                                                         onClick={() => setRemoveConfirmUserId(null)}
-                                                        className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                                                        className="rounded-md border border-red-200 dark:border-red-900/50 bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-60"
                                                     >
                                                         {t("common.cancel")}
                                                     </button>
@@ -1015,12 +973,12 @@ export function TeamDetailPageClient({
                         </ul>
 
                         {delegateError && (
-                            <div className="border-t border-stone-100 px-5 py-3">
-                                <p className="text-sm text-red-600">{delegateError}</p>
+                            <div className="border-t border-stone-100 dark:border-elivis-line px-5 py-3">
+                                <p className="text-sm text-red-600 dark:text-red-400">{delegateError}</p>
                             </div>
                         )}
 
-                        <div className="border-t border-stone-100 px-5 py-3">
+                        <div className="border-t border-stone-100 dark:border-elivis-line px-5 py-3">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1030,7 +988,7 @@ export function TeamDetailPageClient({
                                     setDelegateError(null);
                                 }}
                                 disabled={delegatePending || removePending}
-                                className="w-full rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                                className="w-full rounded-lg border border-stone-200 dark:border-elivis-line py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                             >
                                 {t("common.close")}
                             </button>

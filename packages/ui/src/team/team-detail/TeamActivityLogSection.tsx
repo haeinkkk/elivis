@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ElivisSelect } from "../../ElivisSelect";
 import type { TeamDetail } from "../../types/team-detail";
+
+const ACTIVITY_PAGE_SIZES = [10, 25, 50, 100] as const;
+type ActivityPageSize = (typeof ACTIVITY_PAGE_SIZES)[number];
 
 type ActivityKind = "team_created" | "member_joined" | "member_leader" | "project_linked";
 
@@ -69,6 +74,22 @@ export function TeamActivityLogSection({ team }: { team: TeamDetail }) {
     const t = useTranslations("teams.detail.activityLog");
     const locale = useLocale();
     const events = buildActivityLog(team);
+    const [pageSize, setPageSize] = useState<ActivityPageSize>(10);
+    const [page, setPage] = useState(1);
+
+    const total = events.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    useEffect(() => {
+        const maxPage = Math.max(1, Math.ceil(total / pageSize));
+        setPage((p) => Math.min(Math.max(1, p), maxPage));
+    }, [total, pageSize]);
+
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const offset = (safePage - 1) * pageSize;
+    const pageEvents = total === 0 ? [] : events.slice(offset, offset + pageSize);
+    const rangeStart = total === 0 ? 0 : offset + 1;
+    const rangeEnd = total === 0 ? 0 : offset + pageEvents.length;
 
     function eventLabel(ev: ActivityEvent): string {
         switch (ev.kind) {
@@ -96,13 +117,70 @@ export function TeamActivityLogSection({ team }: { team: TeamDetail }) {
 
     return (
         <div>
-            <h2 className="mb-1 text-base font-semibold text-stone-800">{t("title")}</h2>
-            <p className="mb-5 text-sm text-stone-500">{t("subtitle")}</p>
+            <h2 className="mb-1 text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("title")}</h2>
+            <p className="mb-5 text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
             {events.length === 0 ? (
-                <p className="text-sm text-stone-400">{t("empty")}</p>
+                <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("empty")}</p>
             ) : (
-                <ol className="relative border-l border-stone-200">
-                    {events.map((ev) => {
+                <>
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 dark:text-elivis-ink-secondary">
+                            <span className="shrink-0">{t("pagination.pageSize")}</span>
+                            <ElivisSelect
+                                variant="field"
+                                className="w-auto min-w-[4.25rem] py-1"
+                                aria-label={t("pagination.pageSize")}
+                                value={String(pageSize)}
+                                onChange={(e) => {
+                                    const n = Number(e.target.value);
+                                    if (
+                                        n === 10 ||
+                                        n === 25 ||
+                                        n === 50 ||
+                                        n === 100
+                                    ) {
+                                        setPageSize(n);
+                                        setPage(1);
+                                    }
+                                }}
+                            >
+                                {ACTIVITY_PAGE_SIZES.map((n) => (
+                                    <option key={n} value={n}>
+                                        {n}
+                                    </option>
+                                ))}
+                            </ElivisSelect>
+                        </div>
+                        <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
+                            {t("pagination.summary", {
+                                start: rangeStart,
+                                end: rangeEnd,
+                                total,
+                                page: safePage,
+                                pages: totalPages,
+                            })}
+                        </p>
+                        <div className="flex items-center gap-1">
+                            <button
+                                type="button"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:hover:bg-elivis-surface-elevated"
+                            >
+                                {t("pagination.prev")}
+                            </button>
+                            <button
+                                type="button"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:hover:bg-elivis-surface-elevated"
+                            >
+                                {t("pagination.next")}
+                            </button>
+                        </div>
+                    </div>
+                    <ol className="relative border-l border-stone-200 dark:border-elivis-line">
+                    {pageEvents.map((ev) => {
                         const icon = ACTIVITY_ICON[ev.kind];
                         return (
                             <li key={ev.id} className="mb-6 ml-6 last:mb-0">
@@ -123,14 +201,15 @@ export function TeamActivityLogSection({ team }: { team: TeamDetail }) {
                                         />
                                     </svg>
                                 </span>
-                                <p className="text-sm font-medium text-stone-800">{eventLabel(ev)}</p>
-                                <time className="mt-0.5 block text-xs text-stone-400">
+                                <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">{eventLabel(ev)}</p>
+                                <time className="mt-0.5 block text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                     {formatWhen(ev.date)}
                                 </time>
                             </li>
                         );
                     })}
-                </ol>
+                    </ol>
+                </>
             )}
         </div>
     );

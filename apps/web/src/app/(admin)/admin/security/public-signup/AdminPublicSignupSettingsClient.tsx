@@ -54,15 +54,15 @@ export function AdminPublicSignupSettingsClient({ initial }: { initial: ApiAdmin
     return (
         <div className="w-full max-w-full space-y-6">
             <div>
-                <h1 className="text-lg font-semibold text-stone-800">{t("pageTitle")}</h1>
-                <p className="mt-2 text-sm text-stone-600">{t("intro")}</p>
+                <h1 className="text-lg font-semibold text-stone-800 dark:text-elivis-ink">{t("pageTitle")}</h1>
+                <p className="mt-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
                 <label className="flex cursor-pointer items-start gap-3">
                     <input
                         type="checkbox"
-                        className="mt-1 h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                        className="mt-1 h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                         checked={enabled}
                         onChange={(e) => {
                             setEnabled(e.target.checked);
@@ -71,8 +71,8 @@ export function AdminPublicSignupSettingsClient({ initial }: { initial: ApiAdmin
                         disabled={pending}
                     />
                     <div className="min-w-0 flex-1">
-                        <span className="text-sm font-semibold text-stone-800">{t("toggleLabel")}</span>
-                        <p className="mt-1 text-xs text-stone-500">
+                        <span className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("toggleLabel")}</span>
+                        <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                             {t("updatedAtLabel")}: {formatUpdated(updatedAt, locale)}
                         </p>
                     </div>
@@ -88,7 +88,7 @@ export function AdminPublicSignupSettingsClient({ initial }: { initial: ApiAdmin
                         {pending ? t("saving") : t("save")}
                     </button>
                     {error && (
-                        <p className="text-xs text-red-600" role="alert">
+                        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                             {error}
                         </p>
                     )}
@@ -100,22 +100,22 @@ export function AdminPublicSignupSettingsClient({ initial }: { initial: ApiAdmin
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{t("statusLabel")}</p>
-                <p className="mt-2 text-sm font-medium text-stone-800">
+            <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">{t("statusLabel")}</p>
+                <p className="mt-2 text-sm font-medium text-stone-800 dark:text-elivis-ink">
                     {enabled ? (
-                        <span className="inline-flex items-center rounded-lg bg-green-50 px-2.5 py-1 text-green-800">
+                        <span className="inline-flex items-center rounded-lg bg-green-50 dark:bg-green-950/30 px-2.5 py-1 text-green-800">
                             {t("statusOn")}
                         </span>
                     ) : (
-                        <span className="inline-flex items-center rounded-lg bg-stone-100 px-2.5 py-1 text-stone-700">
+                        <span className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated px-2.5 py-1 text-stone-700 dark:text-elivis-ink">
                             {t("statusOff")}
                         </span>
                     )}
                 </p>
-                <div className="mt-6 border-t border-stone-100 pt-6">
-                    <p className="text-xs font-semibold text-stone-700">{t("hintTitle")}</p>
-                    <p className="mt-2 whitespace-pre-line text-sm text-stone-600">{t("hintBody")}</p>
+                <div className="mt-6 border-t border-stone-100 dark:border-elivis-line pt-6">
+                    <p className="text-xs font-semibold text-stone-700 dark:text-elivis-ink">{t("hintTitle")}</p>
+                    <p className="mt-2 whitespace-pre-line text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("hintBody")}</p>
                 </div>
             </div>
         </div>

@@ -29,7 +29,7 @@ export function ProjectParticipantAvatarStack({
             ))}
             {overflow > 0 && (
                 <div
-                    className={`${sizeClass} shrink-0 rounded-full ring-2 ring-white bg-stone-600 flex items-center justify-center font-medium text-white shadow-sm`}
+                    className={`${sizeClass} shrink-0 rounded-full ring-2 ring-white bg-stone-600 flex items-center justify-center font-medium text-white shadow-sm dark:ring-elivis-bg`}
                     title={`외 ${overflow}명`}
                 >
                     +{overflow}

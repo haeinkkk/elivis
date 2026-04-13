@@ -18,7 +18,7 @@ export default async function TeamsPage({
 
     if (!myRes || !pubRes) {
         return (
-            <div className="w-full p-6 text-stone-600">
+            <div className="w-full p-6 text-stone-600 dark:text-elivis-ink-secondary">
                 팀 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
             </div>
         );

@@ -27,7 +27,7 @@ const markdownSanitizeSchema: Schema = {
 };
 
 const HEADING_PERMALINK_CLASS =
-    "[&>a:first-child]:mr-1.5 [&>a:first-child]:inline-block [&>a:first-child]:select-none [&>a:first-child]:font-mono [&>a:first-child]:text-sm [&>a:first-child]:text-stone-400 [&>a:first-child]:no-underline hover:[&>a:first-child]:text-stone-600";
+    "[&>a:first-child]:mr-1.5 [&>a:first-child]:inline-block [&>a:first-child]:select-none [&>a:first-child]:font-mono [&>a:first-child]:text-sm [&>a:first-child]:text-stone-400 [&>a:first-child]:no-underline hover:[&>a:first-child]:text-stone-600 dark:[&>a:first-child]:text-stone-500 dark:hover:[&>a:first-child]:text-stone-300";
 
 function wikiHeading(Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
     return function WikiHeadingEl(props: ComponentPropsWithoutRef<typeof Tag>) {
@@ -150,7 +150,7 @@ export function MarkdownContent({
 
     return (
         <div
-            className={`prose prose-stone max-w-none text-stone-800 prose-headings:scroll-mt-20 prose-p:leading-relaxed prose-a:text-stone-800 prose-a:underline-offset-2 hover:prose-a:text-stone-950 prose-li:my-0.5 ${className}`}
+            className={`prose prose-stone max-w-none text-stone-800 dark:text-elivis-ink dark:prose-invert prose-headings:scroll-mt-20 prose-p:leading-relaxed prose-a:text-stone-800 dark:prose-a:text-elivis-accent-hover prose-a:underline-offset-2 hover:prose-a:text-stone-950 dark:hover:prose-a:text-elivis-accent prose-li:my-0.5 ${className}`}
         >
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -189,7 +189,7 @@ export function MarkdownContent({
                         }
                         return (
                             <code
-                                className="rounded bg-stone-100 px-1 py-0.5 font-mono text-[0.875em] text-stone-800 before:content-none after:content-none"
+                                className="rounded bg-stone-100 dark:bg-elivis-surface-elevated px-1 py-0.5 font-mono text-[0.875em] text-stone-800 dark:text-elivis-ink before:content-none after:content-none"
                                 {...rest}
                             >
                                 {children}

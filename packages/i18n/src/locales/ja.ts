@@ -505,6 +505,12 @@ export const ja = {
           memberJoined: "{actor} がチームに参加しました。",
           memberLeader: "{actor} がリーダーに指定されました。",
           projectLinked: "プロジェクト「{name}」がチームにリンクされました。",
+          pagination: {
+            pageSize: "表示件数",
+            prev: "前へ",
+            next: "次へ",
+            summary: "{start}–{end}件目 / 全{total}件 · {page}/{pages}ページ",
+          },
         },
         banner: {
           title: "チームバナー",
@@ -808,6 +814,7 @@ export const ja = {
       mySettings:        "設定",
       logout:            "ログアウト",
       language:          "言語",
+      darkModeAria:      "ダークモード",
     },
     sidebar: {
       collapse:        "サイドバーを折りたたむ",
@@ -904,6 +911,10 @@ export const ja = {
       groupCount: "{count}件",
       showCompletedTasks: "完了したタスクを表示",
       completedSectionTitle: "完了",
+      sectionsExpandAll: "すべて展開",
+      sectionsExpandAllTitle: "ワークスペース別のセクションをすべて展開",
+      sectionsCollapseAll: "すべて折りたたむ",
+      sectionsCollapseAllTitle: "ワークスペース別のセクションをすべて折りたたむ",
     },
     myworkPerformance: {
       title: "実績サマリー",
@@ -1000,6 +1011,12 @@ export const ja = {
           taskCreated: "タスク「{title}」を追加しました。",
           taskDeleted: "タスク「{title}」を削除しました。",
           unknown: "アクティビティ",
+          pagination: {
+            pageSize: "表示件数",
+            prev: "前へ",
+            next: "次へ",
+            summary: "{start}–{end}件目 / 全{total}件 · {page}/{pages}ページ",
+          },
         },
         backToListAria: "プロジェクト一覧に戻る",
         defaultDescription: "プロジェクト詳細",
@@ -1183,6 +1200,8 @@ export const ja = {
           request: "依頼",
           requestTaskTitle: "このタスクをメンバーに依頼",
           chipAll: "すべて",
+          filterSearchPlaceholder: "検索…",
+          filterNoResults: "一致する項目がありません。",
         },
         calendar: {
           today: "今日",
@@ -1466,6 +1485,9 @@ export const ja = {
         mywork: "マイワークスペース", summary: "タスクサマリー", requests: "リクエスト",
         calendar: "カレンダー", timeline: "タイムライン", dashboard: "タスクダッシュボード",
       },
+      aria: {
+        subNav: "ワークスペースのサブメニュー",
+      },
       common: {
         cancel: "キャンセル", save: "保存", delete: "削除", edit: "編集", add: "追加",
         none: "なし", nameInput: "名前を入力", customColor: "カスタムカラー",
@@ -1515,6 +1537,12 @@ export const ja = {
         filterStatus: "ステータス", filterPriority: "優先度",
         allStatuses: "全ステータス", allPriorities: "全優先度",
         sort: "並び替え", reset: "リセット",
+        filterSearchPlaceholder: "検索…",
+        filterNoResults: "一致する項目がありません。",
+        expandAll: "すべて展開",
+        expandAllTitle: "子タスクをすべて展開",
+        collapseAll: "すべて折りたたむ",
+        collapseAllTitle: "子タスクをすべて折りたたむ",
       },
       sort: {
         default: "デフォルト", status: "ステータス順", priority: "優先度順",
@@ -1621,6 +1649,8 @@ export const ja = {
         uploading: "アップロード中…", dropHere: "ここにファイルをドロップ",
         dragOrClick: "ドラッグまたはクリックしてアップロード",
         noFiles: "添付ファイルはありません。",
+        optionSearchPlaceholder: "オプションを検索…",
+        noOptionsMatch: "一致するオプションがありません。",
       },
     },
     adminUsers: {

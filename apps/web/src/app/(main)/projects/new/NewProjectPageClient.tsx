@@ -45,7 +45,7 @@ type FieldErrors = Partial<Record<FieldKey, string>>;
 function FieldError({ id, message }: { id?: string; message?: string }) {
     if (!message) return null;
     return (
-        <p id={id} className="mt-1.5 text-sm text-red-600" role="alert">
+        <p id={id} className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
             {message}
         </p>
     );
@@ -59,8 +59,10 @@ function parseDateInputValue(s: string): number | null {
     return Number.isNaN(t) ? null : t;
 }
 
-const inputErrorClass = "border-red-300 focus:border-red-500 focus:ring-red-500/30";
-const inputNormalClass = "border-stone-200 focus:border-stone-400 focus:ring-stone-400";
+const inputErrorClass =
+    "border-red-300 bg-white text-stone-800 placeholder:text-stone-400 focus:border-red-500 focus:ring-red-500/30 dark:border-red-500/50 dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:border-red-400 dark:focus:ring-red-400/25";
+const inputNormalClass =
+    "border-stone-200 bg-white text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:ring-stone-400 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:border-elivis-line dark:focus:ring-elivis-line/40";
 
 /** `?teamIds=id` 또는 `?teamIds=a&teamIds=b`, 쉼표 구분 병행 가능 */
 function parsePresetTeamIds(searchParams: URLSearchParams): string[] {
@@ -315,7 +317,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
             <div className="w-full max-w-full">
                 <Link
                     href="/projects"
-                    className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-700"
+                    className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:text-stone-700"
                 >
                     <svg
                         className="h-4 w-4"
@@ -329,19 +331,19 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                     {t("backToList")}
                 </Link>
                 <div className="mt-4">
-                    <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">
+                    <h2 className="text-2xl font-semibold text-stone-800 dark:text-elivis-ink sm:text-3xl">
                         {t("title")}
                     </h2>
-                    <p className="mt-2 text-stone-600">{t("subtitle")}</p>
+                    <p className="mt-2 text-stone-600 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-6 max-w-2xl space-y-6 sm:mt-8">
                     <div>
-                        <label className="block text-sm font-medium text-stone-700">
+                        <label className="block text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("creatorLabel")}
                         </label>
                         <div
-                            className="mt-1.5 flex items-center gap-3 rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-2.5"
+                            className="mt-1.5 flex items-center gap-3 rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 px-3 py-2.5"
                             aria-readonly
                         >
                             {avatarSrc ? (
@@ -353,16 +355,16 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     className="h-9 w-9 shrink-0 rounded-full object-cover"
                                 />
                             ) : (
-                                <span className="flex h-9 w-9 shrink-0 rounded-full bg-stone-300" />
+                                <span className="flex h-9 w-9 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                             )}
                             <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-stone-800 truncate">
+                                <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink truncate">
                                     {creatorName}
                                 </p>
-                                <p className="text-xs text-stone-500 truncate">{creatorEmail}</p>
+                                <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary truncate">{creatorEmail}</p>
                             </div>
                         </div>
-                        <p className="mt-1 text-xs text-stone-400">
+                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                             {t("creatorNote")}
                         </p>
                     </div>
@@ -370,16 +372,16 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                     <div
                         className={
                             fieldErrors.name
-                                ? "rounded-xl border border-red-200 bg-red-50/40 p-3"
+                                ? "rounded-xl border border-red-200 bg-red-50/40 p-3 dark:border-red-900/45 dark:bg-red-950/25"
                                 : ""
                         }
                     >
                         <label
                             htmlFor="project-name"
-                            className="block text-sm font-medium text-stone-700"
+                            className="block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("nameLabel")}{" "}
-                            <span className="text-red-600" aria-hidden>
+                            <span className="text-red-600 dark:text-red-400" aria-hidden>
                                 *
                             </span>
                         </label>
@@ -395,7 +397,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             placeholder={t("namePlaceholder")}
                             aria-invalid={!!fieldErrors.name}
                             aria-describedby={fieldErrors.name ? "project-name-error" : undefined}
-                            className={`mt-1.5 w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-1 ${
+                            className={`mt-1.5 w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 ${
                                 fieldErrors.name ? inputErrorClass : inputNormalClass
                             }`}
                         />
@@ -405,7 +407,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                     <div>
                         <label
                             htmlFor="project-desc"
-                            className="block text-sm font-medium text-stone-700"
+                            className="block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("descriptionLabel")}
                         </label>
@@ -415,24 +417,24 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder={t("descriptionPlaceholder")}
                             rows={3}
-                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2.5 text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
                     </div>
 
                     <div
                         className={`space-y-3 ${
                             fieldErrors.period
-                                ? "rounded-xl border border-red-200 bg-red-50/40 p-3"
+                                ? "rounded-xl border border-red-200 bg-red-50/40 p-3 dark:border-red-900/45 dark:bg-red-950/25"
                                 : ""
                         }`}
                     >
-                        <p id="project-period-label" className="text-sm font-medium text-stone-700">
+                        <p id="project-period-label" className="text-sm font-medium text-stone-700 dark:text-elivis-ink">
                             {t("periodLabel")}{" "}
-                            <span className="text-red-600" aria-hidden>
+                            <span className="text-red-600 dark:text-red-400" aria-hidden>
                                 *
                             </span>
                         </p>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                             {t("periodHint")}
                         </p>
                         <div
@@ -440,7 +442,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                             aria-labelledby="project-period-label"
                         >
                             <div className="flex items-center gap-2">
-                                <label htmlFor="start-date" className="text-sm text-stone-600">
+                                <label htmlFor="start-date" className="text-sm text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("startLabel")}
                                 </label>
                                 <input
@@ -457,13 +459,13 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     aria-describedby={
                                         fieldErrors.period ? "project-period-error" : undefined
                                     }
-                                    className={`rounded-lg border bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-1 ${
+                                    className={`rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
                                         fieldErrors.period ? inputErrorClass : inputNormalClass
                                     }`}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <label htmlFor="end-date" className="text-sm text-stone-600">
+                                <label htmlFor="end-date" className="text-sm text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("endLabel")}
                                 </label>
                                 <input
@@ -481,9 +483,9 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     aria-describedby={
                                         fieldErrors.period ? "project-period-error" : undefined
                                     }
-                                    className={`rounded-lg border bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-1 disabled:bg-stone-50 disabled:text-stone-400 ${
+                                    className={`rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
                                         fieldErrors.period ? inputErrorClass : inputNormalClass
-                                    }`}
+                                    } disabled:bg-stone-50 disabled:text-stone-400 dark:disabled:bg-elivis-surface-elevated dark:disabled:text-elivis-ink-muted`}
                                 />
                             </div>
                             <label className="flex cursor-pointer items-center gap-2">
@@ -496,21 +498,21 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         if (checked) setEndDate("");
                                         clearError("period");
                                     }}
-                                    className="h-4 w-4 rounded border-stone-300 text-stone-700 focus:ring-stone-400"
+                                    className="h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-stone-700 dark:text-elivis-ink focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-600">{t("noEndCheckbox")}</span>
+                                <span className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("noEndCheckbox")}</span>
                             </label>
                         </div>
                         <FieldError id="project-period-error" message={fieldErrors.period} />
                         {noEndDate && (
-                            <p className="text-xs text-stone-400">
+                            <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                 {t("noEndNote")}
                             </p>
                         )}
                     </div>
 
                     <div>
-                        <p className="text-sm font-medium text-stone-700">{t("typeLabel")}</p>
+                        <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("typeLabel")}</p>
                         <div className="mt-2 flex gap-4">
                             <label className="flex cursor-pointer items-center gap-2">
                                 <input
@@ -523,9 +525,9 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         setTeams([]);
                                         clearError("team");
                                     }}
-                                    className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
+                                    className="h-4 w-4 border-stone-300 dark:border-elivis-line text-stone-700 dark:text-elivis-ink focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-700">{t("typePersonal")}</span>
+                                <span className="text-sm text-stone-700 dark:text-elivis-ink">{t("typePersonal")}</span>
                             </label>
                             <label className="flex cursor-pointer items-center gap-2">
                                 <input
@@ -537,9 +539,9 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         setProjectType("team");
                                         clearError("team");
                                     }}
-                                    className="h-4 w-4 border-stone-300 text-stone-700 focus:ring-stone-400"
+                                    className="h-4 w-4 border-stone-300 dark:border-elivis-line text-stone-700 dark:text-elivis-ink focus:ring-stone-400"
                                 />
-                                <span className="text-sm text-stone-700">{t("typeTeam")}</span>
+                                <span className="text-sm text-stone-700 dark:text-elivis-ink">{t("typeTeam")}</span>
                             </label>
                         </div>
                     </div>
@@ -554,27 +556,27 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                         >
                             <p
                                 id="project-team-label"
-                                className="text-sm font-medium text-stone-700"
+                                className="text-sm font-medium text-stone-700 dark:text-elivis-ink"
                             >
                                 {t("myTeamsLabel")}
                             </p>
-                            <p className="mt-0.5 text-xs text-stone-400">
+                            <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                 {t("myTeamsHint")}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {teams.map((team, i) => (
                                     <span
                                         key={team.id}
-                                        className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50/80 py-1.5 pl-1.5 pr-2"
+                                        className="inline-flex items-center gap-2 rounded-full border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 py-1.5 pl-1.5 pr-2"
                                     >
-                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-200 text-xs font-medium text-stone-600">
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                             {t("teamBadge")}
                                         </span>
                                         <span className="flex flex-col items-start">
-                                            <span className="text-sm font-medium text-stone-800 leading-tight">
+                                            <span className="text-sm font-medium text-stone-800 dark:text-elivis-ink leading-tight">
                                                 {team.name}
                                             </span>
-                                            <span className="text-xs text-stone-500 leading-tight max-w-[220px] truncate">
+                                            <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary leading-tight max-w-[220px] truncate">
                                                 {teamOptionSubtitle(team, t)}
                                             </span>
                                         </span>
@@ -582,7 +584,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             type="button"
                                             onClick={() => removeTeam(i)}
                                             disabled={presetTeamIds.includes(team.id)}
-                                            className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600 disabled:cursor-default disabled:opacity-50"
+                                            className="shrink-0 rounded-full p-0.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-200 hover:text-stone-600 disabled:cursor-default disabled:opacity-50"
                                             aria-label={t("removeAria")}
                                             title={
                                                 presetTeamIds.includes(team.id)
@@ -613,7 +615,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     setTeamSearchQuery("");
                                     setTeamModalOpen(true);
                                 }}
-                                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
+                                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                             >
                                 <svg
                                     className="h-4 w-4"
@@ -641,29 +643,29 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                 : ""
                         }
                     >
-                        <p className="text-sm font-medium text-stone-700">{t("participantsLabel")}</p>
-                        <p className="mt-0.5 text-xs text-stone-400">
+                        <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("participantsLabel")}</p>
+                        <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                             {t("participantsHint")}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                             {participants.map((p, i) => (
                                 <span
                                     key={p.id}
-                                    className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50/80 py-1.5 pl-1.5 pr-2"
+                                    className="inline-flex items-center gap-2 rounded-full border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 py-1.5 pl-1.5 pr-2"
                                 >
-                                    <span className="flex h-7 w-7 shrink-0 rounded-full bg-stone-300" />
+                                    <span className="flex h-7 w-7 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                     <span className="flex flex-col items-start">
-                                        <span className="text-sm font-medium text-stone-800 leading-tight">
+                                        <span className="text-sm font-medium text-stone-800 dark:text-elivis-ink leading-tight">
                                             {p.name}
                                         </span>
-                                        <span className="text-xs text-stone-500 leading-tight">
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary leading-tight">
                                             {p.userId}
                                         </span>
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => removeParticipant(i)}
-                                        className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600"
+                                        className="shrink-0 rounded-full p-0.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-200 hover:text-stone-600"
                                         aria-label={t("removeAria")}
                                     >
                                         <svg
@@ -686,7 +688,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                         <button
                             type="button"
                             onClick={() => setParticipantModalOpen(true)}
-                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
+                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                             <svg
                                 className="h-4 w-4"
@@ -720,14 +722,14 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     setSearchResults([]);
                                 }}
                             />
-                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                                <div className="border-b border-stone-100 px-4 py-3">
-                                    <h3 className="text-base font-semibold text-stone-800">
+                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl">
+                                <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-3">
+                                    <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                                         {t("participantModalTitle")}
                                     </h3>
-                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
+                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2 dark:border-elivis-line dark:bg-elivis-surface-elevated">
                                         <svg
-                                            className="h-4 w-4 shrink-0 text-stone-400"
+                                            className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={1.5}
@@ -744,22 +746,22 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             value={userSearchQuery}
                                             onChange={(e) => setUserSearchQuery(e.target.value)}
                                             placeholder={t("userSearchPlaceholder")}
-                                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
+                                            className="min-w-0 flex-1 border-0 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-0 dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted"
                                             autoFocus
                                         />
                                     </div>
                                 </div>
                                 <ul className="max-h-64 overflow-y-auto py-2">
                                     {userSearchQuery.trim().length < 1 ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("searchMin")}
                                         </li>
                                     ) : searchLoading ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("searching")}
                                         </li>
                                     ) : searchResults.length === 0 ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("noSearchResults")}
                                         </li>
                                     ) : (
@@ -782,20 +784,20 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                                         className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                                                             isAdded
                                                                 ? "cursor-default opacity-50"
-                                                                : "hover:bg-stone-50"
+                                                                : "hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                                         }`}
                                                     >
-                                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300" />
+                                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="text-sm font-medium text-stone-800">
+                                                            <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                                                 {label}
                                                             </p>
-                                                            <p className="text-xs text-stone-500">
+                                                            <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                                 {user.email}
                                                             </p>
                                                         </div>
                                                         {isAdded && (
-                                                            <span className="text-xs text-stone-400">
+                                                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                                 {t("alreadyAdded")}
                                                             </span>
                                                         )}
@@ -805,7 +807,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         })
                                     )}
                                 </ul>
-                                <div className="border-t border-stone-100 px-4 py-3">
+                                <div className="border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -813,7 +815,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             setUserSearchQuery("");
                                             setSearchResults([]);
                                         }}
-                                        className="w-full rounded-lg border border-stone-200 bg-white py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                        className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                     >
                                         {t("close")}
                                     </button>
@@ -833,17 +835,17 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                     setTeamSearchResults([]);
                                 }}
                             />
-                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                                <div className="border-b border-stone-100 px-4 py-3">
-                                    <h3 className="text-base font-semibold text-stone-800">
+                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl">
+                                <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-3">
+                                    <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                                         {t("teamModalTitle")}
                                     </h3>
-                                    <p className="mt-1 text-xs text-stone-500">
+                                    <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("teamModalDesc")}
                                     </p>
-                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
+                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2 dark:border-elivis-line dark:bg-elivis-surface-elevated">
                                         <svg
-                                            className="h-4 w-4 shrink-0 text-stone-400"
+                                            className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={1.5}
@@ -860,18 +862,18 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             value={teamSearchQuery}
                                             onChange={(e) => setTeamSearchQuery(e.target.value)}
                                             placeholder={t("teamSearchPlaceholder")}
-                                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
+                                            className="min-w-0 flex-1 border-0 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-0 dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted"
                                             autoFocus
                                         />
                                     </div>
                                 </div>
                                 <ul className="max-h-64 overflow-y-auto py-2">
                                     {teamSearchLoading ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("loading")}
                                         </li>
                                     ) : teamSearchResults.length === 0 ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {teamSearchQuery.trim()
                                                 ? t("noSearchResults")
                                                 : t("noTeamsAsLeader")}
@@ -884,21 +886,21 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                                     <button
                                                         type="button"
                                                         onClick={() => addTeam(team)}
-                                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-stone-50"
+                                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                                     >
-                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-200 text-xs font-medium text-stone-600">
+                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                                             {t("teamBadge")}
                                                         </span>
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="text-sm font-medium text-stone-800">
+                                                            <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                                                 {team.name}
                                                             </p>
-                                                            <p className="text-xs text-stone-500 truncate">
+                                                            <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary truncate">
                                                                 {teamOptionSubtitle(team, t)}
                                                             </p>
                                                         </div>
                                                         {isCurrent && (
-                                                            <span className="text-xs text-stone-400">
+                                                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                                 {t("selected")}
                                                             </span>
                                                         )}
@@ -908,7 +910,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                         })
                                     )}
                                 </ul>
-                                <div className="border-t border-stone-100 px-4 py-3">
+                                <div className="border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -916,7 +918,7 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
                                             setTeamSearchQuery("");
                                             setTeamSearchResults([]);
                                         }}
-                                        className="w-full rounded-lg border border-stone-200 bg-white py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                        className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                     >
                                         {t("close")}
                                     </button>
@@ -927,17 +929,17 @@ export function NewProjectPageClient({ currentUser }: { currentUser: UserProfile
 
                     {fieldErrors.general ? (
                         <div
-                            className="rounded-lg border border-red-200 bg-red-50/80 px-3 py-2.5"
+                            className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/80 px-3 py-2.5"
                             role="alert"
                         >
-                            <p className="text-sm text-red-700">{fieldErrors.general}</p>
+                            <p className="text-sm text-red-700 dark:text-red-300">{fieldErrors.general}</p>
                         </div>
                     ) : null}
 
                     <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
                         <Link
                             href="/projects"
-                            className="inline-flex justify-center rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                            className="inline-flex justify-center rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2.5 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                             {t("cancel")}
                         </Link>

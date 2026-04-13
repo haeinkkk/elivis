@@ -81,35 +81,35 @@ export function PriorityDropdown({
     const sorted = [...items].sort((a, b) => (b.value ?? 0) - (a.value ?? 0) || a.order - b.order);
 
     const menu = open && mounted ? createPortal(
-        <div ref={menuRef} style={menuStyle} className="rounded-xl border border-stone-200 bg-white py-1.5 shadow-xl">
+        <div ref={menuRef} style={menuStyle} className="rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface py-1.5 shadow-xl">
             <div className="max-h-64 overflow-y-auto">
                 <button type="button" onClick={() => { onChange(null); setOpen(false); }}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-stone-400 hover:bg-stone-50">
-                    <span className="h-2.5 w-2.5 rounded-full bg-stone-300" /> 없음
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">
+                    <span className="h-2.5 w-2.5 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" /> 없음
                 </button>
                 {sorted.map((item) => {
                     const icm = tagColorOf(item.color);
                     return (
                         <div key={item.id} className="group flex items-center gap-1 px-2 py-0.5">
                             <button type="button" onClick={() => { onChange(item.id); setOpen(false); }}
-                                className="flex flex-1 items-center gap-2 rounded-md px-1.5 py-1 hover:bg-stone-50">
+                                className="flex flex-1 items-center gap-2 rounded-md px-1.5 py-1 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">
                                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${icm.dot}`} style={icm.dotStyle} />
                                 <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${icm.badge} ${item.id === selectedId ? "ring-1 ring-stone-400" : ""}`} style={icm.badgeStyle}>
                                     {item.name}
                                 </span>
                                 {(item.value ?? 0) > 0 && (
-                                    <span className="ml-auto text-[10px] text-stone-400">{item.value}</span>
+                                    <span className="ml-auto text-[10px] text-stone-400 dark:text-elivis-ink-secondary">{item.value}</span>
                                 )}
                             </button>
                             <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100">
                                 <button type="button" title={t("common.edit")} onClick={() => { setModal({ editing: item }); setOpen(false); }}
-                                    className="rounded p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
+                                    className="rounded p-0.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600">
                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-3.414 1a1 1 0 01-1.243-1.243l1-3.414A4 4 0 019 13z" />
                                     </svg>
                                 </button>
                                 <button type="button" title={t("common.delete")} disabled={isPending} onClick={() => handleDelete(item)}
-                                    className="rounded p-0.5 text-stone-400 hover:bg-red-50 hover:text-red-500">
+                                    className="rounded p-0.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500">
                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
@@ -119,9 +119,9 @@ export function PriorityDropdown({
                     );
                 })}
             </div>
-            <div className="border-t border-stone-100 mt-1" />
+            <div className="border-t border-stone-100 dark:border-elivis-line mt-1" />
             <button type="button" onClick={() => { setModal({ editing: null }); setOpen(false); }}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-stone-500 hover:bg-stone-50">
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>

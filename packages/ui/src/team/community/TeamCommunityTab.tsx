@@ -225,13 +225,13 @@ export function TeamCommunityTab({
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
             <div
                 className={[
-                    "flex min-h-0 flex-col overflow-hidden border-r border-stone-200 bg-white",
+                    "flex min-h-0 flex-col overflow-hidden border-r border-stone-200 bg-white dark:border-elivis-line dark:bg-elivis-surface",
                     "absolute inset-0 z-10 transition-transform duration-300 ease-in-out",
                     "md:relative md:w-72 md:shrink-0 md:translate-x-0 lg:w-80 xl:w-96",
                     showDetail ? "-translate-x-full" : "translate-x-0",
                 ].join(" ")}
             >
-                <div className="flex shrink-0 items-center justify-between border-b border-stone-100 px-4 py-3">
+                <div className="flex shrink-0 items-center justify-between border-b border-stone-100 dark:border-elivis-line px-4 py-3">
                     <div className="flex items-center gap-1 overflow-x-auto">
                         {CATEGORY_FILTER_ORDER.map((id) => (
                             <button
@@ -240,8 +240,8 @@ export function TeamCommunityTab({
                                 onClick={() => setActiveCategory(id)}
                                 className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                                     activeCategory === id
-                                        ? "bg-stone-800 text-white"
-                                        : "text-stone-500 hover:bg-stone-100 hover:text-stone-700"
+                                        ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                                        : "text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                                 }`}
                             >
                                 {t(`category.${id}` as "category.all")}
@@ -277,11 +277,11 @@ export function TeamCommunityTab({
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-500" />
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-500 dark:border-elivis-line dark:border-t-elivis-ink-secondary" />
                         </div>
                     ) : posts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-300">
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-300 dark:bg-elivis-surface-elevated dark:text-elivis-ink-muted">
                                 <svg
                                     className="h-6 w-6"
                                     fill="none"
@@ -296,25 +296,25 @@ export function TeamCommunityTab({
                                     />
                                 </svg>
                             </div>
-                            <p className="text-sm font-medium text-stone-500">{tList("emptyTitle")}</p>
-                            <p className="mt-0.5 text-xs text-stone-400">{tList("emptySubtitle")}</p>
+                            <p className="text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary">{tList("emptyTitle")}</p>
+                            <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{tList("emptySubtitle")}</p>
                         </div>
                     ) : (
                         <div className="flex flex-col">
                             {pinnedPosts.length > 0 && (
                                 <>
-                                    <div className="flex items-center gap-1.5 border-b border-amber-100 bg-amber-50/70 px-4 py-2">
+                                    <div className="flex items-center gap-1.5 border-b border-amber-100 bg-amber-50/70 px-4 py-2 dark:border-amber-900/40 dark:bg-amber-950/30">
                                         <svg
-                                            className="h-3 w-3 text-amber-500"
+                                            className="h-3 w-3 text-amber-500 dark:text-amber-400"
                                             fill="currentColor"
                                             viewBox="0 0 24 24"
                                         >
                                             <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
                                         </svg>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-200">
                                             {tList("pinned")}
                                         </span>
-                                        <span className="ml-auto text-[10px] text-amber-400">
+                                        <span className="ml-auto text-[10px] text-amber-400 dark:text-amber-500/90">
                                             {pinnedPosts.length}
                                         </span>
                                     </div>
@@ -331,9 +331,9 @@ export function TeamCommunityTab({
 
                             {regularPosts.length > 0 && (
                                 <>
-                                    <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-4 py-2">
+                                    <div className="flex items-center gap-1.5 border-b border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-4 py-2">
                                         <svg
-                                            className="h-3 w-3 text-stone-400"
+                                            className="h-3 w-3 text-stone-400 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={2}
@@ -345,10 +345,10 @@ export function TeamCommunityTab({
                                                 d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                                             />
                                         </svg>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                                             {tList("posts")}
                                         </span>
-                                        <span className="ml-auto text-[10px] text-stone-400">
+                                        <span className="ml-auto text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                                             {regularPosts.length}
                                         </span>
                                     </div>
@@ -367,12 +367,12 @@ export function TeamCommunityTab({
                 </div>
 
                 {totalPages > 1 && (
-                    <div className="shrink-0 flex items-center justify-between border-t border-stone-100 px-3 py-2">
+                    <div className="shrink-0 flex items-center justify-between border-t border-stone-100 dark:border-elivis-line px-3 py-2">
                         <button
                             type="button"
                             onClick={() => setPage((p) => Math.max(1, p - 1))}
                             disabled={page === 1}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 disabled:opacity-30"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 disabled:opacity-30 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         >
                             <svg
                                 className="h-4 w-4"
@@ -397,8 +397,8 @@ export function TeamCommunityTab({
                                     onClick={() => setPage(p)}
                                     className={`flex h-6 w-6 items-center justify-center rounded-md text-xs font-medium transition-colors ${
                                         p === page
-                                            ? "bg-stone-800 text-white"
-                                            : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                                            ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                                            : "text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                                     }`}
                                 >
                                     {p}
@@ -410,7 +410,7 @@ export function TeamCommunityTab({
                             type="button"
                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 disabled:opacity-30"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 disabled:opacity-30 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         >
                             <svg
                                 className="h-4 w-4"
@@ -432,13 +432,13 @@ export function TeamCommunityTab({
 
             <div
                 className={[
-                    "flex min-h-0 flex-col overflow-hidden bg-[#f8f7f5]",
+                    "flex min-h-0 flex-col overflow-hidden bg-[#f8f7f5] dark:bg-elivis-bg",
                     "absolute inset-0 z-20 transition-transform duration-300 ease-in-out",
                     "md:relative md:flex-1 md:translate-x-0",
                     showDetail ? "translate-x-0" : "translate-x-full",
                 ].join(" ")}
             >
-                <div className="flex shrink-0 items-center gap-2 border-b border-stone-100 bg-white px-4 py-3 md:hidden">
+                <div className="flex shrink-0 items-center gap-2 border-b border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-3 md:hidden">
                     <button
                         type="button"
                         onClick={() => {
@@ -449,7 +449,7 @@ export function TeamCommunityTab({
                                 setSelectedPost(null);
                             }
                         }}
-                        className="flex shrink-0 items-center gap-0.5 rounded-lg py-1 pr-2 text-sm font-medium text-stone-500 active:bg-stone-100"
+                        className="flex shrink-0 items-center gap-0.5 rounded-lg py-1 pr-2 text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary active:bg-stone-100 dark:active:bg-elivis-surface-elevated"
                     >
                         <svg
                             className="h-5 w-5"
@@ -462,7 +462,7 @@ export function TeamCommunityTab({
                         </svg>
                         {tMob("backToList")}
                     </button>
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-800">
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                         {composeOpen
                             ? editTarget
                                 ? tCompose("editTitle")
@@ -484,9 +484,9 @@ export function TeamCommunityTab({
                     />
                 ) : !selectedPost ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 dark:bg-elivis-surface-elevated">
                             <svg
-                                className="h-8 w-8 text-stone-300"
+                                className="h-8 w-8 text-stone-300 dark:text-elivis-ink-muted"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 strokeWidth={1.3}
@@ -500,8 +500,8 @@ export function TeamCommunityTab({
                             </svg>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-stone-500">{tEmpty("title")}</p>
-                            <p className="mt-1 text-xs text-stone-400">{tEmpty("subtitle")}</p>
+                            <p className="text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary">{tEmpty("title")}</p>
+                            <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">{tEmpty("subtitle")}</p>
                         </div>
                         <button
                             type="button"
@@ -529,7 +529,7 @@ export function TeamCommunityTab({
                     </div>
                 ) : detailLoading ? (
                     <div className="flex flex-1 items-center justify-center">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-500" />
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-500 dark:border-elivis-line dark:border-t-elivis-ink-secondary" />
                     </div>
                 ) : (
                     <PostDetailPanel
@@ -556,14 +556,14 @@ export function TeamCommunityTab({
                         className="absolute inset-0 bg-black/30 backdrop-blur-sm"
                         onClick={() => setDeleteConfirmId(null)}
                     />
-                    <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-                        <h3 className="text-base font-semibold text-stone-800">{tDel("title")}</h3>
-                        <p className="mt-1.5 text-sm text-stone-500">{tDel("description")}</p>
+                    <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white dark:bg-elivis-surface p-6 shadow-2xl">
+                        <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{tDel("title")}</h3>
+                        <p className="mt-1.5 text-sm text-stone-500 dark:text-elivis-ink-secondary">{tDel("description")}</p>
                         <div className="mt-5 flex justify-end gap-2">
                             <button
                                 type="button"
                                 onClick={() => setDeleteConfirmId(null)}
-                                className="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-100"
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                             >
                                 {tCommon("cancel")}
                             </button>

@@ -93,7 +93,7 @@ function SortableWikiPageRow({
             <div className="flex items-center gap-0.5 rounded-lg">
                 <button
                     type="button"
-                    className="touch-none flex shrink-0 cursor-grab items-center rounded-l-lg border border-transparent px-0.5 py-1.5 text-stone-400 hover:bg-stone-100 active:cursor-grabbing"
+                    className="touch-none flex shrink-0 cursor-grab items-center rounded-l-lg border border-transparent px-0.5 py-1.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated active:cursor-grabbing"
                     aria-label={dragLabel}
                     {...attributes}
                     {...listeners}
@@ -113,15 +113,15 @@ function SortableWikiPageRow({
                     className={[
                         "flex min-w-0 flex-1 items-center gap-1.5 rounded-r-lg px-1.5 py-1.5 text-left text-sm transition-colors",
                         active
-                            ? "bg-stone-200 font-medium text-stone-900"
-                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+                            ? "bg-stone-200 font-medium text-stone-900 dark:bg-elivis-surface dark:text-elivis-ink dark:ring-1 dark:ring-inset dark:ring-elivis-line"
+                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink",
                     ].join(" ")}
                 >
                     <span className="min-w-0 flex-1 truncate">{page.title}</span>
-                    <span className="shrink-0 text-[10px] text-stone-400" aria-hidden>
+                    <span className="shrink-0 text-[10px] text-stone-400 dark:text-elivis-ink-secondary" aria-hidden>
                         ·
                     </span>
-                    <span className="max-w-[5rem] shrink-0 truncate font-mono text-[10px] text-stone-400 sm:max-w-[6.5rem]">
+                    <span className="max-w-[5rem] shrink-0 truncate font-mono text-[10px] text-stone-400 dark:text-elivis-ink-secondary sm:max-w-[6.5rem]">
                         {page.slug}
                     </span>
                 </button>
@@ -206,16 +206,16 @@ function WikiMarkdownDraftArea({
     }
     const tabBarClass = embedded ? "mb-3" : "mb-2";
     const editAreaClass = embedded
-        ? "min-h-[min(62vh,720px)] w-full resize-y border-0 bg-transparent px-0 py-1 font-mono text-sm leading-relaxed text-stone-800 outline-none ring-0 placeholder:text-stone-400 focus:ring-0"
-        : "min-h-[min(72vh,800px)] w-full resize-y rounded-xl border border-stone-200 bg-white px-4 py-3 font-mono text-sm leading-relaxed text-stone-800 shadow-inner outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-1 focus:ring-stone-300";
+        ? "min-h-[min(62vh,720px)] w-full resize-y border-0 bg-transparent px-0 py-1 font-mono text-sm leading-relaxed text-stone-800 outline-none ring-0 placeholder:text-stone-400 focus:ring-0 dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted"
+        : "min-h-[min(72vh,800px)] w-full resize-y rounded-xl border border-stone-200 bg-white px-4 py-3 font-mono text-sm leading-relaxed text-stone-800 shadow-inner outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-1 focus:ring-stone-300 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:border-elivis-line dark:focus:ring-elivis-line";
     const previewWrapClass = embedded
         ? "min-h-[min(62vh,720px)] w-full overflow-y-auto border-0 bg-transparent px-0 py-1"
-        : "min-h-[min(72vh,800px)] w-full overflow-y-auto rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-inner";
+        : "min-h-[min(72vh,800px)] w-full overflow-y-auto rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-inner dark:border-elivis-line dark:bg-elivis-surface";
     return (
         <>
             {!hideSubTabs && (
                 <div
-                    className={`${tabBarClass} inline-flex rounded-lg border border-stone-200 bg-stone-100/80 p-0.5`}
+                    className={`${tabBarClass} inline-flex rounded-lg border border-stone-200 bg-stone-100/80 p-0.5 dark:border-elivis-line dark:bg-elivis-surface-elevated/80`}
                     role="tablist"
                     aria-label={t("ariaMarkdownSubView")}
                 >
@@ -226,8 +226,8 @@ function WikiMarkdownDraftArea({
                         onClick={() => setSubView("edit")}
                         className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                             subView === "edit"
-                                ? "bg-white text-stone-900 shadow-sm"
-                                : "text-stone-500 hover:text-stone-800"
+                                ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                         }`}
                     >
                         {t("markdownEditTab")}
@@ -239,8 +239,8 @@ function WikiMarkdownDraftArea({
                         onClick={() => setSubView("preview")}
                         className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                             subView === "preview"
-                                ? "bg-white text-stone-900 shadow-sm"
-                                : "text-stone-500 hover:text-stone-800"
+                                ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                         }`}
                     >
                         {t("markdownPreviewTab")}
@@ -261,7 +261,7 @@ function WikiMarkdownDraftArea({
                         disabled={mediaBusy}
                         title={t("uploadMediaTitle")}
                         onClick={() => fileInputRef.current?.click()}
-                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                        className="rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1.5 text-xs font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                     >
                         {t("uploadMediaLabel")}
                     </button>
@@ -269,12 +269,12 @@ function WikiMarkdownDraftArea({
                         type="button"
                         title={t("insertYoutubeTitle")}
                         onClick={insertYoutubeLine}
-                        className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                        className="rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1.5 text-xs font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                     >
                         {t("insertYoutubeLabel")}
                     </button>
                     {mediaErr ? (
-                        <span className="text-xs text-red-600" role="alert">
+                        <span className="text-xs text-red-600 dark:text-red-400" role="alert">
                             {mediaErr}
                         </span>
                     ) : null}
@@ -299,7 +299,7 @@ function WikiMarkdownDraftArea({
                             className="w-full max-w-none"
                         />
                     ) : (
-                        <p className="text-sm text-stone-400">{t("markdownPreviewEmpty")}</p>
+                        <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("markdownPreviewEmpty")}</p>
                     )}
                 </div>
             )}
@@ -622,26 +622,26 @@ export function ProjectWikiTab({
     return (
         <div className="flex min-h-0 w-full max-w-none flex-1 flex-col">
             {listError && (
-                <p className="border-b border-red-100 bg-red-50 px-6 py-3 text-sm text-red-700 sm:px-8">
+                <p className="border-b border-red-100 bg-red-50 dark:bg-red-950/30 px-6 py-3 text-sm text-red-700 dark:text-red-300 sm:px-8">
                     {listError}
                 </p>
             )}
 
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col lg:flex-row">
-                <aside className="flex min-h-0 w-full flex-[1_1_28%] flex-col overflow-hidden border-b border-stone-200 bg-stone-50/90 px-4 py-4 lg:w-52 lg:flex-none lg:self-stretch lg:border-b-0 lg:border-r lg:px-3 lg:py-5 xl:w-56">
+                <aside className="flex min-h-0 w-full flex-[1_1_28%] flex-col overflow-hidden border-b border-stone-200 bg-stone-50/90 px-4 py-4 dark:border-elivis-line dark:bg-elivis-surface-elevated lg:w-52 lg:flex-none lg:self-stretch lg:border-b-0 lg:border-r lg:px-3 lg:py-5 xl:w-56">
                     <h3
                         id="wiki-sidebar-page-list"
-                        className="mb-3 shrink-0 text-xs font-semibold uppercase tracking-wide text-stone-400"
+                        className="mb-3 shrink-0 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary"
                     >
                         {t("pageList")}
                     </h3>
                     {sidebarIsEditorChrome && !listLoading && pages.length > 1 && (
-                        <p className="mb-2 shrink-0 text-[11px] leading-snug text-stone-400">
+                        <p className="mb-2 shrink-0 text-[11px] leading-snug text-stone-400 dark:text-elivis-ink-secondary">
                             {t("reorderHint")}
                         </p>
                     )}
                     {listLoading ? (
-                        <div className="h-24 shrink-0 animate-pulse rounded-lg bg-stone-100" aria-hidden />
+                        <div className="h-24 shrink-0 animate-pulse rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated" aria-hidden />
                     ) : (
                         <div
                             role="region"
@@ -687,18 +687,18 @@ export function ProjectWikiTab({
                                                     className={[
                                                         "flex w-full min-w-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
                                                         active
-                                                            ? "bg-stone-200 font-medium text-stone-900"
-                                                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+                                                            ? "bg-stone-200 font-medium text-stone-900 dark:bg-elivis-surface dark:text-elivis-ink dark:ring-1 dark:ring-inset dark:ring-elivis-line"
+                                                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink",
                                                     ].join(" ")}
                                                 >
                                                     <span className="min-w-0 flex-1 truncate">{p.title}</span>
                                                     <span
-                                                        className="shrink-0 text-[10px] text-stone-400"
+                                                        className="shrink-0 text-[10px] text-stone-400 dark:text-elivis-ink-secondary"
                                                         aria-hidden
                                                     >
                                                         ·
                                                     </span>
-                                                    <span className="max-w-[5rem] shrink-0 truncate font-mono text-[10px] text-stone-400 sm:max-w-[6.5rem]">
+                                                    <span className="max-w-[5rem] shrink-0 truncate font-mono text-[10px] text-stone-400 dark:text-elivis-ink-secondary sm:max-w-[6.5rem]">
                                                         {p.slug}
                                                     </span>
                                                 </button>
@@ -713,32 +713,32 @@ export function ProjectWikiTab({
                         <button
                             type="button"
                             onClick={openNew}
-                            className="mt-3 w-full shrink-0 rounded-lg border border-dashed border-stone-300 py-2 text-sm font-medium text-stone-600 hover:border-stone-400 hover:bg-stone-50"
+                            className="mt-3 w-full shrink-0 rounded-lg border border-dashed border-stone-300 dark:border-elivis-line py-2 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary hover:border-stone-400 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                             {t("newPage")}
                         </button>
                     )}
                 </aside>
 
-                <section className="flex min-h-0 min-w-0 flex-[1_1_72%] flex-col overflow-hidden bg-white lg:flex-1 lg:basis-0">
+                <section className="flex min-h-0 min-w-0 flex-[1_1_72%] flex-col overflow-hidden bg-white dark:bg-elivis-surface lg:flex-1 lg:basis-0">
                     {pageError && (
-                        <p className="border-b border-red-100 bg-red-50 px-6 py-3 text-sm text-red-700 sm:px-8">
+                        <p className="border-b border-red-100 bg-red-50 dark:bg-red-950/30 px-6 py-3 text-sm text-red-700 dark:text-red-300 sm:px-8">
                             {pageError}
                         </p>
                     )}
                     {saveError && (
-                        <p className="border-b border-red-100 bg-red-50 px-6 py-3 text-sm text-red-700 sm:px-8">
+                        <p className="border-b border-red-100 bg-red-50 dark:bg-red-950/30 px-6 py-3 text-sm text-red-700 dark:text-red-300 sm:px-8">
                             {saveError}
                         </p>
                     )}
 
                     {(mode === "new" && canEdit) || (mode === "edit" && canEdit && pageDetail) ? (
                         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-                            <div className="shrink-0 border-b border-stone-200 px-6 py-3 sm:px-8">
+                            <div className="shrink-0 border-b border-stone-200 dark:border-elivis-line px-6 py-3 sm:px-8">
                                 <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2 sm:gap-x-3">
                                     {mode === "new" ? (
                                         <>
-                                            <span className="shrink-0 rounded bg-stone-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+                                            <span className="shrink-0 rounded bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-stone-500 dark:text-elivis-ink-secondary">
                                                 {t("newPage")}
                                             </span>
                                             <input
@@ -749,7 +749,7 @@ export function ProjectWikiTab({
                                                 title={t("slugHelp")}
                                                 autoComplete="off"
                                                 aria-label={t("slugLabel")}
-                                                className="w-[min(100%,10rem)] shrink-0 rounded-md border border-stone-200 bg-white px-2 py-1 font-mono text-sm text-stone-800 outline-none focus:border-stone-400 sm:w-44"
+                                                className="w-[min(100%,10rem)] shrink-0 rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2 py-1 font-mono text-sm text-stone-800 dark:text-elivis-ink outline-none focus:border-stone-400 sm:w-44"
                                             />
                                             <span className="shrink-0 text-stone-300" aria-hidden>
                                                 /
@@ -759,13 +759,13 @@ export function ProjectWikiTab({
                                                 value={newTitle}
                                                 onChange={(e) => setNewTitle(e.target.value)}
                                                 placeholder={t("titlePlaceholder")}
-                                                className="min-w-0 flex-1 border-0 border-b border-dashed border-transparent bg-transparent text-lg font-semibold text-stone-900 outline-none placeholder:text-stone-300 focus:border-stone-300 sm:text-xl"
+                                                className="min-w-0 flex-1 border-0 border-b border-dashed border-transparent bg-transparent text-lg font-semibold text-stone-900 dark:text-elivis-ink outline-none placeholder:text-stone-300 focus:border-stone-300 sm:text-xl"
                                             />
                                         </>
                                     ) : (
                                         <>
                                             <span
-                                                className="shrink-0 font-mono text-sm text-stone-500"
+                                                className="shrink-0 font-mono text-sm text-stone-500 dark:text-elivis-ink-secondary"
                                                 title={t("slugLabel")}
                                             >
                                                 {pageDetail!.slug}
@@ -777,7 +777,7 @@ export function ProjectWikiTab({
                                                 type="text"
                                                 value={draftTitle}
                                                 onChange={(e) => setDraftTitle(e.target.value)}
-                                                className="min-w-0 flex-1 border-0 border-b border-dashed border-transparent bg-transparent text-lg font-semibold text-stone-900 outline-none focus:border-stone-300 sm:text-xl"
+                                                className="min-w-0 flex-1 border-0 border-b border-dashed border-transparent bg-transparent text-lg font-semibold text-stone-900 dark:text-elivis-ink outline-none focus:border-stone-300 sm:text-xl"
                                                 aria-label={t("titleLabel")}
                                             />
                                         </>
@@ -786,7 +786,7 @@ export function ProjectWikiTab({
                                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                                     <div className="flex min-w-0 flex-wrap items-center gap-2">
                                         <div
-                                            className="inline-flex rounded-lg border border-stone-200 bg-stone-100/80 p-0.5"
+                                            className="inline-flex rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-100/80 dark:bg-elivis-surface-elevated/80 p-0.5"
                                             role="tablist"
                                             aria-label={t("ariaEditorMode")}
                                         >
@@ -797,8 +797,8 @@ export function ProjectWikiTab({
                                                 onClick={() => selectDraftEditorMode("rich")}
                                                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                                                     draftEditorMode === "rich"
-                                                        ? "bg-white text-stone-900 shadow-sm"
-                                                        : "text-stone-500 hover:text-stone-800"
+                                                        ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                                        : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                                                 }`}
                                             >
                                                 {t("editorRich")}
@@ -810,8 +810,8 @@ export function ProjectWikiTab({
                                                 onClick={() => selectDraftEditorMode("markdown")}
                                                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                                                     draftEditorMode === "markdown"
-                                                        ? "bg-white text-stone-900 shadow-sm"
-                                                        : "text-stone-500 hover:text-stone-800"
+                                                        ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                                        : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                                                 }`}
                                             >
                                                 {t("editorMarkdown")}
@@ -820,11 +820,11 @@ export function ProjectWikiTab({
                                         {draftEditorMode === "markdown" && (
                                             <>
                                                 <span
-                                                    className="hidden h-5 w-px shrink-0 bg-stone-200 sm:block"
+                                                    className="hidden h-5 w-px shrink-0 bg-stone-200 dark:bg-elivis-surface-elevated sm:block"
                                                     aria-hidden
                                                 />
                                                 <div
-                                                    className="inline-flex rounded-lg border border-stone-200 bg-stone-100/80 p-0.5"
+                                                    className="inline-flex rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-100/80 dark:bg-elivis-surface-elevated/80 p-0.5"
                                                     role="tablist"
                                                     aria-label={t("ariaMarkdownSubView")}
                                                 >
@@ -835,8 +835,8 @@ export function ProjectWikiTab({
                                                         onClick={() => setMarkdownSubView("edit")}
                                                         className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                                                             markdownSubView === "edit"
-                                                                ? "bg-white text-stone-900 shadow-sm"
-                                                                : "text-stone-500 hover:text-stone-800"
+                                                                ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                                                : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                                                         }`}
                                                     >
                                                         {t("markdownEditTab")}
@@ -848,8 +848,8 @@ export function ProjectWikiTab({
                                                         onClick={() => setMarkdownSubView("preview")}
                                                         className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                                                             markdownSubView === "preview"
-                                                                ? "bg-white text-stone-900 shadow-sm"
-                                                                : "text-stone-500 hover:text-stone-800"
+                                                                ? "bg-white text-stone-900 shadow-sm dark:bg-elivis-surface dark:text-elivis-ink"
+                                                                : "text-stone-500 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                                                         }`}
                                                     >
                                                         {t("markdownPreviewTab")}
@@ -882,7 +882,7 @@ export function ProjectWikiTab({
                                             type="button"
                                             onClick={cancelEditor}
                                             disabled={isPending}
-                                            className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                            className="rounded-lg border border-stone-200 dark:border-elivis-line px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                         >
                                             {t("cancel")}
                                         </button>
@@ -918,20 +918,20 @@ export function ProjectWikiTab({
                         </div>
                     ) : pageLoading || listLoading ? (
                         <div
-                            className="min-h-0 w-full flex-1 animate-pulse bg-stone-50/80"
+                            className="min-h-0 w-full flex-1 animate-pulse bg-stone-50/80 dark:bg-elivis-surface/80"
                             aria-busy
                             aria-label={t("loading")}
                         />
                     ) : pageDetail ? (
                         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-                            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-stone-200 px-6 py-4 sm:px-8">
+                            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-stone-200 dark:border-elivis-line px-6 py-4 sm:px-8">
                                 <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                                    <h1 className="min-w-0 shrink-0 text-xl font-semibold tracking-tight text-stone-900 sm:text-2xl">
+                                    <h1 className="min-w-0 shrink-0 text-xl font-semibold tracking-tight text-stone-900 dark:text-elivis-ink sm:text-2xl">
                                         {pageDetail.title}
                                     </h1>
-                                    <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-stone-500">
-                                        <span className="hidden h-3 w-px shrink-0 bg-stone-200 sm:block" aria-hidden />
-                                        <span className="font-medium text-stone-500">{t("lastEdited")}</span>
+                                    <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-stone-500 dark:text-elivis-ink-secondary">
+                                        <span className="hidden h-3 w-px shrink-0 bg-stone-200 dark:bg-elivis-surface-elevated sm:block" aria-hidden />
+                                        <span className="font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("lastEdited")}</span>
                                         <UserAvatar
                                             userId={pageDetail.updatedBy.id}
                                             label={pageDetail.updatedBy.name ?? pageDetail.updatedBy.email}
@@ -939,10 +939,10 @@ export function ProjectWikiTab({
                                             sizeClass="h-6 w-6 text-[10px]"
                                             ringClass="ring-0"
                                         />
-                                        <span className="font-medium text-stone-700">
+                                        <span className="font-medium text-stone-700 dark:text-elivis-ink">
                                             {pageDetail.updatedBy.name?.trim() || pageDetail.updatedBy.email}
                                         </span>
-                                        <span className="text-stone-400">
+                                        <span className="text-stone-400 dark:text-elivis-ink-secondary">
                                             {formatWikiDate(pageDetail.updatedAt, locale)}
                                         </span>
                                     </div>
@@ -959,7 +959,7 @@ export function ProjectWikiTab({
                                         <button
                                             type="button"
                                             onClick={openNew}
-                                            className="rounded-lg border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                            className="rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                         >
                                             {t("newPage")}
                                         </button>
@@ -968,7 +968,7 @@ export function ProjectWikiTab({
                                                 type="button"
                                                 onClick={tryDelete}
                                                 disabled={isPending}
-                                                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-40"
+                                                className="rounded-lg border border-red-200 dark:border-red-900/50 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-40"
                                             >
                                                 {t("deletePage")}
                                             </button>
@@ -986,7 +986,7 @@ export function ProjectWikiTab({
                                         className="w-full max-w-none p-0 m-0"
                                     />
                                 ) : (
-                                    <p className="py-8 text-sm text-stone-400">
+                                    <p className="py-8 text-sm text-stone-400 dark:text-elivis-ink-secondary">
                                         {t("emptyPageBody")}
                                     </p>
                                 )}

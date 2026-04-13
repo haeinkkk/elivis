@@ -24,7 +24,7 @@ export default async function ProjectsPage({
 
     if (!res) {
         return (
-            <div className="w-full p-6 text-stone-600">
+            <div className="w-full p-6 text-stone-600 dark:text-elivis-ink-secondary">
                 {t("loadError")}
             </div>
         );

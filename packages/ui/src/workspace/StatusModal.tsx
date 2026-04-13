@@ -111,18 +111,18 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
             }}
         >
             <div
-                className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl"
+                className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-2xl"
                 role="dialog"
                 aria-modal="true"
                 aria-label={dialogAria}
             >
                 {/* 헤더 */}
-                <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
-                    <h2 className="text-sm font-semibold text-stone-800">{title}</h2>
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                    <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{title}</h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="rounded-lg p-1 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                         aria-label={t("statusModal.closeAria")}
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +135,7 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-4">
                     {/* 이름 */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-medium text-stone-600">{t("statusModal.nameLabel")}</label>
+                        <label className="text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("statusModal.nameLabel")}</label>
                         <input
                             ref={inputRef}
                             value={name}
@@ -144,14 +144,14 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                                 setError("");
                             }}
                             placeholder={t("statusModal.namePlaceholder")}
-                            className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
+                            className="rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
                         />
                         {error && <p className="text-xs text-red-500">{error}</p>}
                     </div>
 
                     {/* 색상 */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-medium text-stone-600">{t("priority.colorLabel")}</label>
+                        <label className="text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("priority.colorLabel")}</label>
                         <div className="flex flex-wrap items-center gap-2">
                             {COLOR_KEYS.map((ck) => (
                                 <button
@@ -204,7 +204,7 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                     </div>
 
                     {/* 알림 체크박스 */}
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 bg-stone-50 p-3 transition-colors hover:bg-amber-50/60 has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface p-3 transition-colors hover:bg-amber-50/60 has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50">
                         <input
                             type="checkbox"
                             checked={notifyOnChange}
@@ -212,15 +212,15 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                             className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-amber-500"
                         />
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-stone-700">{t("statusModal.notifyTitle")}</p>
-                            <p className="mt-0.5 text-xs text-stone-400">{t("statusModal.notifyDesc")}</p>
+                            <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("statusModal.notifyTitle")}</p>
+                            <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("statusModal.notifyDesc")}</p>
                         </div>
                     </label>
 
                     {/* 상태 의미 (5택1, 체크박스 UI) */}
-                    <div className="flex flex-col gap-2 rounded-xl border border-stone-200 bg-stone-50/80 p-3">
-                        <p className="text-sm font-medium text-stone-700">{t("statusModal.meaningTitle")}</p>
-                        <p className="text-xs leading-relaxed text-stone-500">{t("statusModal.meaningDesc")}</p>
+                    <div className="flex flex-col gap-2 rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 p-3">
+                        <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("statusModal.meaningTitle")}</p>
+                        <p className="text-xs leading-relaxed text-stone-500 dark:text-elivis-ink-secondary">{t("statusModal.meaningDesc")}</p>
                         <div className="mt-1 flex flex-col gap-2">
                             {SEMANTIC_VALUES.map((value) => (
                                 <label
@@ -233,7 +233,7 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                                         onChange={() => setSemantic(value)}
                                         className="h-4 w-4 shrink-0 cursor-pointer accent-amber-500"
                                     />
-                                    <span className="text-sm text-stone-700">{semanticLabels[value]}</span>
+                                    <span className="text-sm text-stone-700 dark:text-elivis-ink">{semanticLabels[value]}</span>
                                 </label>
                             ))}
                         </div>
@@ -244,7 +244,7 @@ export function StatusModal({ mode, initialValue, onSave, onClose }: StatusModal
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg px-3.5 py-2 text-sm text-stone-500 hover:bg-stone-100"
+                            className="rounded-lg px-3.5 py-2 text-sm text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                         >
                             {t("common.cancel")}
                         </button>
