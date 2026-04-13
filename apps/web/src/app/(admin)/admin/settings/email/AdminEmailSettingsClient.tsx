@@ -110,30 +110,30 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
     }
 
     const inputClass =
-        "mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 shadow-sm outline-none transition-colors focus:border-orange-400 focus:ring-2 focus:ring-orange-200";
+        "mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 shadow-sm outline-none transition-colors focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:shadow-none dark:focus:border-elivis-accent dark:focus:ring-elivis-accent/30";
 
     return (
         <div className="space-y-6">
-            <p className="text-sm text-stone-600">{t("intro")}</p>
+            <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
 
             <form onSubmit={onSave} className="space-y-6">
-                <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-                    <div className="border-b border-stone-100 px-5 py-4">
-                        <h2 className="text-sm font-semibold text-stone-800">{t("sectionServer")}</h2>
+                <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+                    <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                        <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("sectionServer")}</h2>
                     </div>
                     <div className="space-y-4 p-5">
                         <label className="flex cursor-pointer items-center gap-3">
                             <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                                className="h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                                 checked={enabled}
                                 onChange={(e) => setEnabled(e.target.checked)}
                             />
-                            <span className="text-sm font-medium text-stone-800">{t("enabled")}</span>
+                            <span className="text-sm font-medium text-stone-800 dark:text-elivis-ink">{t("enabled")}</span>
                         </label>
 
                         <div>
-                            <label htmlFor="smtp-host" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-host" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("host")}
                             </label>
                             <input
@@ -146,7 +146,7 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                         </div>
 
                         <div>
-                            <label htmlFor="smtp-port" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-port" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("port")}
                             </label>
                             <input
@@ -163,28 +163,28 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                         <label className="flex cursor-pointer items-center gap-3">
                             <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                                className="h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                                 checked={secure}
                                 onChange={(e) => setSecure(e.target.checked)}
                             />
-                            <span className="text-sm text-stone-800">{t("secure")}</span>
+                            <span className="text-sm text-stone-800 dark:text-elivis-ink">{t("secure")}</span>
                         </label>
 
                         <div>
                             <label className="flex cursor-pointer items-center gap-3">
                                 <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                                    className="h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                                     checked={rejectUnauthorized}
                                     onChange={(e) => setRejectUnauthorized(e.target.checked)}
                                 />
-                                <span className="text-sm text-stone-800">{t("rejectUnauthorized")}</span>
+                                <span className="text-sm text-stone-800 dark:text-elivis-ink">{t("rejectUnauthorized")}</span>
                             </label>
-                            <p className="mt-1 pl-7 text-xs text-stone-500">{t("rejectUnauthorizedHint")}</p>
+                            <p className="mt-1 pl-7 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("rejectUnauthorizedHint")}</p>
                         </div>
 
                         <div>
-                            <label htmlFor="smtp-user" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-user" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("authUser")}
                             </label>
                             <input
@@ -197,7 +197,7 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                         </div>
 
                         <div>
-                            <label htmlFor="smtp-pass" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-pass" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("authPass")}
                             </label>
                             <input
@@ -210,29 +210,29 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                                 autoComplete="new-password"
                             />
                             {hasAuthPass && (
-                                <p className="mt-1 text-xs text-stone-500">{t("authPassHint")}</p>
+                                <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("authPassHint")}</p>
                             )}
                         </div>
 
                         <label className="flex cursor-pointer items-center gap-3">
                             <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500"
+                                className="h-4 w-4 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-500"
                                 checked={clearStoredPass}
                                 onChange={(e) => setClearStoredPass(e.target.checked)}
                             />
-                            <span className="text-sm text-stone-800">{t("clearAuthPass")}</span>
+                            <span className="text-sm text-stone-800 dark:text-elivis-ink">{t("clearAuthPass")}</span>
                         </label>
                     </div>
                 </section>
 
-                <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-                    <div className="border-b border-stone-100 px-5 py-4">
-                        <h2 className="text-sm font-semibold text-stone-800">{t("sectionFrom")}</h2>
+                <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+                    <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                        <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("sectionFrom")}</h2>
                     </div>
                     <div className="space-y-4 p-5">
                         <div>
-                            <label htmlFor="smtp-from-email" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-from-email" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("fromEmail")}
                             </label>
                             <input
@@ -245,7 +245,7 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                             />
                         </div>
                         <div>
-                            <label htmlFor="smtp-from-name" className="text-xs font-medium text-stone-500">
+                            <label htmlFor="smtp-from-name" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("fromName")}
                             </label>
                             <input
@@ -260,11 +260,11 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                 </section>
 
                 {saveError && (
-                    <p className="text-sm text-red-600" role="alert">
+                    <p className="text-sm text-red-600 dark:text-red-400" role="alert">
                         {saveError}
                     </p>
                 )}
-                {saveOk && <p className="text-sm text-emerald-700">{t("saveSuccess")}</p>}
+                {saveOk && <p className="text-sm text-emerald-700 dark:text-emerald-400">{t("saveSuccess")}</p>}
 
                 <button
                     type="submit"
@@ -275,13 +275,13 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                 </button>
             </form>
 
-            <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-                <div className="border-b border-stone-100 px-5 py-4">
-                    <h2 className="text-sm font-semibold text-stone-800">{t("sectionTest")}</h2>
+            <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+                <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                    <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("sectionTest")}</h2>
                 </div>
                 <form onSubmit={onTest} className="space-y-4 p-5">
                     <div>
-                        <label htmlFor="smtp-test-to" className="text-xs font-medium text-stone-500">
+                        <label htmlFor="smtp-test-to" className="text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                             {t("testTo")}
                         </label>
                         <input
@@ -294,15 +294,15 @@ export function AdminEmailSettingsClient({ initial }: AdminEmailSettingsClientPr
                         />
                     </div>
                     {testError && (
-                        <p className="text-sm text-red-600" role="alert">
+                        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
                             {testError}
                         </p>
                     )}
-                    {testOk && <p className="text-sm text-emerald-700">{t("testSuccess")}</p>}
+                    {testOk && <p className="text-sm text-emerald-700 dark:text-emerald-400">{t("testSuccess")}</p>}
                     <button
                         type="submit"
                         disabled={testPending || !testTo.trim()}
-                        className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 disabled:opacity-60"
+                        className="inline-flex items-center justify-center rounded-xl border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface px-5 py-2.5 text-sm font-medium text-stone-800 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                     >
                         {testPending ? t("testSending") : t("testSubmit")}
                     </button>

@@ -51,7 +51,7 @@ export function MiniEditor({
         ],
         editorProps: {
             attributes: {
-                class: "prose prose-sm max-w-none min-h-[56px] px-3 py-2.5 focus:outline-none text-stone-700 [&_p]:my-0.5 [&_img]:max-w-full [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline",
+                class: "prose prose-sm max-w-none min-h-[56px] px-3 py-2.5 focus:outline-none text-stone-700 dark:text-elivis-ink [&_p]:my-0.5 [&_img]:max-w-full [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline dark:prose-invert",
             },
         },
         autofocus: autoFocus,
@@ -107,15 +107,15 @@ export function MiniEditor({
     }
 
     return (
-        <div className="rounded-xl border border-stone-200 bg-white transition-colors focus-within:border-stone-400">
-            <div className="flex items-center gap-0.5 border-b border-stone-100 px-2 py-1">
+        <div className="rounded-xl border border-stone-200 bg-white transition-colors focus-within:border-stone-400 dark:border-elivis-line dark:bg-elivis-surface dark:focus-within:border-elivis-line">
+            <div className="flex items-center gap-0.5 border-b border-stone-100 dark:border-elivis-line px-2 py-1">
                 <button
                     type="button"
                     onMouseDown={(e) => {
                         e.preventDefault();
                         editor?.chain().focus().toggleBold().run();
                     }}
-                    className={`rounded px-1.5 py-0.5 text-xs font-bold transition-colors ${editor?.isActive("bold") ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                    className={`rounded px-1.5 py-0.5 text-xs font-bold transition-colors ${editor?.isActive("bold") ? "bg-stone-200 text-stone-900 dark:bg-elivis-surface-elevated dark:text-elivis-ink" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"}`}
                 >
                     B
                 </button>
@@ -125,11 +125,11 @@ export function MiniEditor({
                         e.preventDefault();
                         editor?.chain().focus().toggleItalic().run();
                     }}
-                    className={`rounded px-1.5 py-0.5 text-xs italic transition-colors ${editor?.isActive("italic") ? "bg-stone-200 text-stone-900" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                    className={`rounded px-1.5 py-0.5 text-xs italic transition-colors ${editor?.isActive("italic") ? "bg-stone-200 text-stone-900 dark:bg-elivis-surface-elevated dark:text-elivis-ink" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"}`}
                 >
                     I
                 </button>
-                <div className="mx-1 h-3 w-px bg-stone-200" />
+                <div className="mx-1 h-3 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
                 <button
                     type="button"
                     onMouseDown={(e) => {
@@ -138,7 +138,7 @@ export function MiniEditor({
                         setShowImageInput(false);
                     }}
                     title={t("linkTitle")}
-                    className={`rounded px-1.5 py-0.5 text-xs transition-colors ${showLinkInput ? "bg-stone-200 text-stone-700" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                    className={`rounded px-1.5 py-0.5 text-xs transition-colors ${showLinkInput ? "bg-stone-200 text-stone-700 dark:bg-elivis-surface-elevated dark:text-elivis-ink" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"}`}
                 >
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path
@@ -156,7 +156,7 @@ export function MiniEditor({
                         setShowLinkInput(false);
                     }}
                     title={t("imageUrlTitle")}
-                    className={`rounded px-1.5 py-0.5 text-xs transition-colors ${showImageInput ? "bg-stone-200 text-stone-700" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700"}`}
+                    className={`rounded px-1.5 py-0.5 text-xs transition-colors ${showImageInput ? "bg-stone-200 text-stone-700 dark:bg-elivis-surface-elevated dark:text-elivis-ink" : "text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"}`}
                 >
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path
@@ -167,13 +167,13 @@ export function MiniEditor({
                     </svg>
                 </button>
                 {uploading && (
-                    <div className="ml-1 h-3 w-3 animate-spin rounded-full border border-stone-300 border-t-stone-600" />
+                    <div className="ml-1 h-3 w-3 animate-spin rounded-full border border-stone-300 border-t-stone-600 dark:border-elivis-line dark:border-t-elivis-ink-secondary" />
                 )}
-                <span className="ml-auto text-[10px] text-stone-300">{t("pasteHint")}</span>
+                <span className="ml-auto text-[10px] text-stone-300 dark:text-elivis-ink-muted">{t("pasteHint")}</span>
             </div>
 
             {showLinkInput && (
-                <div className="flex items-center gap-1.5 border-b border-stone-100 px-3 py-1.5">
+                <div className="flex items-center gap-1.5 border-b border-stone-100 dark:border-elivis-line px-3 py-1.5">
                     <input
                         autoFocus
                         type="url"
@@ -187,7 +187,7 @@ export function MiniEditor({
                             if (e.key === "Escape") setShowLinkInput(false);
                         }}
                         placeholder={t("linkPlaceholder")}
-                        className="flex-1 rounded border border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-700 outline-none focus:border-stone-400"
+                        className="flex-1 rounded border border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-700 outline-none focus:border-stone-400 dark:border-elivis-line dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:focus:border-elivis-line"
                     />
                     <button
                         type="button"
@@ -199,7 +199,7 @@ export function MiniEditor({
                     <button
                         type="button"
                         onClick={() => setShowLinkInput(false)}
-                        className="text-xs text-stone-400 hover:text-stone-600"
+                        className="text-xs text-stone-400 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                     >
                         {tCommon("cancel")}
                     </button>
@@ -207,7 +207,7 @@ export function MiniEditor({
             )}
 
             {showImageInput && (
-                <div className="flex items-center gap-1.5 border-b border-stone-100 px-3 py-1.5">
+                <div className="flex items-center gap-1.5 border-b border-stone-100 dark:border-elivis-line px-3 py-1.5">
                     <input
                         autoFocus
                         type="url"
@@ -221,7 +221,7 @@ export function MiniEditor({
                             if (e.key === "Escape") setShowImageInput(false);
                         }}
                         placeholder={t("imageUrlPlaceholder")}
-                        className="flex-1 rounded border border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-700 outline-none focus:border-stone-400"
+                        className="flex-1 rounded border border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-700 outline-none focus:border-stone-400 dark:border-elivis-line dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:focus:border-elivis-line"
                     />
                     <button
                         type="button"
@@ -233,7 +233,7 @@ export function MiniEditor({
                     <button
                         type="button"
                         onClick={() => setShowImageInput(false)}
-                        className="text-xs text-stone-400 hover:text-stone-600"
+                        className="text-xs text-stone-400 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:text-elivis-ink"
                     >
                         {tCommon("cancel")}
                     </button>
@@ -257,12 +257,12 @@ export function MiniEditor({
                 />
             </div>
 
-            <div className="flex items-center justify-end gap-1.5 border-t border-stone-100 px-3 py-2">
+            <div className="flex items-center justify-end gap-1.5 border-t border-stone-100 dark:border-elivis-line px-3 py-2">
                 {onCancel && (
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="rounded-lg px-3 py-1 text-xs font-medium text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="rounded-lg px-3 py-1 text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                     >
                         {tCommon("cancel")}
                     </button>

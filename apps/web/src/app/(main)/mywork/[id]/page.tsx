@@ -29,20 +29,20 @@ export default async function WorkspaceDetailPage({ params, searchParams }: Page
         if (result.reason === "unauthorized") {
             return (
                 <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
-                    <p className="text-lg font-semibold text-stone-700">{t("loginRequired")}</p>
+                    <p className="text-lg font-semibold text-stone-700 dark:text-elivis-ink">{t("loginRequired")}</p>
                 </div>
             );
         }
         if (result.reason === "forbidden") {
             return (
                 <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
-                    <p className="text-lg font-semibold text-stone-700">{t("forbidden")}</p>
+                    <p className="text-lg font-semibold text-stone-700 dark:text-elivis-ink">{t("forbidden")}</p>
                 </div>
             );
         }
         return (
             <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
-                <p className="text-lg font-semibold text-stone-700">{t("notFound")}</p>
+                <p className="text-lg font-semibold text-stone-700 dark:text-elivis-ink">{t("notFound")}</p>
             </div>
         );
     }

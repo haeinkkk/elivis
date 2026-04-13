@@ -11,7 +11,7 @@ export function UserAvatar({
     label,
     avatarUrl,
     sizeClass,
-    ringClass = "ring-2 ring-white",
+    ringClass = "ring-2 ring-white dark:ring-elivis-bg",
 }: {
     userId: string;
     label: string;

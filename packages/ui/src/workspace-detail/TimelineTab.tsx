@@ -28,7 +28,7 @@ function taskIsSemanticDone(
 function AllClearIllustration() {
     return (
         <span
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 dark:bg-elivis-surface-elevated text-stone-400 dark:text-elivis-ink-secondary"
             aria-hidden
         >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -100,12 +100,48 @@ export function TimelineTab({
     const noDate    = [...topTasks.filter((t) => !t.dueDate)].sort((a, b) => priorityScore(b) - priorityScore(a));
 
     const groups = [
-        { key: "overdue",  label: t("timeline.overdue"),   badge: "bg-red-100 text-red-700",       dot: "bg-red-500",    items: overdue },
-        { key: "today",    label: t("timeline.today"),     badge: "bg-orange-100 text-orange-700", dot: "bg-orange-500", items: dueToday },
-        { key: "soon",     label: t("timeline.soon"),      badge: "bg-yellow-100 text-yellow-700", dot: "bg-yellow-500", items: dueSoon },
-        { key: "week",     label: t("timeline.thisWeek"),  badge: "bg-blue-100 text-blue-700",     dot: "bg-blue-400",   items: thisWeek },
-        { key: "later",    label: t("timeline.later"),     badge: "bg-stone-100 text-stone-600",   dot: "bg-stone-400",  items: later },
-        { key: "nodate",   label: t("timeline.noDate"),    badge: "bg-stone-100 text-stone-500",   dot: "bg-stone-300",  items: noDate },
+        {
+            key: "overdue",
+            label: t("timeline.overdue"),
+            badge: "bg-red-100 text-red-700 dark:bg-red-950/45 dark:text-red-300",
+            dot: "bg-red-500 dark:bg-red-400",
+            items: overdue,
+        },
+        {
+            key: "today",
+            label: t("timeline.today"),
+            badge: "bg-orange-100 text-orange-700 dark:bg-elivis-accent-strong/35 dark:text-elivis-accent-hover",
+            dot: "bg-orange-500 dark:bg-elivis-accent",
+            items: dueToday,
+        },
+        {
+            key: "soon",
+            label: t("timeline.soon"),
+            badge: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-200",
+            dot: "bg-yellow-500 dark:bg-yellow-400",
+            items: dueSoon,
+        },
+        {
+            key: "week",
+            label: t("timeline.thisWeek"),
+            badge: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
+            dot: "bg-blue-400 dark:bg-blue-400",
+            items: thisWeek,
+        },
+        {
+            key: "later",
+            label: t("timeline.later"),
+            badge: "bg-stone-100 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary",
+            dot: "bg-stone-400 dark:bg-elivis-ink-muted",
+            items: later,
+        },
+        {
+            key: "nodate",
+            label: t("timeline.noDate"),
+            badge: "bg-stone-100 text-stone-500 dark:bg-elivis-surface-elevated dark:text-elivis-ink-muted",
+            dot: "bg-stone-300 dark:bg-elivis-ink-secondary",
+            items: noDate,
+        },
     ].filter((g) => g.items.length > 0);
 
     const hasCompletedList = completedTopTasks.length > 0;
@@ -118,10 +154,10 @@ export function TimelineTab({
                         <div className="flex justify-center" aria-hidden>
                             <AllClearIllustration />
                         </div>
-                        <p className="mt-3 text-center text-sm font-semibold text-stone-700">
+                        <p className="mt-3 text-center text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                             {t("timeline.allDone")}
                         </p>
-                        <p className="mt-1 text-center text-xs text-stone-400">{t("timeline.allDoneDesc")}</p>
+                        <p className="mt-1 text-center text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("timeline.allDoneDesc")}</p>
                     </div>
                 </div>
             </div>
@@ -138,11 +174,11 @@ export function TimelineTab({
 
     function dueDateColor(t: ApiWorkspaceTask) {
         const d = diffDays(t);
-        if (d === null) return "text-stone-400";
-        if (d < 0) return "text-red-500 font-semibold";
-        if (d === 0) return "text-orange-500 font-semibold";
-        if (d <= 3) return "text-yellow-600";
-        return "text-stone-500";
+        if (d === null) return "text-stone-400 dark:text-elivis-ink-secondary";
+        if (d < 0) return "font-semibold text-red-500 dark:text-red-400";
+        if (d === 0) return "font-semibold text-orange-500 dark:text-elivis-accent-hover";
+        if (d <= 3) return "text-yellow-600 dark:text-yellow-300";
+        return "text-stone-500 dark:text-elivis-ink-secondary";
     }
 
     return (
@@ -156,13 +192,15 @@ export function TimelineTab({
                                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${group.badge}`}>
                                     {group.label}
                                 </span>
-                                <span className="mt-1 text-[10px] text-stone-400">{t("timeline.items", { count: group.items.length })}</span>
+                                <span className="mt-1 text-[10px] text-stone-400 dark:text-elivis-ink-secondary">{t("timeline.items", { count: group.items.length })}</span>
                             </div>
                             {/* 타임라인 선 */}
                             <div className="relative flex w-8 shrink-0 flex-col items-center">
-                                <div className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white ring-2 ring-offset-1 ${group.dot}`} />
+                                <div
+                                    className={`mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-stone-100 ring-2 ring-stone-200/90 ring-offset-1 ring-offset-stone-100 dark:border-elivis-bg dark:ring-elivis-line dark:ring-offset-elivis-bg ${group.dot}`}
+                                />
                                 {(gi < groups.length - 1 || (showCompleted && hasCompletedList)) && (
-                                    <div className="mt-1 w-0.5 flex-1 bg-stone-200" />
+                                    <div className="mt-1 w-0.5 flex-1 bg-stone-200 dark:bg-elivis-surface-elevated" />
                                 )}
                             </div>
                             {/* 업무 카드 */}
@@ -192,15 +230,15 @@ export function TimelineTab({
                     {showCompleted && hasCompletedList && (
                         <div className="flex min-h-0">
                             <div className="flex w-36 shrink-0 flex-col items-end pr-5 pt-5">
-                                <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+                                <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800 dark:bg-emerald-950/45 dark:text-green-300">
                                     {tm("completedSectionTitle")}
                                 </span>
-                                <span className="mt-1 text-[10px] text-stone-400">
+                                <span className="mt-1 text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                                     {t("timeline.items", { count: completedTopTasks.length })}
                                 </span>
                             </div>
                             <div className="relative flex w-8 shrink-0 flex-col items-center">
-                                <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-white bg-green-500 ring-2 ring-green-200 ring-offset-1" />
+                                <div className="mt-[22px] h-3 w-3 shrink-0 rounded-full border-2 border-stone-100 bg-green-500 ring-2 ring-green-200 ring-offset-1 ring-offset-stone-100 dark:border-elivis-bg dark:bg-emerald-500 dark:ring-emerald-900/60 dark:ring-offset-elivis-bg" />
                             </div>
                             <div className="flex-1 space-y-2 pb-6 pl-4 pr-5 pt-4">
                                 {completedTopTasks.map((task) => {

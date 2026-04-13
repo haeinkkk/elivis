@@ -32,11 +32,15 @@ function levelLabel(level: unknown): string {
 
 function levelBadgeClass(label: string): string {
     const l = label.toLowerCase();
-    if (l === "fatal" || l === "error") return "bg-red-50 text-red-800 ring-red-200";
-    if (l === "warn") return "bg-amber-50 text-amber-900 ring-amber-200";
-    if (l === "info") return "bg-sky-50 text-sky-900 ring-sky-200";
-    if (l === "debug" || l === "trace") return "bg-stone-100 text-stone-700 ring-stone-200";
-    return "bg-stone-100 text-stone-700 ring-stone-200";
+    if (l === "fatal" || l === "error")
+        return "bg-red-50 text-red-800 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900/60";
+    if (l === "warn")
+        return "bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-950/35 dark:text-amber-100 dark:ring-amber-800/50";
+    if (l === "info")
+        return "bg-sky-50 text-sky-900 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-100 dark:ring-sky-800/50";
+    if (l === "debug" || l === "trace")
+        return "bg-stone-100 text-stone-700 ring-stone-200 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:ring-elivis-line";
+    return "bg-stone-100 text-stone-700 ring-stone-200 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:ring-elivis-line";
 }
 
 function formatTime(entry: Record<string, unknown>): string {
@@ -68,19 +72,19 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
 
     return (
         <div className="space-y-6">
-            <p className="text-sm text-stone-600">{t("intro")}</p>
+            <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
 
             <form
                 method="get"
                 action="/admin/system-logs"
-                className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-end"
+                className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-end"
             >
-                <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs font-medium text-stone-500">
+                <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                     {t("fileLabel")}
                     <select
                         name="file"
                         defaultValue={query.file}
-                        className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink"
                     >
                         {files.map((f) => (
                             <option key={f.name} value={f.name}>
@@ -89,7 +93,7 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                         ))}
                     </select>
                 </label>
-                <label className="flex w-28 flex-col gap-1 text-xs font-medium text-stone-500">
+                <label className="flex w-28 flex-col gap-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                     {t("limitLabel")}
                     <input
                         type="number"
@@ -97,15 +101,15 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                         min={1}
                         max={500}
                         defaultValue={query.limit}
-                        className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink"
                     />
                 </label>
-                <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium text-stone-500">
+                <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                     {t("levelLabel")}
                     <select
                         name="levelMin"
                         defaultValue={query.levelMin}
-                        className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink"
                     >
                         <option value="">{t("levelAll")}</option>
                         <option value="trace">{t("levelTrace")}</option>
@@ -116,26 +120,26 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                         <option value="fatal">{t("levelFatal")}</option>
                     </select>
                 </label>
-                <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-xs font-medium text-stone-500">
+                <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                     {t("searchLabel")}
                     <input
                         type="search"
                         name="search"
                         defaultValue={query.search}
                         placeholder={t("searchPlaceholder")}
-                        className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink"
                     />
                 </label>
                 <div className="flex gap-2">
                     <button
                         type="submit"
-                        className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
+                        className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 dark:bg-elivis-accent-strong dark:hover:bg-elivis-accent-hover"
                     >
                         {t("apply")}
                     </button>
                     <button
                         type="button"
-                        className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50"
+                        className="rounded-xl border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-800 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         onClick={() => router.refresh()}
                     >
                         {t("refresh")}
@@ -143,10 +147,10 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                 </div>
             </form>
 
-            <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
-                        <thead className="border-b border-stone-100 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                        <thead className="border-b border-stone-100 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-elivis-ink-secondary">
                             <tr>
                                 <th className="px-4 py-3">{t("colTime")}</th>
                                 <th className="px-4 py-3">{t("colLevel")}</th>
@@ -156,10 +160,10 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                                 <th className="px-4 py-3 w-28" />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-stone-100">
+                        <tbody className="divide-y divide-stone-100 dark:divide-elivis-line">
                             {rows.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
+                                    <td colSpan={6} className="px-4 py-8 text-center text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("noEntries")}
                                     </td>
                                 </tr>
@@ -169,8 +173,8 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                                     const isOpen = openRow === i;
                                     return (
                                         <Fragment key={i}>
-                                            <tr className="align-top hover:bg-stone-50/80">
-                                                <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-stone-600">
+                                            <tr className="align-top hover:bg-stone-50/80 dark:hover:bg-elivis-surface-elevated/60">
+                                                <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-stone-600 dark:text-elivis-ink-secondary">
                                                     {formatTime(e)}
                                                 </td>
                                                 <td className="px-4 py-2">
@@ -180,20 +184,20 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                                                         {lvl}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-2 text-stone-700">
+                                                <td className="px-4 py-2 text-stone-700 dark:text-elivis-ink">
                                                     {typeof e.service === "string" ? e.service : "—"}
                                                 </td>
-                                                <td className="max-w-[140px] truncate px-4 py-2 text-stone-700">
+                                                <td className="max-w-[140px] truncate px-4 py-2 text-stone-700 dark:text-elivis-ink">
                                                     {typeof e.event === "string" ? e.event : "—"}
                                                 </td>
-                                                <td className="max-w-md truncate px-4 py-2 text-stone-800">
+                                                <td className="max-w-md truncate px-4 py-2 text-stone-800 dark:text-elivis-ink">
                                                     {formatMsg(e)}
                                                 </td>
                                                 <td className="px-4 py-2 text-right">
                                                     {e.raw ? (
                                                         <button
                                                             type="button"
-                                                            className="text-xs font-medium text-orange-700 hover:underline"
+                                                            className="text-xs font-medium text-orange-700 hover:underline dark:text-elivis-accent-hover"
                                                             onClick={() => setOpenRow(isOpen ? null : i)}
                                                         >
                                                             {isOpen ? t("collapseRaw") : t("expandRaw")}
@@ -202,9 +206,9 @@ export function AdminSystemLogsClient({ files, entries, query }: AdminSystemLogs
                                                 </td>
                                             </tr>
                                             {isOpen && e.raw ? (
-                                                <tr className="bg-stone-50/90">
+                                                <tr className="bg-stone-50/90 dark:bg-elivis-surface-elevated/80">
                                                     <td colSpan={6} className="px-4 py-3">
-                                                        <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono text-xs text-stone-700">
+                                                        <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono text-xs text-stone-700 dark:text-elivis-ink">
                                                             {e.raw}
                                                         </pre>
                                                     </td>

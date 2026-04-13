@@ -25,11 +25,11 @@ function NotificationDetailView({
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-stone-100 px-4 py-3">
+            <div className="flex items-center gap-2 border-b border-stone-100 dark:border-elivis-line px-4 py-3">
                 <button
                     type="button"
                     onClick={onBack}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                     aria-label={t("ariaBack")}
                 >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,13 +41,13 @@ function NotificationDetailView({
                         />
                     </svg>
                 </button>
-                <span className="flex-1 text-sm font-semibold text-stone-800">
+                <span className="flex-1 text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                     {t("detailTitle")}
                 </span>
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                     aria-label={t("ariaClose")}
                 >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,15 +61,15 @@ function NotificationDetailView({
                 </button>
             </div>
 
-            <div className="flex items-start gap-3 border-b border-stone-50 px-5 py-4">
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-600">
+            <div className="flex items-start gap-3 border-b border-stone-50 dark:border-elivis-line px-5 py-4">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-100 dark:bg-elivis-surface-elevated text-stone-600 dark:text-elivis-ink-secondary">
                     <NotificationTypeIcon type={notification.type} size="lg" />
                 </span>
                 <div className="min-w-0 flex-1">
-                    <span className="inline-block rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500">
+                    <span className="inline-block rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-[11px] font-medium text-stone-500 dark:text-elivis-ink-secondary">
                         {typeLabel(notification.type)}
                     </span>
-                    <h2 className="mt-1 text-sm font-semibold leading-snug text-stone-800">
+                    <h2 className="mt-1 text-sm font-semibold leading-snug text-stone-800 dark:text-elivis-ink">
                         {notification.title}
                     </h2>
                 </div>
@@ -77,31 +77,31 @@ function NotificationDetailView({
 
             <div className="flex-1 overflow-y-auto px-5 py-5">
                 {notification.message ? (
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-stone-600">
+                    <p className="whitespace-pre-line text-sm leading-relaxed text-stone-600 dark:text-elivis-ink-secondary">
                         {notification.message}
                     </p>
                 ) : (
-                    <p className="text-sm text-stone-400">{t("noBody")}</p>
+                    <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("noBody")}</p>
                 )}
-                <p className="mt-4 text-xs text-stone-400">
+                <p className="mt-4 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                     {formatDateTime(notification.createdAt)}
                 </p>
             </div>
 
-            <div className="flex gap-2 border-t border-stone-100 px-4 py-3">
+            <div className="flex gap-2 border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                 {navUrl ? (
                     <>
                         <button
                             type="button"
                             onClick={onBack}
-                            className="flex-1 rounded-lg border border-stone-200 py-2.5 text-sm font-medium text-stone-600 hover:bg-stone-50"
+                            className="flex-1 rounded-lg border border-stone-200 dark:border-elivis-line py-2.5 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                             {t("back")}
                         </button>
                         <button
                             type="button"
                             onClick={() => onNavigate(navUrl)}
-                            className="flex-1 rounded-lg bg-stone-800 py-2.5 text-sm font-medium text-white hover:bg-stone-700"
+                            className="flex-1 rounded-lg bg-stone-800 py-2.5 text-sm font-medium text-white hover:bg-stone-700 dark:bg-elivis-accent dark:hover:bg-elivis-accent-hover"
                         >
                             {t("goShortcut")}
                         </button>
@@ -110,7 +110,7 @@ function NotificationDetailView({
                     <button
                         type="button"
                         onClick={onBack}
-                        className="w-full rounded-lg bg-stone-100 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-200"
+                        className="w-full rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated py-2.5 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-200"
                     >
                         {t("back")}
                     </button>
@@ -143,10 +143,10 @@ function NotificationListView({
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                 <div className="flex items-center gap-2">
                     <svg
-                        className="h-5 w-5 text-stone-500"
+                        className="h-5 w-5 text-stone-500 dark:text-elivis-ink-secondary"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
@@ -158,7 +158,7 @@ function NotificationListView({
                             d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                         />
                     </svg>
-                    <span className="text-base font-semibold text-stone-800">{t("listTitle")}</span>
+                    <span className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("listTitle")}</span>
                     {hasUnread && (
                         <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">
                             {notifications.filter((n) => !n.isRead).length}
@@ -170,7 +170,7 @@ function NotificationListView({
                         <button
                             type="button"
                             onClick={onMarkAllAsRead}
-                            className="rounded-lg px-2 py-1 text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                            className="rounded-lg px-2 py-1 text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
                         >
                             {t("markAllRead")}
                         </button>
@@ -178,7 +178,7 @@ function NotificationListView({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                         aria-label={t("ariaClose")}
                     >
                         <svg
@@ -198,11 +198,11 @@ function NotificationListView({
                 </div>
             </div>
 
-            <ul className="flex-1 overflow-y-auto divide-y divide-stone-50">
+            <ul className="flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-elivis-line">
                 {notifications.length === 0 ? (
                     <li className="flex flex-col items-center justify-center gap-3 px-4 py-16 text-center">
                         <svg
-                            className="h-10 w-10 text-stone-200"
+                            className="h-10 w-10 text-stone-200 dark:text-elivis-surface-elevated"
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.2}
@@ -214,7 +214,7 @@ function NotificationListView({
                                 d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                             />
                         </svg>
-                        <p className="text-sm text-stone-400">{t("emptyInbox")}</p>
+                        <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("emptyInbox")}</p>
                     </li>
                 ) : (
                     notifications.map((n) => {
@@ -228,15 +228,15 @@ function NotificationListView({
                         return (
                             <li
                                 key={n.id}
-                                className={`flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-stone-50 ${
-                                    !n.isRead ? "bg-amber-50/50" : ""
+                                className={`flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated/60 ${
+                                    !n.isRead ? "bg-amber-50/50 dark:bg-amber-950/25" : ""
                                 }`}
                             >
                                 <span
                                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
                                         !n.isRead
-                                            ? "bg-amber-100 text-amber-600"
-                                            : "bg-stone-100 text-stone-400"
+                                            ? "bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+                                            : "bg-stone-100 text-stone-400 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
                                     }`}
                                 >
                                     <NotificationTypeIcon type={n.type} />
@@ -247,21 +247,21 @@ function NotificationListView({
                                         onClick={() => handleItemClick(n)}
                                         className={`w-full text-left text-sm leading-snug hover:underline ${
                                             !n.isRead
-                                                ? "font-medium text-stone-800"
-                                                : "text-stone-600"
+                                                ? "font-medium text-stone-800 dark:text-elivis-ink"
+                                                : "text-stone-600 dark:text-elivis-ink-secondary"
                                         }`}
                                     >
                                         {n.title}
                                     </button>
                                     {shortMsg && (
-                                        <p className="mt-0.5 text-xs text-stone-400">{shortMsg}</p>
+                                        <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{shortMsg}</p>
                                     )}
                                     <div className="mt-1.5 flex items-center gap-2">
-                                        <span className="text-xs text-stone-400">
+                                        <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                             {timeAgo(n.createdAt)}
                                         </span>
                                         {navUrl && (
-                                            <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-medium text-stone-500">
+                                            <span className="rounded bg-stone-100 dark:bg-elivis-surface-elevated px-1.5 py-0.5 text-[11px] font-medium text-stone-500 dark:text-elivis-ink-secondary">
                                                 {t("goShortcut")}
                                             </span>
                                         )}
@@ -315,7 +315,7 @@ export function NotificationPanel() {
     return (
         <>
             <div
-                className={`fixed inset-0 z-[60] bg-stone-900/30 backdrop-blur-[1px] transition-opacity duration-300 ${
+                className={`fixed inset-0 z-[60] bg-black/20 backdrop-blur-[1px] transition-opacity duration-300 dark:bg-black/50 ${
                     visible ? "opacity-100" : "opacity-0"
                 }`}
                 aria-hidden
@@ -323,7 +323,7 @@ export function NotificationPanel() {
             />
 
             <div
-                className={`fixed right-0 top-0 z-[70] flex h-full w-full max-w-sm flex-col border-l border-stone-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
+                className={`fixed right-0 top-0 z-[70] flex h-full w-full max-w-sm flex-col border-l border-stone-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out dark:border-elivis-line dark:bg-elivis-surface ${
                     visible ? "translate-x-0" : "translate-x-full"
                 }`}
                 role="dialog"
@@ -359,7 +359,7 @@ export function NotificationBellButton({ className }: { className?: string }) {
         <button
             type="button"
             onClick={openPanel}
-            className={`relative flex items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 focus:outline-none ${className ?? "h-9 w-9"}`}
+            className={`relative flex items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 focus:outline-none dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink ${className ?? "h-9 w-9"}`}
             aria-label={t("bellAria")}
         >
             <svg

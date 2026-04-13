@@ -73,7 +73,7 @@ export function SummaryTimelineTaskCard({
             onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") onSelectTask?.(task);
             }}
-            className={`group/tl flex items-center gap-3 rounded-xl border border-stone-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${onSelectTask ? "cursor-pointer hover:border-stone-300" : ""}`}
+            className={`group/tl flex items-center gap-3 rounded-xl border border-stone-100 bg-stone-50 px-4 py-3 shadow-sm transition-shadow hover:border-stone-300 hover:shadow-md dark:border-elivis-line dark:bg-elivis-surface dark:shadow-none dark:hover:border-elivis-line dark:hover:shadow-none ${onSelectTask ? "cursor-pointer" : ""}`}
         >
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor.dot}`} style={statusColor.dotStyle} />
             <div className="min-w-0 flex-1">
@@ -95,7 +95,7 @@ export function SummaryTimelineTaskCard({
                             onClick={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}
                             disabled={isPending}
-                            className="w-full truncate rounded border border-stone-200 bg-white px-1 py-0 text-sm font-medium text-stone-800 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
+                            className="w-full truncate rounded border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-1 py-0 text-sm font-medium text-stone-800 dark:text-elivis-ink outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60"
                         />
                     ) : (
                         <>
@@ -107,12 +107,12 @@ export function SummaryTimelineTaskCard({
                                         onSelectTask(task);
                                     }}
                                     title={task.title}
-                                    className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 hover:underline"
+                                    className="min-w-0 flex-1 truncate text-left text-sm font-medium text-stone-800 dark:text-elivis-ink hover:underline"
                                 >
                                     {formatTaskTitleForList(task.title)}
                                 </button>
                             ) : (
-                                <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">{formatTaskTitleForList(task.title)}</span>
+                                <span title={task.title} className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800 dark:text-elivis-ink">{formatTaskTitleForList(task.title)}</span>
                             )}
                             <button
                                 type="button"
@@ -121,7 +121,7 @@ export function SummaryTimelineTaskCard({
                                     setDraft(task.title);
                                     setEditingTitle(true);
                                 }}
-                                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover/tl:opacity-100"
+                                className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover/tl:opacity-100 dark:text-elivis-ink-muted dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink-secondary"
                                 title={t("taskRow.editTitle")}
                                 aria-label={t("taskRow.editTitle")}
                             >
@@ -141,10 +141,10 @@ export function SummaryTimelineTaskCard({
                         </span>
                     )}
                     {task.assignee && (
-                        <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                        <span className="flex items-center gap-1 text-[11px] text-stone-400 dark:text-elivis-ink-secondary">
                             {task.assignee.avatarUrl
                                 ? <img src={task.assignee.avatarUrl} className="h-3.5 w-3.5 rounded-full" alt="" />
-                                : <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 text-[9px] font-semibold">{(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}</span>
+                                : <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-[9px] font-semibold">{(task.assignee.name ?? task.assignee.email)[0].toUpperCase()}</span>
                             }
                             {task.assignee.name ?? task.assignee.email}
                         </span>

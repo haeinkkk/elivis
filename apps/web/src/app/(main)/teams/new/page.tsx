@@ -90,7 +90,7 @@ export default function NewTeamPage() {
             <div className="w-full max-w-full">
                 <Link
                     href="/teams"
-                    className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-700"
+                    className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:text-stone-700"
                 >
                     <svg
                         className="h-4 w-4"
@@ -104,13 +104,13 @@ export default function NewTeamPage() {
                     {t("backToList")}
                 </Link>
                 <div className="mt-4">
-                    <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">{t("title")}</h2>
-                    <p className="mt-2 text-stone-600">{t("subtitle")}</p>
+                    <h2 className="text-2xl font-semibold text-stone-800 dark:text-elivis-ink sm:text-3xl">{t("title")}</h2>
+                    <p className="mt-2 text-stone-600 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-6 max-w-2xl space-y-6 sm:mt-8">
                     {submitError ? (
-                        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                        <p className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-800">
                             {submitError}
                         </p>
                     ) : null}
@@ -118,7 +118,7 @@ export default function NewTeamPage() {
                     <div>
                         <label
                             htmlFor="team-name"
-                            className="block text-sm font-medium text-stone-700"
+                            className="block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("nameLabel")}
                         </label>
@@ -129,14 +129,14 @@ export default function NewTeamPage() {
                             onChange={(e) => setName(e.target.value)}
                             placeholder={t("namePlaceholder")}
                             required
-                            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            className="mt-1.5 w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2.5 text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
                     </div>
 
                     <div>
                         <label
                             htmlFor="team-short-desc"
-                            className="block text-sm font-medium text-stone-700"
+                            className="block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("shortLabel")}
                         </label>
@@ -146,14 +146,14 @@ export default function NewTeamPage() {
                             value={shortDescription}
                             onChange={(e) => setShortDescription(e.target.value)}
                             placeholder={t("shortPlaceholder")}
-                            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            className="mt-1.5 w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2.5 text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
                     </div>
 
                     <div>
                         <label
                             htmlFor="team-intro"
-                            className="block text-sm font-medium text-stone-700"
+                            className="block text-sm font-medium text-stone-700 dark:text-elivis-ink"
                         >
                             {t("introLabel")}
                         </label>
@@ -163,24 +163,24 @@ export default function NewTeamPage() {
                             onChange={(e) => setIntroMessage(e.target.value)}
                             placeholder={t("introPlaceholder")}
                             rows={5}
-                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 font-mono text-sm text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2.5 font-mono text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
                         />
-                        <p className="mt-1 text-xs text-stone-400">
+                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                             {t("introNote")}
                         </p>
                     </div>
 
                     <div>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 px-4 py-3">
                             <input
                                 type="checkbox"
-                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-stone-800 focus:ring-stone-400"
+                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 dark:border-elivis-line text-stone-800 dark:text-elivis-ink focus:ring-stone-400"
                                 checked={hiddenFromUsers}
                                 onChange={(e) => setHiddenFromUsers(e.target.checked)}
                             />
-                            <span className="text-sm text-stone-800">
+                            <span className="text-sm text-stone-800 dark:text-elivis-ink">
                                 <span className="font-medium">{t("hideTeamTitle")}</span>
-                                <span className="mt-0.5 block text-xs font-normal text-stone-500">
+                                <span className="mt-0.5 block text-xs font-normal text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("hideTeamNote")}
                                 </span>
                             </span>
@@ -188,27 +188,27 @@ export default function NewTeamPage() {
                     </div>
 
                     <div>
-                        <p className="text-sm font-medium text-stone-700">{t("addMembersTitle")}</p>
-                        <p className="mt-0.5 text-xs text-stone-400">{t("addMembersNote")}</p>
+                        <p className="text-sm font-medium text-stone-700 dark:text-elivis-ink">{t("addMembersTitle")}</p>
+                        <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("addMembersNote")}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                             {members.map((p, i) => (
                                 <span
                                     key={p.id}
-                                    className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50/80 py-1.5 pl-1.5 pr-2"
+                                    className="inline-flex items-center gap-2 rounded-full border border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 py-1.5 pl-1.5 pr-2"
                                 >
-                                    <span className="flex h-7 w-7 shrink-0 rounded-full bg-stone-300" />
+                                    <span className="flex h-7 w-7 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                     <span className="flex flex-col items-start">
-                                        <span className="text-sm font-medium text-stone-800 leading-tight">
+                                        <span className="text-sm font-medium text-stone-800 dark:text-elivis-ink leading-tight">
                                             {p.name}
                                         </span>
-                                        <span className="text-xs text-stone-500 leading-tight">
+                                        <span className="text-xs text-stone-500 dark:text-elivis-ink-secondary leading-tight">
                                             {p.email}
                                         </span>
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => removeMember(i)}
-                                        className="shrink-0 rounded-full p-0.5 text-stone-400 hover:bg-stone-200 hover:text-stone-600"
+                                        className="shrink-0 rounded-full p-0.5 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-200 hover:text-stone-600"
                                         aria-label={t("memberRemoveAria")}
                                     >
                                         <svg
@@ -231,7 +231,7 @@ export default function NewTeamPage() {
                         <button
                             type="button"
                             onClick={() => setMemberModalOpen(true)}
-                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
+                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                             <svg
                                 className="h-4 w-4"
@@ -261,14 +261,14 @@ export default function NewTeamPage() {
                                     setSearchResults([]);
                                 }}
                             />
-                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                                <div className="border-b border-stone-100 px-4 py-3">
-                                    <h3 className="text-base font-semibold text-stone-800">
+                            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl">
+                                <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-3">
+                                    <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                                         {t("openMemberModal")}
                                     </h3>
-                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
+                                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-3 py-2">
                                         <svg
-                                            className="h-4 w-4 shrink-0 text-stone-400"
+                                            className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={1.5}
@@ -285,22 +285,22 @@ export default function NewTeamPage() {
                                             value={userSearchQuery}
                                             onChange={(e) => setUserSearchQuery(e.target.value)}
                                             placeholder={t("userSearchPlaceholder")}
-                                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
+                                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:outline-none"
                                             autoFocus
                                         />
                                     </div>
                                 </div>
                                 <ul className="max-h-64 overflow-y-auto py-2">
                                     {userSearchQuery.trim().length < 1 ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("userSearchMin")}
                                         </li>
                                     ) : searchLoading ? (
                                         <li className="flex justify-center py-8">
-                                            <div className="h-7 w-7 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+                                            <div className="h-7 w-7 animate-spin rounded-full border-2 border-stone-200 dark:border-elivis-line border-t-stone-600" />
                                         </li>
                                     ) : searchResults.length === 0 ? (
-                                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                             {t("userSearchEmpty")}
                                         </li>
                                     ) : (
@@ -318,18 +318,18 @@ export default function NewTeamPage() {
                                                                 : "hover:bg-stone-50"
                                                         }`}
                                                     >
-                                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300" />
+                                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="text-sm font-medium text-stone-800">
+                                                            <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                                                 {user.name?.trim() ||
                                                                     user.email.split("@")[0]}
                                                             </p>
-                                                            <p className="text-xs text-stone-500">
+                                                            <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                                 {user.email}
                                                             </p>
                                                         </div>
                                                         {isAdded && (
-                                                            <span className="text-xs text-stone-400">
+                                                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                                 {t("modalDone")}
                                                             </span>
                                                         )}
@@ -339,7 +339,7 @@ export default function NewTeamPage() {
                                         })
                                     )}
                                 </ul>
-                                <div className="border-t border-stone-100 px-4 py-3">
+                                <div className="border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -347,7 +347,7 @@ export default function NewTeamPage() {
                                             setUserSearchQuery("");
                                             setSearchResults([]);
                                         }}
-                                        className="w-full rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                                        className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                     >
                                         {t("modalDone")}
                                     </button>
@@ -366,7 +366,7 @@ export default function NewTeamPage() {
                         </button>
                         <Link
                             href="/teams"
-                            className="rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2"
+                            className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2.5 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2"
                         >
                             {t("cancel")}
                         </Link>

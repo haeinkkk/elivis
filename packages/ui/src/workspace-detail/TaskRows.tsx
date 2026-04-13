@@ -35,17 +35,30 @@ export interface TaskRowProps {
     onPrioritiesChange: (p: ApiWorkspacePriority[]) => void;
     onOpenPanel: (t: ApiWorkspaceTask) => void;
     myWorkMutations: WorkspaceDetailMyWorkMutations;
+    /** 부모가 일괄 펼침/접기할 때마다 증가시키고 defaultExpanded 로 동기화 */
+    expandKey?: number;
+    defaultExpanded?: boolean;
 }
 
 const TaskRow = ({
     task, subTasks, allTasks, statuses, priorities, workspaceId, depth,
     isDragging, dragHandleProps, rowRef, rowStyle,
     onUpdate, onDelete, onAdded, onStatusesChange, onPrioritiesChange, onOpenPanel, myWorkMutations,
+    expandKey = 0,
+    defaultExpanded = true,
 }: TaskRowProps) => {
     const t = useTranslations("workspace");
     const [isPending, startTransition] = useTransition();
     const [addingSub, setAddingSub] = useState(false);
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(defaultExpanded);
+    const prevExpandKeyRef = useRef(expandKey);
+
+    useEffect(() => {
+        if (expandKey !== prevExpandKeyRef.current) {
+            prevExpandKeyRef.current = expandKey;
+            setExpanded(defaultExpanded);
+        }
+    }, [expandKey, defaultExpanded]);
     const [titleDraft, setTitleDraft] = useState(task.title);
     const [editingTitle, setEditingTitle] = useState(false);
     const titleInputRef = useRef<HTMLInputElement>(null);
@@ -147,8 +160,8 @@ const TaskRow = ({
                 style={rowStyle}
                 className={`group border-b transition-opacity ${isPending ? "opacity-50" : ""} ${isDragging ? "opacity-30" : ""} ${
                     isTop
-                        ? "border-stone-200 bg-white hover:bg-stone-50/60"
-                        : "border-stone-100 bg-stone-50/20 hover:bg-stone-50/40"
+                        ? "border-stone-200 bg-white hover:bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface dark:hover:bg-elivis-surface-elevated/50"
+                        : "border-stone-100 bg-stone-50/20 hover:bg-stone-50/40 dark:border-elivis-line/70 dark:bg-elivis-bg/50 dark:hover:bg-elivis-surface-elevated/35"
                 }`}
             >
                 {/* 드래그 핸들 (형제 그룹 내 순서 변경) */}
@@ -156,7 +169,7 @@ const TaskRow = ({
                     {dragHandleProps ? (
                         <button
                             type="button"
-                            className="cursor-grab touch-none text-stone-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                            className="cursor-grab touch-none text-stone-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing dark:text-elivis-ink-muted"
                             {...dragHandleProps}
                             title={t("taskRow.dragAria")}
                         >
@@ -174,7 +187,7 @@ const TaskRow = ({
                     <div className="flex items-center gap-1.5">
                         {hasChildren ? (
                             <button type="button" onClick={() => setExpanded((v) => !v)}
-                                className="flex h-4 w-4 shrink-0 items-center justify-center text-stone-400 hover:text-stone-600">
+                                className="flex h-4 w-4 shrink-0 items-center justify-center text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink">
                                 <svg className={`h-3 w-3 transition-transform ${expanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -195,7 +208,7 @@ const TaskRow = ({
                                     }
                                 }}
                                 disabled={isPending}
-                                className={`min-w-0 flex-1 rounded border border-stone-200 bg-white px-1 py-0.5 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60 ${isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"}`}
+                                className={`min-w-0 flex-1 rounded border border-stone-200 bg-white px-1 py-0.5 outline-none focus:border-stone-400 focus:ring-0 disabled:opacity-60 dark:border-elivis-line dark:bg-elivis-surface ${isTop ? "text-sm font-semibold text-stone-900 dark:text-elivis-ink" : "text-sm text-stone-600 dark:text-elivis-ink-secondary"}`}
                             />
                         ) : (
                             <>
@@ -203,7 +216,7 @@ const TaskRow = ({
                                     type="button"
                                     onClick={() => onOpenPanel(task)}
                                     title={task.title}
-                                    className={`min-w-0 flex-1 truncate text-left hover:underline ${isTop ? "text-sm font-semibold text-stone-900" : "text-sm text-stone-600"}`}
+                                    className={`min-w-0 flex-1 truncate text-left hover:underline ${isTop ? "text-sm font-semibold text-stone-900 dark:text-elivis-ink" : "text-sm text-stone-600 dark:text-elivis-ink-secondary"}`}
                                 >
                                     {formatTaskTitleForList(task.title)}
                                 </button>
@@ -214,7 +227,7 @@ const TaskRow = ({
                                         setTitleDraft(task.title);
                                         setEditingTitle(true);
                                     }}
-                                    className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 hover:text-stone-600 group-hover:opacity-100"
+                                    className="shrink-0 rounded p-0.5 text-stone-300 opacity-0 transition-opacity hover:bg-stone-100 dark:text-elivis-ink-muted dark:hover:bg-elivis-surface-elevated hover:text-stone-600 dark:hover:text-elivis-ink-secondary group-hover:opacity-100"
                                     title={t("taskRow.editTitle")}
                                     aria-label={t("taskRow.editTitle")}
                                 >
@@ -295,7 +308,7 @@ const TaskRow = ({
                     <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                         {depth < 2 && (
                             <button type="button" onClick={() => setAddingSub(true)}
-                                className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600" title={t("taskRow.addSubtask")}>
+                                className="rounded p-1 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600" title={t("taskRow.addSubtask")}>
                                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
@@ -305,7 +318,7 @@ const TaskRow = ({
                             const res = await myWorkMutations.deleteWorkspaceTask(workspaceId, task.id);
                             if (res.ok) onDelete(task.id);
                         })} disabled={isPending}
-                            className="rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-500" title="삭제">
+                            className="rounded p-1 text-stone-400 dark:text-elivis-ink-secondary hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500" title="삭제">
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -343,6 +356,8 @@ const TaskRow = ({
                             onPrioritiesChange={onPrioritiesChange}
                             onOpenPanel={onOpenPanel}
                             myWorkMutations={myWorkMutations}
+                            expandKey={expandKey}
+                            defaultExpanded={defaultExpanded}
                         />
                     ))}
                 </SortableContext>

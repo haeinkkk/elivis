@@ -52,7 +52,7 @@ export function ProjectOverviewTab({
     if (!project) {
         return (
             <div className="flex min-h-[200px] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 dark:border-elivis-line border-t-stone-600" />
             </div>
         );
     }
@@ -132,32 +132,32 @@ export function ProjectOverviewTab({
 
     const dDayColor =
         remainingDays === null
-            ? "bg-stone-100 text-stone-600"
+            ? "bg-stone-100 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
             : remainingDays > 14
-              ? "bg-blue-50 text-blue-700"
+              ? "bg-blue-50 text-blue-700 dark:bg-blue-950/35 dark:text-blue-300"
               : remainingDays > 0
-                ? "bg-amber-50 text-amber-700"
-                : "bg-red-50 text-red-600";
+                ? "bg-amber-50 text-amber-700 dark:bg-amber-950/35 dark:text-amber-300"
+                : "bg-red-50 text-red-600 dark:bg-red-950/35 dark:text-red-400";
 
     const dDayTextColor =
         remainingDays === null
-            ? "text-stone-800"
+            ? "text-stone-800 dark:text-elivis-ink"
             : remainingDays > 14
-              ? "text-blue-600"
+              ? "text-blue-600 dark:text-blue-400"
               : remainingDays > 0
-                ? "text-amber-600"
-                : "text-red-600";
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-red-600 dark:text-red-400";
 
     return (
         <div className="space-y-5">
             {/* ── 1. 일정 히어로 카드 ───────────────────────────────── */}
             <section
-                className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
+                className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm"
                 style={{ animation: "overview-fade-in 0.4s ease-out" }}
             >
                 {/* 상단 헤더 바 */}
-                <div className="flex items-center justify-between border-b border-stone-100 px-6 py-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-elivis-line px-6 py-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-elivis-ink-secondary">
                         {t("overview.periodHeader")}
                     </span>
                     <span
@@ -172,10 +172,10 @@ export function ProjectOverviewTab({
                     <div className="flex items-end justify-between gap-4">
                         {/* 시작일 */}
                         <div className="min-w-0">
-                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                                 {t("overview.startLabel")}
                             </p>
-                            <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
+                            <p className="mt-1 text-lg font-bold text-stone-800 dark:text-elivis-ink sm:text-xl">
                                 {formatOverviewDate(project.startDate, locale)}
                             </p>
                         </div>
@@ -190,12 +190,12 @@ export function ProjectOverviewTab({
                                         >
                                             {daysSinceStart}
                                         </span>
-                                        <span className="text-sm font-semibold text-stone-500">
+                                        <span className="text-sm font-semibold text-stone-500 dark:text-elivis-ink-secondary">
                                             일 진행 중
                                         </span>
                                     </>
                                 ) : (
-                                    <span className="text-xl font-semibold text-stone-400">
+                                    <span className="text-xl font-semibold text-stone-400 dark:text-elivis-ink-secondary">
                                         {t("overview.noEndMiddle")}
                                     </span>
                                 )
@@ -206,13 +206,13 @@ export function ProjectOverviewTab({
                                     >
                                         {remainingDays}
                                     </span>
-                                    <span className="text-sm font-semibold text-stone-500">
+                                    <span className="text-sm font-semibold text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("overview.daysLeftSuffix")}
                                     </span>
                                 </>
                             ) : remainingDays === 0 ? (
                                 <>
-                                    <span className="text-3xl font-black text-red-600 sm:text-4xl">
+                                    <span className="text-3xl font-black text-red-600 dark:text-red-400 sm:text-4xl">
                                         {t("overview.dueToday")}
                                     </span>
                                 </>
@@ -223,7 +223,7 @@ export function ProjectOverviewTab({
                                     >
                                         {Math.abs(remainingDays)}
                                     </span>
-                                    <span className="text-sm font-semibold text-red-500">
+                                    <span className="text-sm font-semibold text-red-500 dark:text-red-400">
                                         {t("overview.daysOverdueSuffix")}
                                     </span>
                                 </>
@@ -232,10 +232,10 @@ export function ProjectOverviewTab({
 
                         {/* 종료일 */}
                         <div className="min-w-0 text-right">
-                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                                 {t("overview.endLabel")}
                             </p>
-                            <p className="mt-1 text-lg font-bold text-stone-800 sm:text-xl">
+                            <p className="mt-1 text-lg font-bold text-stone-800 dark:text-elivis-ink sm:text-xl">
                                 {project.noEndDate ? t("overview.noEndDisplay") : formatOverviewDate(project.endDate, locale)}
                             </p>
                         </div>
@@ -244,7 +244,7 @@ export function ProjectOverviewTab({
                     {/* 타임라인 바 */}
                     {!project.noEndDate && progressPercent !== null && (
                         <div className="mt-5">
-                            <div className="relative h-2.5 overflow-hidden rounded-full bg-stone-100">
+                            <div className="relative h-2.5 overflow-hidden rounded-full bg-stone-100 dark:bg-elivis-surface-elevated">
                                 <div
                                     className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out"
                                     style={{
@@ -263,9 +263,9 @@ export function ProjectOverviewTab({
                                     style={{ left: `${Math.min(progressPercent, 99)}%` }}
                                 />
                             </div>
-                            <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-400">
+                            <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                 <span>{t("overview.timelineStart")}</span>
-                                <span className="font-semibold text-stone-600">
+                                <span className="font-semibold text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("overview.progressElapsed", { pct: progressPercent })}
                                 </span>
                                 <span>{t("overview.timelineEnd")}</span>
@@ -338,7 +338,7 @@ export function ProjectOverviewTab({
                 ].map(({ key, label, value, unit, color, bg, icon }) => (
                     <div
                         key={key}
-                        className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-4 sm:p-5"
+                        className="flex items-center gap-4 rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-4 sm:p-5"
                     >
                         <div
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}
@@ -354,7 +354,7 @@ export function ProjectOverviewTab({
                             </svg>
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[11px] font-medium text-stone-400">{label}</p>
+                            <p className="text-[11px] font-medium text-stone-400 dark:text-elivis-ink-secondary">{label}</p>
                             <p className={`mt-0.5 text-2xl font-bold tabular-nums ${color}`}>
                                 {value}
                                 <span className="ml-0.5 text-sm font-medium">{unit}</span>
@@ -368,11 +368,11 @@ export function ProjectOverviewTab({
             <section className="grid gap-5 lg:grid-cols-3">
                 {/* 완료율 도넛 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.1s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.donutTitle")}</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">
+                    <h3 className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">{t("overview.donutTitle")}</h3>
+                    <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                         {totalTasks > 0
                             ? t("overview.donutSubDone", { total: totalTasks, done: completedCount })
                             : t("overview.donutSubEmpty")}
@@ -385,7 +385,7 @@ export function ProjectOverviewTab({
                                 strokeWidth={12}
                                 color="#22c55e"
                             />
-                            <span className="absolute inset-0 flex items-center justify-center text-xl font-bold tabular-nums text-stone-800">
+                            <span className="absolute inset-0 flex items-center justify-center text-xl font-bold tabular-nums text-stone-800 dark:text-elivis-ink">
                                 {completionPercent}%
                             </span>
                         </div>
@@ -413,10 +413,10 @@ export function ProjectOverviewTab({
                                         className="h-2 w-2 shrink-0 rounded-full"
                                         style={{ backgroundColor: color }}
                                     />
-                                    <span className="min-w-0 flex-1 truncate text-xs text-stone-500">
+                                    <span className="min-w-0 flex-1 truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {label}
                                     </span>
-                                    <span className="shrink-0 text-xs font-semibold tabular-nums text-stone-700">
+                                    <span className="shrink-0 text-xs font-semibold tabular-nums text-stone-700 dark:text-elivis-ink">
                                         {count}
                                     </span>
                                 </div>
@@ -427,18 +427,18 @@ export function ProjectOverviewTab({
 
                 {/* 업무 상태별 막대 그래프 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.15s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.statusDistTitle")}</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">{t("overview.statusDistSub")}</p>
+                    <h3 className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">{t("overview.statusDistTitle")}</h3>
+                    <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("overview.statusDistSub")}</p>
                     {totalTasks === 0 ? (
-                        <p className="mt-6 text-center text-sm text-stone-400">{t("overview.statusEmpty")}</p>
+                        <p className="mt-6 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("overview.statusEmpty")}</p>
                     ) : (
                         <div className="mt-5 space-y-3">
                             {semanticDistCounts.map(({ sem, count, color }) => (
                                 <div key={sem} className="flex items-center gap-2.5">
-                                    <span className="w-16 shrink-0 truncate text-xs font-medium text-stone-600 sm:w-20">
+                                    <span className="w-16 shrink-0 truncate text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary sm:w-20">
                                         {sem === "WAITING"
                                             ? t("overview.statusSemanticWaiting")
                                             : sem === "IN_PROGRESS"
@@ -450,7 +450,7 @@ export function ProjectOverviewTab({
                                                   : t("overview.statusSemanticDone")}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="h-6 overflow-hidden rounded-md bg-stone-100">
+                                        <div className="h-6 overflow-hidden rounded-md bg-stone-100 dark:bg-elivis-surface-elevated">
                                             <div
                                                 className="h-full rounded-md transition-all duration-700 ease-out"
                                                 style={{
@@ -461,7 +461,7 @@ export function ProjectOverviewTab({
                                             />
                                         </div>
                                     </div>
-                                    <span className="w-6 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-600">
+                                    <span className="w-6 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-600 dark:text-elivis-ink-secondary">
                                         {count}
                                     </span>
                                 </div>
@@ -472,11 +472,11 @@ export function ProjectOverviewTab({
 
                 {/* 진행중인 업무 */}
                 <div
-                    className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                    className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 sm:p-6"
                     style={{ animation: "overview-fade-in 0.4s ease-out 0.2s both" }}
                 >
-                    <h3 className="text-sm font-semibold text-stone-700">{t("overview.inProgressTitle")}</h3>
-                    <p className="mt-0.5 text-xs text-stone-400">
+                    <h3 className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">{t("overview.inProgressTitle")}</h3>
+                    <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                         {activeWorkTasks.length > 0
                             ? t("overview.inProgressSub", { count: activeWorkTasks.length })
                             : t("overview.inProgressSubEmpty")}
@@ -503,17 +503,17 @@ export function ProjectOverviewTab({
                             {activeWorkTasks.slice(0, 6).map((task) => (
                                 <li
                                     key={task.id}
-                                    className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-stone-50"
+                                    className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                 >
                                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
                                     <span
                                         title={task.title}
-                                        className="min-w-0 flex-1 truncate text-sm text-stone-700"
+                                        className="min-w-0 flex-1 truncate text-sm text-stone-700 dark:text-elivis-ink"
                                     >
                                         {formatTaskTitleForList(task.title)}
                                     </span>
                                     {task.assignee?.name && (
-                                        <span className="shrink-0 text-xs text-stone-400">
+                                        <span className="shrink-0 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                             {task.assignee.name}
                                         </span>
                                     )}
@@ -525,7 +525,7 @@ export function ProjectOverviewTab({
                         <button
                             type="button"
                             onClick={onSeeMoreTasks}
-                            className="mt-3 w-full rounded-lg border border-stone-200 bg-white py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-50 hover:text-stone-700"
+                            className="mt-3 w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface py-1.5 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                         >
                             {t("overview.seeMore", { count: activeWorkTasks.length - 6 })}
                         </button>
@@ -535,19 +535,19 @@ export function ProjectOverviewTab({
 
             {/* ── 4. 최근 업무 리스트 ──────────────────────────────── */}
             <section
-                className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6"
+                className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 sm:p-6"
                 style={{ animation: "overview-fade-in 0.4s ease-out 0.3s both" }}
             >
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm font-semibold text-stone-700">{t("overview.recentTitle")}</h3>
-                        <p className="mt-0.5 text-xs text-stone-400">{t("overview.recentSub")}</p>
+                        <h3 className="text-sm font-semibold text-stone-700 dark:text-elivis-ink">{t("overview.recentTitle")}</h3>
+                        <p className="mt-0.5 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("overview.recentSub")}</p>
                     </div>
                     {onSeeMoreTasks && (
                         <button
                             type="button"
                             onClick={onSeeMoreTasks}
-                            className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                            className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                         >
                             {t("overview.seeAll")}
                         </button>
@@ -555,11 +555,11 @@ export function ProjectOverviewTab({
                 </div>
 
                 {recentTasks.length === 0 ? (
-                    <div className="mt-6 py-8 text-center text-sm text-stone-400">
+                    <div className="mt-6 py-8 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">
                         {t("overview.recentEmpty")}
                     </div>
                 ) : (
-                    <ul className="mt-4 divide-y divide-stone-50">
+                    <ul className="mt-4 divide-y divide-stone-100 dark:divide-elivis-line">
                         {recentTasks.map((task, i) => {
                             const taskStatus = statusById.get(task.statusId);
                             return (
@@ -581,7 +581,7 @@ export function ProjectOverviewTab({
                                     />
                                     <span
                                         title={task.title}
-                                        className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800"
+                                        className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800 dark:text-elivis-ink"
                                     >
                                         {formatTaskTitleForList(task.title)}
                                     </span>
@@ -598,13 +598,13 @@ export function ProjectOverviewTab({
                                     )}
                                     {/* 담당자 */}
                                     {task.assignee?.name && (
-                                        <span className="hidden shrink-0 text-xs text-stone-400 sm:inline">
+                                        <span className="hidden shrink-0 text-xs text-stone-400 dark:text-elivis-ink-secondary sm:inline">
                                             {task.assignee.name}
                                         </span>
                                     )}
                                     {/* 마감일 */}
                                     {task.dueDate && (
-                                        <span className="hidden shrink-0 text-xs text-stone-400 md:inline">
+                                        <span className="hidden shrink-0 text-xs text-stone-400 dark:text-elivis-ink-secondary md:inline">
                                             {new Date(task.dueDate).toLocaleDateString(
                                                 locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US",
                                                 {

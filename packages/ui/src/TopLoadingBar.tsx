@@ -41,7 +41,7 @@ export function TopLoadingBar() {
             aria-hidden
         >
             <div
-                className={`h-full bg-stone-700 transition-[width] duration-300 ease-out transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
+                className={`h-full bg-stone-700 transition-[width] duration-300 ease-out transition-opacity duration-200 dark:bg-elivis-accent ${visible ? "opacity-100" : "opacity-0"}`}
                 style={{ width }}
             />
         </div>

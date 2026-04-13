@@ -82,17 +82,17 @@ export function TeamAddMemberModal({
                 aria-hidden
                 onClick={onClose}
             />
-            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
-                <div className="border-b border-stone-100 px-4 py-3">
-                    <h3 className="text-base font-semibold text-stone-800">{t("addMember.title")}</h3>
-                    <p className="mt-1 text-xs text-stone-500">
+            <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-xl">
+                <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-3">
+                    <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("addMember.title")}</h3>
+                    <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                         {t.rich("addMember.desc", {
                             strong: (chunks) => <strong>{chunks}</strong>,
                         })}
                     </p>
-                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-3 py-2">
+                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-3 py-2">
                         <svg
-                            className="h-4 w-4 shrink-0 text-stone-400"
+                            className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.5}
@@ -109,25 +109,25 @@ export function TeamAddMemberModal({
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder={t("addMember.searchPlaceholder")}
-                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none"
+                            className="min-w-0 flex-1 bg-transparent text-sm text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:outline-none"
                             autoFocus
                         />
                     </div>
                     {error ? (
-                        <p className="mt-2 text-sm text-red-700">{error}</p>
+                        <p className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</p>
                     ) : null}
                 </div>
                 <ul className="max-h-64 overflow-y-auto py-2">
                     {query.trim().length < 1 ? (
-                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                             {t("addMember.emptyQuery")}
                         </li>
                     ) : loading ? (
                         <li className="flex justify-center py-8">
-                            <div className="h-7 w-7 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+                            <div className="h-7 w-7 animate-spin rounded-full border-2 border-stone-200 dark:border-elivis-line border-t-stone-600" />
                         </li>
                     ) : results.length === 0 ? (
-                        <li className="px-4 py-6 text-center text-sm text-stone-500">
+                        <li className="px-4 py-6 text-center text-sm text-stone-500 dark:text-elivis-ink-secondary">
                             {t("addMember.emptyResults")}
                         </li>
                     ) : (
@@ -141,19 +141,19 @@ export function TeamAddMemberModal({
                                         type="button"
                                         onClick={() => !busy && handlePick(user)}
                                         disabled={busy}
-                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-stone-50 disabled:opacity-60"
+                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-60"
                                     >
-                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300" />
+                                        <span className="h-9 w-9 shrink-0 rounded-full bg-stone-300 dark:bg-elivis-surface-elevated" />
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-stone-800">
+                                            <p className="text-sm font-medium text-stone-800 dark:text-elivis-ink">
                                                 {displayName}
                                             </p>
-                                            <p className="text-xs text-stone-500">{user.email}</p>
+                                            <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{user.email}</p>
                                         </div>
                                         {busy ? (
-                                            <span className="text-xs text-stone-400">{t("addMember.adding")}</span>
+                                            <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("addMember.adding")}</span>
                                         ) : (
-                                            <span className="text-xs font-medium text-stone-600">
+                                            <span className="text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                                 {t("addMember.add")}
                                             </span>
                                         )}
@@ -163,11 +163,11 @@ export function TeamAddMemberModal({
                         })
                     )}
                 </ul>
-                <div className="border-t border-stone-100 px-4 py-3">
+                <div className="border-t border-stone-100 dark:border-elivis-line px-4 py-3">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-full rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+                        className="w-full rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                     >
                         {t("common.cancel")}
                     </button>

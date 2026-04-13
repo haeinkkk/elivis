@@ -32,21 +32,21 @@ export default async function ProjectDetailPage({
         if (result.reason === "forbidden") {
             return (
                 <div className="flex min-h-full items-center justify-center p-8">
-                    <p className="text-stone-600">{t("pageForbidden")}</p>
+                    <p className="text-stone-600 dark:text-elivis-ink-secondary">{t("pageForbidden")}</p>
                 </div>
             );
         }
         if (result.reason === "not_found") {
             return (
                 <div className="flex min-h-full items-center justify-center p-8">
-                    <p className="text-stone-600">{t("pageNotFound")}</p>
+                    <p className="text-stone-600 dark:text-elivis-ink-secondary">{t("pageNotFound")}</p>
                 </div>
             );
         }
         return (
             <div className="flex min-h-full flex-col items-center justify-center gap-2 p-8 text-center">
-                <p className="text-stone-600">{t("pageLoadError")}</p>
-                <p className="text-xs text-stone-400">{t("pageLoadErrorHint")}</p>
+                <p className="text-stone-600 dark:text-elivis-ink-secondary">{t("pageLoadError")}</p>
+                <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("pageLoadErrorHint")}</p>
             </div>
         );
     }

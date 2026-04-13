@@ -31,8 +31,8 @@ export function AdminPerformanceShell({
                 onSelectTeam={setSelectedTeamId}
             />
 
-            <div className="border-b border-stone-200 bg-stone-50/50 px-4 py-3 sm:px-6">
-                <h2 className="text-sm font-semibold text-stone-800">{t("timelineSectionTitle")}</h2>
+            <div className="border-b border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 sm:px-6">
+                <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("timelineSectionTitle")}</h2>
             </div>
 
             {selectedTeamId ? (
@@ -42,8 +42,8 @@ export function AdminPerformanceShell({
                     minimalChrome
                 />
             ) : (
-                <div className="flex flex-1 flex-col items-center justify-center bg-stone-50/40 px-4 py-20 text-center">
-                    <p className="max-w-sm text-sm text-stone-500">{t("selectTeamForTimeline")}</p>
+                <div className="flex flex-1 flex-col items-center justify-center bg-stone-50/40 px-4 py-20 text-center dark:bg-elivis-bg/60">
+                    <p className="max-w-sm text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("selectTeamForTimeline")}</p>
                 </div>
             )}
         </div>

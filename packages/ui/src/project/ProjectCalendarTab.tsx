@@ -214,14 +214,14 @@ function MemberFilterChips({
 }) {
     const tCal = useTranslations("projects.detail.calendar");
     return (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-b border-stone-100 bg-stone-50/60 sm:px-5">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-stone-100 bg-stone-50/40 px-4 py-2 dark:border-elivis-line dark:bg-elivis-surface-elevated/35 sm:px-5">
             <button
                 type="button"
                 onClick={() => onSelect(null)}
                 className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                     selectedId === null
-                        ? "bg-stone-800 text-white"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                        ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                        : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                 }`}
             >
                 {tCal("filterAll")}
@@ -237,8 +237,8 @@ function MemberFilterChips({
                         onClick={() => onSelect(isSelected ? null : m.id)}
                         className={`flex items-center gap-1.5 rounded-full py-1 pl-1.5 pr-2.5 text-xs font-medium transition-colors ${
                             isSelected
-                                ? "bg-stone-800 text-white"
-                                : "bg-white border border-stone-200 text-stone-700 hover:bg-stone-50"
+                                ? "bg-stone-800 text-white dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:ring-1 dark:ring-elivis-line"
+                                : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                         }`}
                     >
                         <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white ${color}`}>
@@ -344,24 +344,24 @@ export default function ProjectCalendarTab({
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {/* ── 헤더 ──────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3 sm:px-5">
+            <div className="flex items-center justify-between border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-2">
                     <button
                         type="button"
                         onClick={() => setViewDate(new Date(year, month - 1, 1))}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800">
+                    <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                         {monthYearLabel}
                     </span>
                     <button
                         type="button"
                         onClick={() => setViewDate(new Date(year, month + 1, 1))}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -371,14 +371,14 @@ export default function ProjectCalendarTab({
 
                 <div className="flex items-center gap-2">
                     {tasksWithoutDate > 0 && (
-                        <span className="hidden text-xs text-stone-400 sm:inline">
+                        <span className="hidden text-xs text-stone-400 dark:text-elivis-ink-secondary sm:inline">
                             {tCal("noDateHidden", { count: tasksWithoutDate })}
                         </span>
                     )}
                     <button
                         type="button"
                         onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
-                        className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-1 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                     >
                         {tCal("today")}
                     </button>
@@ -396,12 +396,16 @@ export default function ProjectCalendarTab({
             )}
 
             {/* ── 요일 헤더 ─────────────────────────────────────────── */}
-            <div className="grid grid-cols-7 border-b border-stone-200 bg-stone-50/60">
+            <div className="grid grid-cols-7 border-b border-stone-200 bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface-elevated/35">
                 {dowLabels.map((d, i) => (
                     <div
                         key={i}
                         className={`py-2 text-center text-xs font-medium ${
-                            i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-stone-500"
+                            i === 0
+                                ? "text-red-500 dark:text-red-400"
+                                : i === 6
+                                    ? "text-blue-500 dark:text-blue-400"
+                                    : "text-stone-500 dark:text-elivis-ink-secondary"
                         }`}
                     >
                         {d}
@@ -411,7 +415,7 @@ export default function ProjectCalendarTab({
 
             {/* ── 달력 그리드 ────────────────────────────────────────── */}
             <div className="min-h-0 flex-1 overflow-y-auto">
-                <div className="flex flex-col divide-y divide-stone-200">
+                <div className="flex flex-col divide-y divide-stone-200 dark:divide-elivis-line">
                     {weeks.map((weekDays, wi) => {
                         const eventRows = layoutWeekEvents(weekDays, events);
                         const eventAreaHeight = eventRows.length > 0 ? eventRows.length * 24 + 4 : 0;
@@ -423,7 +427,7 @@ export default function ProjectCalendarTab({
                                 style={{ minHeight: "calc(100vw / 7 * 0.55)" }}
                             >
                                 {/* 셀 배경 + 날짜 번호 */}
-                                <div className="absolute inset-0 grid grid-cols-7 divide-x divide-stone-100">
+                                <div className="absolute inset-0 grid grid-cols-7 divide-x divide-stone-100 dark:divide-elivis-line">
                                     {weekDays.map((day, di) => {
                                         const isCurrentMonth = day.getMonth() === month;
                                         const isToday = isSameDay(day, today);
@@ -431,16 +435,22 @@ export default function ProjectCalendarTab({
                                             <div
                                                 key={di}
                                                 className={`relative p-2 ${
-                                                    !isCurrentMonth ? "bg-stone-50/40" : "bg-white"
+                                                    !isCurrentMonth
+                                                        ? "bg-stone-50/40 dark:bg-elivis-bg/40"
+                                                        : "bg-white dark:bg-elivis-surface"
                                                 }`}
                                             >
                                                 <span
                                                     className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                                                         isToday
-                                                            ? "bg-stone-800 text-white"
+                                                            ? "bg-stone-800 text-white dark:bg-elivis-accent dark:text-white"
                                                             : isCurrentMonth
-                                                                ? di === 0 ? "text-red-400" : di === 6 ? "text-blue-400" : "text-stone-700"
-                                                                : "text-stone-300"
+                                                                ? di === 0
+                                                                    ? "text-red-500 dark:text-red-400"
+                                                                    : di === 6
+                                                                        ? "text-blue-500 dark:text-blue-400"
+                                                                        : "text-stone-700 dark:text-elivis-ink"
+                                                                : "text-stone-300 dark:text-elivis-ink-muted"
                                                     }`}
                                                 >
                                                     {day.getDate()}

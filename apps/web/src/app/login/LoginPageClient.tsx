@@ -51,16 +51,16 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
     const loginMode = ldapEnabled ? loginTab : "local";
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-[#f8f7f5] px-4 py-8 sm:px-6">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#f8f7f5] dark:bg-elivis-bg px-4 py-8 sm:px-6">
             <div className="w-full max-w-[400px]">
                 <div className="mb-10 text-center">
-                    <span className="inline-block font-sans text-5xl font-semibold tracking-tight text-stone-800">
+                    <span className="inline-block font-sans text-5xl font-semibold tracking-tight text-stone-800 dark:text-elivis-ink">
                         Elivis
                     </span>
                 </div>
 
-                <div className="rounded-2xl border border-stone-200/80 bg-white shadow-sm shadow-stone-200/50 transition-shadow hover:shadow-md">
-                    <div className="border-b border-stone-100 px-5 py-3">
+                <div className="rounded-2xl border border-stone-200/80 bg-white dark:bg-elivis-surface shadow-sm shadow-stone-200/50 transition-shadow hover:shadow-md">
+                    <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-3">
                         <LanguageSelector
                             variant="full"
                             align="right"
@@ -70,7 +70,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
 
                     {ldapEnabled ? (
                         <div
-                            className="flex border-b border-stone-100 p-1.5"
+                            className="flex border-b border-stone-100 dark:border-elivis-line p-1.5"
                             role="tablist"
                             aria-label={t("loginTabsAria")}
                         >
@@ -107,11 +107,11 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                         <input type="hidden" name="loginMode" value={loginMode} />
 
                         {ldapEnabled && loginTab === "ldap" ? (
-                            <p className="text-xs leading-relaxed text-stone-500">{t("ldapTabHelp")}</p>
+                            <p className="text-xs leading-relaxed text-stone-500 dark:text-elivis-ink-secondary">{t("ldapTabHelp")}</p>
                         ) : null}
 
                         {state.error && (
-                            <p className="whitespace-pre-wrap rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                            <p className="whitespace-pre-wrap rounded-xl bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                                 {state.error}
                             </p>
                         )}
@@ -119,7 +119,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                         <div>
                             <label
                                 htmlFor="email"
-                                className="mb-1.5 block text-sm font-medium text-stone-600"
+                                className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                             >
                                 {t("emailLabel")}
                             </label>
@@ -131,7 +131,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                                 placeholder={t("emailPlaceholder")}
                                 value={emailValue}
                                 onChange={(e) => setEmailValue(e.target.value)}
-                                className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                                className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                                 disabled={isPending}
                                 required
                             />
@@ -140,7 +140,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                         <div>
                             <label
                                 htmlFor="password"
-                                className="mb-1.5 block text-sm font-medium text-stone-600"
+                                className="mb-1.5 block text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary"
                             >
                                 {t("passwordLabel")}
                             </label>
@@ -150,7 +150,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                                 type="password"
                                 autoComplete="current-password"
                                 placeholder={t("passwordPlaceholder")}
-                                className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
+                                className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50/50 px-4 py-3 text-stone-800 dark:text-elivis-ink placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/20 disabled:opacity-60"
                                 disabled={isPending}
                                 required
                             />
@@ -162,7 +162,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                                     type="checkbox"
                                     checked={rememberEmail}
                                     onChange={(e) => handleRememberChange(e.target.checked)}
-                                    className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-stone-300 bg-white transition-colors checked:border-amber-400 checked:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300/30 disabled:opacity-60"
+                                    className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-stone-300 dark:border-elivis-line bg-white dark:bg-elivis-surface transition-colors checked:border-amber-400 checked:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300/30 disabled:opacity-60"
                                     disabled={isPending}
                                 />
                                 <svg
@@ -179,7 +179,7 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                                     />
                                 </svg>
                             </div>
-                            <span className="text-sm text-stone-500">{t("rememberEmail")}</span>
+                            <span className="text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("rememberEmail")}</span>
                         </label>
 
                         <button
@@ -197,19 +197,19 @@ export function LoginPageClient({ publicSignupEnabled, ldapEnabled }: LoginPageC
                             )}
                         </button>
                     </form>
-                </div>
 
-                {publicSignupEnabled ? (
-                    <div className="mt-4 flex justify-center sm:mt-5">
-                        <button
-                            type="button"
-                            onClick={() => setSignupOpen(true)}
-                            className="inline-flex min-w-[200px] items-center justify-center rounded-xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-800 shadow-sm transition-colors hover:border-amber-300/80 hover:bg-orange-50/50 hover:text-orange-950"
-                        >
-                            {t("signupButton")}
-                        </button>
-                    </div>
-                ) : null}
+                    {publicSignupEnabled ? (
+                        <div className="border-t border-stone-100 px-8 pb-8 pt-5 dark:border-elivis-line">
+                            <button
+                                type="button"
+                                onClick={() => setSignupOpen(true)}
+                                className="flex w-full items-center justify-center rounded-xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-800 shadow-sm transition-colors hover:border-amber-300/80 hover:bg-orange-50/50 hover:text-orange-950 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink"
+                            >
+                                {t("signupButton")}
+                            </button>
+                        </div>
+                    ) : null}
+                </div>
 
                 <SignupModal
                     open={signupOpen}

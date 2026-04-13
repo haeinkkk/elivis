@@ -48,8 +48,8 @@ function ToolbarBtn({
             disabled={disabled}
             className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                 active
-                    ? "bg-stone-200 text-stone-900"
-                    : "text-stone-600 hover:bg-stone-200/80 hover:text-stone-900"
+                    ? "bg-stone-200 text-stone-900 dark:bg-elivis-surface-elevated dark:text-elivis-ink"
+                    : "text-stone-600 hover:bg-stone-200/80 hover:text-stone-900 dark:text-elivis-ink-secondary dark:hover:bg-stone-600/80 dark:hover:text-elivis-ink"
             }`}
         >
             {children}
@@ -58,9 +58,9 @@ function ToolbarBtn({
 }
 
 const EDITOR_BODY_CLASS_DEFAULT =
-    "prose prose-stone max-w-none min-h-[200px] px-1 py-0.5 text-sm text-stone-800 focus:outline-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2";
+    "prose prose-stone max-w-none min-h-[200px] px-1 py-0.5 text-sm text-stone-800 focus:outline-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 dark:text-elivis-ink dark:prose-invert";
 const EDITOR_BODY_CLASS_LARGE =
-    "prose prose-stone max-w-none min-h-[min(70vh,760px)] px-1 py-0.5 text-sm text-stone-800 focus:outline-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2";
+    "prose prose-stone max-w-none min-h-[min(70vh,760px)] px-1 py-0.5 text-sm text-stone-800 focus:outline-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 dark:text-elivis-ink dark:prose-invert";
 
 export function TeamIntroRichEditor({
     initialMarkdown,
@@ -99,7 +99,7 @@ export function TeamIntroRichEditor({
                 Link.configure({
                     openOnClick: false,
                     HTMLAttributes: {
-                        class: "text-stone-800 underline underline-offset-2",
+                        class: "text-stone-800 dark:text-elivis-ink underline underline-offset-2",
                     },
                 }),
                 Image.configure({
@@ -232,7 +232,7 @@ export function TeamIntroRichEditor({
                 >
                     <span className="underline">U</span>
                 </ToolbarBtn>
-                <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
+                <span className="mx-0.5 h-5 w-px bg-stone-200 dark:bg-elivis-surface-elevated" aria-hidden />
                 <ToolbarBtn
                     title={t("h2Title")}
                     active={e.isActive("heading", { level: 2 })}
@@ -249,7 +249,7 @@ export function TeamIntroRichEditor({
                 >
                     H3
                 </ToolbarBtn>
-                <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
+                <span className="mx-0.5 h-5 w-px bg-stone-200 dark:bg-elivis-surface-elevated" aria-hidden />
                 <ToolbarBtn
                     title={t("bulletListTitle")}
                     active={e.isActive("bulletList")}
@@ -274,7 +274,7 @@ export function TeamIntroRichEditor({
                 >
                     {t("blockquoteLabel")}
                 </ToolbarBtn>
-                <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
+                <span className="mx-0.5 h-5 w-px bg-stone-200 dark:bg-elivis-surface-elevated" aria-hidden />
                 <ToolbarBtn title={t("linkTitle")} active={e.isActive("link")} disabled={disabled} onClick={setLink}>
                     {t("linkLabel")}
                 </ToolbarBtn>
@@ -303,7 +303,7 @@ export function TeamIntroRichEditor({
                 >
                     ─
                 </ToolbarBtn>
-                <span className="mx-0.5 h-5 w-px bg-stone-200" aria-hidden />
+                <span className="mx-0.5 h-5 w-px bg-stone-200 dark:bg-elivis-surface-elevated" aria-hidden />
                 <ToolbarBtn
                     title={t("undoTitle")}
                     disabled={disabled || !e.can().undo()}

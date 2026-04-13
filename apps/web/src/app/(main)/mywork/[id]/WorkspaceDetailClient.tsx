@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
+    ElivisDetailTabBar,
     MyWorkTab,
     RequestsTab,
     SummaryTab,
@@ -97,12 +98,12 @@ export default function WorkspaceDetailClient({
 
     return (
         <div className="flex min-h-full w-full flex-col">
-            <div className="border-b border-stone-200 bg-white px-4 py-3 sm:px-5 md:px-6">
+            <div className="border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
                         onClick={() => router.back()}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                         aria-label={t("header.backAria")}
                     >
                         <svg
@@ -120,16 +121,16 @@ export default function WorkspaceDetailClient({
                         </svg>
                     </button>
                     <div className="min-w-0 flex-1">
-                        <h1 className="truncate text-lg font-semibold text-stone-800 sm:text-xl">
+                        <h1 className="truncate text-lg font-semibold text-stone-800 dark:text-elivis-ink sm:text-xl">
                             {project.name}
                         </h1>
-                        <p className="truncate text-xs text-stone-500 sm:text-sm">
+                        <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary sm:text-sm">
                             {teamNames.length > 0
                                 ? teamNames.join(" · ")
                                 : t("header.personalWorkspace")}
                         </p>
                     </div>
-                    <div className="shrink-0 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600">
+                    <div className="shrink-0 rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-3 py-1 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                         {t("header.taskCount", {
                             count: tasks.filter((tk) => !tk.parentId).length,
                         })}
@@ -137,24 +138,12 @@ export default function WorkspaceDetailClient({
                 </div>
             </div>
 
-            <div className="border-b border-stone-200 bg-white/95">
-                <nav className="flex gap-0 overflow-x-auto px-4 sm:px-5 md:px-6">
-                    {TABS.map((tab) => (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors sm:px-5 ${
-                                activeTab === tab.id
-                                    ? "border-stone-800 text-stone-800"
-                                    : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700"
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
-            </div>
+            <ElivisDetailTabBar
+                ariaLabel={t("aria.subNav")}
+                items={TABS}
+                activeId={activeTab}
+                onSelect={(id) => setActiveTab(id as WorkspaceTab)}
+            />
 
             <div className="flex min-h-0 flex-1 flex-col">
                 {activeTab === "mywork" && (

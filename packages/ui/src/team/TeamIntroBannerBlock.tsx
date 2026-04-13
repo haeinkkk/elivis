@@ -100,12 +100,12 @@ export function TeamIntroBannerBlock({
     const showImg = Boolean(displayUrl && !imgErr);
     const frameClass =
         variant === "pageTop"
-            ? "border-b border-stone-200"
-            : "rounded-t-2xl border-b border-stone-100";
+            ? "border-b border-stone-200 dark:border-elivis-line"
+            : "rounded-t-2xl border-b border-stone-100 dark:border-elivis-line";
     const mediaClass = variant === "pageTop" ? "h-[200px]" : "aspect-[15/4] sm:aspect-[20/5]";
 
     return (
-        <div className={`relative w-full overflow-hidden bg-stone-100 ${frameClass}`}>
+        <div className={`relative w-full overflow-hidden bg-stone-100 dark:bg-elivis-surface-elevated ${frameClass}`}>
             <div className={`relative w-full ${mediaClass}`}>
                 {showImg ? (
                     <img
@@ -116,12 +116,12 @@ export function TeamIntroBannerBlock({
                     />
                 ) : (
                     <div
-                        className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 via-stone-100 to-stone-200"
+                        className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 via-stone-100 to-stone-200 dark:from-elivis-surface-elevated dark:via-elivis-surface dark:to-elivis-surface-elevated"
                         aria-hidden
                     >
                         <div className="px-4 text-center">
-                            <p className="text-sm font-medium text-stone-500">{t("banner.title")}</p>
-                            <p className="mt-1 text-xs text-stone-400">
+                            <p className="text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("banner.title")}</p>
+                            <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                 {canEdit
                                     ? t("banner.helperEditable")
                                     : t("banner.helperReadonly")}
@@ -143,7 +143,7 @@ export function TeamIntroBannerBlock({
                                 type="button"
                                 onClick={pickFile}
                                 disabled={isPending}
-                                className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-medium text-stone-800 shadow-sm ring-1 ring-stone-200/80 backdrop-blur transition hover:bg-white disabled:opacity-60"
+                                className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-medium text-stone-800 shadow-sm ring-1 ring-stone-200/80 backdrop-blur transition hover:bg-white disabled:opacity-60 dark:bg-elivis-surface/95 dark:text-elivis-ink dark:ring-elivis-line dark:hover:bg-elivis-surface-elevated"
                             >
                                 {displayUrl && !imgErr ? t("banner.change") : t("banner.upload")}
                             </button>
@@ -152,7 +152,7 @@ export function TeamIntroBannerBlock({
                                     type="button"
                                     onClick={onRemove}
                                     disabled={isPending}
-                                    className="rounded-lg bg-stone-900/80 px-3 py-1.5 text-xs font-medium text-white shadow-sm backdrop-blur transition hover:bg-stone-900 disabled:opacity-60"
+                                    className="rounded-lg bg-stone-900/80 px-3 py-1.5 text-xs font-medium text-white shadow-sm backdrop-blur transition hover:bg-stone-900 disabled:opacity-60 dark:bg-black/55 dark:hover:bg-black/70"
                                 >
                                     {t("banner.remove")}
                                 </button>
@@ -162,7 +162,7 @@ export function TeamIntroBannerBlock({
                 ) : null}
             </div>
             {error ? (
-                <p className="border-t border-stone-100 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+                <p className="border-t border-stone-100 bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:border-elivis-line dark:bg-amber-950/35 dark:text-amber-100">
                     {error}
                 </p>
             ) : null}

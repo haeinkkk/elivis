@@ -7,6 +7,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 import { useTranslations } from "next-intl";
 
+import { ElivisSelect } from "../../ElivisSelect";
 import type { TeamCommunityPostsActions } from "../../types/team-community-posts-actions";
 import type { ApiTeamPost } from "../../types/team-posts-api";
 import { TeamCommunityTextStyle } from "./team-community-tiptap";
@@ -83,7 +84,7 @@ export function PostComposePanel({
         content: initial?.content ?? "",
         editorProps: {
             attributes: {
-                class: "prose prose-sm max-w-none min-h-[200px] px-4 py-3 focus:outline-none text-stone-700 [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_h2]:text-base [&_h2]:font-bold [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 [&_blockquote]:pl-3 [&_blockquote]:text-stone-500 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-2",
+                class: "prose prose-sm max-w-none min-h-[200px] px-4 py-3 focus:outline-none text-stone-700 dark:text-elivis-ink [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_h2]:text-base [&_h2]:font-bold [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 dark:[&_blockquote]:border-elivis-line [&_blockquote]:pl-3 [&_blockquote]:text-stone-500 dark:[&_blockquote]:text-elivis-ink-secondary [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-2 dark:prose-invert",
             },
         },
     });
@@ -208,7 +209,7 @@ export function PostComposePanel({
             }}
             title={btnTitle}
             disabled={dis}
-            className={`rounded px-2 py-1 text-xs transition-colors disabled:opacity-30 ${active ? "bg-stone-200 text-stone-900" : "text-stone-500 hover:bg-stone-100 hover:text-stone-800"}`}
+            className={`rounded px-2 py-1 text-xs transition-colors disabled:opacity-30 ${active ? "bg-stone-200 text-stone-900 dark:bg-elivis-surface-elevated dark:text-elivis-ink" : "text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"}`}
         >
             {children}
         </button>
@@ -216,14 +217,14 @@ export function PostComposePanel({
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-stone-50 px-6 py-4">
-                <h2 className="text-sm font-bold text-stone-800">
+            <div className="flex shrink-0 items-center justify-between border-b border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-6 py-4">
+                <h2 className="text-sm font-bold text-stone-800 dark:text-elivis-ink">
                     {isEdit ? t("editTitle") : t("newTitle")}
                 </h2>
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-200 hover:text-stone-600"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-200 hover:text-stone-600 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink"
                 >
                     <svg
                         className="h-4 w-4"
@@ -246,8 +247,8 @@ export function PostComposePanel({
                 onPaste={handlePaste}
                 className="flex min-h-0 flex-1 flex-col overflow-y-auto"
             >
-                <div className="shrink-0 border-b border-stone-100 px-6 py-3">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                <div className="shrink-0 border-b border-stone-100 dark:border-elivis-line px-6 py-3">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                         {t("categoryLabel")}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -259,7 +260,7 @@ export function PostComposePanel({
                                 className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-all ${
                                     category === c
                                         ? CATEGORY_BADGE_CLASS[c]
-                                        : "bg-white text-stone-400 ring-stone-200 hover:bg-stone-50"
+                                        : "bg-white text-stone-400 ring-stone-200 hover:bg-stone-50 dark:bg-elivis-surface dark:text-elivis-ink-secondary dark:ring-elivis-line dark:hover:bg-elivis-surface-elevated"
                                 }`}
                             >
                                 {tCat(c)}
@@ -268,8 +269,8 @@ export function PostComposePanel({
                     </div>
                 </div>
 
-                <div className="shrink-0 border-b border-stone-100 px-6 py-3">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                <div className="shrink-0 border-b border-stone-100 dark:border-elivis-line px-6 py-3">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                         {t("titleLabel")}
                     </p>
                     <input
@@ -279,17 +280,18 @@ export function PostComposePanel({
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder={t("titlePlaceholder")}
                         maxLength={120}
-                        className="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm font-medium text-stone-800 placeholder-stone-300 outline-none focus:border-stone-400 focus:bg-white"
+                        className="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm font-medium text-stone-800 outline-none placeholder:text-stone-300 focus:border-stone-400 focus:bg-white dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:border-elivis-line dark:focus:bg-elivis-surface-elevated"
                     />
                 </div>
 
                 <div className="flex min-h-0 flex-1 flex-col px-6 py-3">
-                    <p className="mb-2 shrink-0 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                    <p className="mb-2 shrink-0 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                         {t("bodyLabel")}
                     </p>
 
-                    <div className="mb-1 flex shrink-0 flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 border-stone-200 bg-stone-50 px-2 py-1.5">
-                        <select
+                    <div className="mb-1 flex shrink-0 flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-2 py-1.5">
+                        <ElivisSelect
+                            variant="toolbarPlain"
                             value={currentFontSize}
                             onChange={(e) => {
                                 const val = e.target.value;
@@ -300,7 +302,6 @@ export function PostComposePanel({
                                 }
                             }}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className="rounded border border-stone-200 bg-white px-1.5 py-0.5 text-xs text-stone-600 outline-none focus:border-stone-400"
                             title={t("fontSize")}
                         >
                             <option value="">{t("fontDefault")}</option>
@@ -309,9 +310,9 @@ export function PostComposePanel({
                                     {t(f.msgKey)}
                                 </option>
                             ))}
-                        </select>
+                        </ElivisSelect>
 
-                        <div className="mx-1 h-3 w-px bg-stone-200" />
+                        <div className="mx-1 h-3 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                         <ToolbarBtn
                             onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -320,7 +321,7 @@ export function PostComposePanel({
                         >
                             <span className="font-bold">H</span>
                         </ToolbarBtn>
-                        <div className="mx-1 h-3 w-px bg-stone-200" />
+                        <div className="mx-1 h-3 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
                         <ToolbarBtn
                             onClick={() => editor?.chain().focus().toggleBold().run()}
                             active={editor?.isActive("bold")}
@@ -342,7 +343,7 @@ export function PostComposePanel({
                         >
                             <span className="line-through">S</span>
                         </ToolbarBtn>
-                        <div className="mx-1 h-3 w-px bg-stone-200" />
+                        <div className="mx-1 h-3 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
                         <ToolbarBtn
                             onClick={() => editor?.chain().focus().toggleBulletList().run()}
                             active={editor?.isActive("bulletList")}
@@ -378,7 +379,7 @@ export function PostComposePanel({
                             —
                         </ToolbarBtn>
 
-                        <div className="mx-1 h-3 w-px bg-stone-200" />
+                        <div className="mx-1 h-3 w-px bg-stone-200 dark:bg-elivis-surface-elevated" />
 
                         <button
                             type="button"
@@ -387,7 +388,7 @@ export function PostComposePanel({
                                 imageInputRef.current?.click();
                             }}
                             title={t("toolbarInsertImage")}
-                            className="flex items-center gap-1 rounded px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                            className="flex items-center gap-1 rounded px-2 py-1 text-xs text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-800"
                         >
                             <svg
                                 className="h-3.5 w-3.5"
@@ -406,22 +407,26 @@ export function PostComposePanel({
                         </button>
                     </div>
 
-                    <div className="min-h-0 flex-1 overflow-y-auto rounded-b-lg border border-stone-200 bg-white focus-within:border-stone-400">
+                    <div className="min-h-0 flex-1 overflow-y-auto rounded-b-lg border border-stone-200 bg-white focus-within:border-stone-400 dark:border-elivis-line dark:bg-elivis-surface dark:focus-within:border-elivis-line">
                         <EditorContent editor={editor} />
                     </div>
                 </div>
 
                 <div
-                    className={`relative shrink-0 border-t px-6 py-3 transition-colors ${isDragging ? "border-stone-300 bg-stone-50" : "border-stone-100"}`}
+                    className={`relative shrink-0 border-t px-6 py-3 transition-colors ${
+                        isDragging
+                            ? "border-stone-300 bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface-elevated"
+                            : "border-stone-100 dark:border-elivis-line"
+                    }`}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
                 >
                     {isDragging && (
-                        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded border-2 border-dashed border-stone-400 bg-stone-50/95">
+                        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded border-2 border-dashed border-stone-400 bg-stone-50/95 dark:border-elivis-line dark:bg-elivis-surface/95">
                             <svg
-                                className="h-4 w-4 text-stone-400"
+                                className="h-4 w-4 text-stone-400 dark:text-elivis-ink-secondary"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 strokeWidth={1.8}
@@ -433,21 +438,21 @@ export function PostComposePanel({
                                     d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
                                 />
                             </svg>
-                            <span className="text-sm font-medium text-stone-600">{t("attachmentsDrop")}</span>
+                            <span className="text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary">{t("attachmentsDrop")}</span>
                         </div>
                     )}
                     <div className="mb-2 flex items-center justify-between">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-elivis-ink-secondary">
                             {t("attachmentsHint")}
                         </p>
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
-                            className="flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-50 disabled:opacity-50"
+                            className="flex items-center gap-1 rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                         >
                             {uploading ? (
-                                <div className="h-3 w-3 animate-spin rounded-full border border-stone-300 border-t-stone-600" />
+                                <div className="h-3 w-3 animate-spin rounded-full border border-stone-300 border-t-stone-600 dark:border-elivis-line dark:border-t-elivis-ink-secondary" />
                             ) : (
                                 <svg
                                     className="h-3.5 w-3.5"
@@ -472,9 +477,9 @@ export function PostComposePanel({
                             {attachments.map((f) => (
                                 <div
                                     key={f.localId}
-                                    className="flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2"
+                                    className="flex items-center gap-2 rounded-lg border border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2"
                                 >
-                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white text-stone-400 ring-1 ring-stone-200">
+                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white dark:bg-elivis-surface text-stone-400 dark:text-elivis-ink-secondary ring-1 ring-stone-200 dark:ring-elivis-line">
                                         {f.isImage ? (
                                             <svg
                                                 className="h-4 w-4"
@@ -506,15 +511,15 @@ export function PostComposePanel({
                                         )}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-xs font-medium text-stone-700">{f.name}</p>
-                                        <p className="text-[10px] text-stone-400">{formatBytes(f.size)}</p>
+                                        <p className="truncate text-xs font-medium text-stone-700 dark:text-elivis-ink">{f.name}</p>
+                                        <p className="text-[10px] text-stone-400 dark:text-elivis-ink-secondary">{formatBytes(f.size)}</p>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setAttachments((prev) => prev.filter((a) => a.localId !== f.localId))
                                         }
-                                        className="shrink-0 text-stone-300 hover:text-red-400"
+                                        className="shrink-0 text-stone-300 hover:text-red-400 dark:text-elivis-ink-muted dark:hover:text-red-400"
                                     >
                                         <svg
                                             className="h-3.5 w-3.5"
@@ -536,13 +541,13 @@ export function PostComposePanel({
                     )}
                 </div>
 
-                {error && <p className="shrink-0 px-6 pb-2 text-xs text-red-500">{error}</p>}
+                {error && <p className="shrink-0 px-6 pb-2 text-xs text-red-500 dark:text-red-400">{error}</p>}
 
-                <div className="shrink-0 flex items-center justify-end gap-2 border-t border-stone-100 bg-stone-50 px-6 py-4">
+                <div className="shrink-0 flex items-center justify-end gap-2 border-t border-stone-100 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-6 py-4">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-200"
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-200 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated"
                     >
                         {tCommon("cancel")}
                     </button>
@@ -592,6 +597,10 @@ export function PostComposePanel({
                     height: 0;
                     font-size: 0.875rem;
                 }
+                .dark .tiptap blockquote { border-left-color: rgb(55 55 55); color: rgb(160 160 160); }
+                .dark .tiptap code { background: rgb(44 44 44); color: rgb(225 225 225); }
+                .dark .tiptap hr { border-top-color: rgb(55 55 55); }
+                .dark .tiptap p.is-editor-empty:first-child::before { color: rgb(108 108 108); }
             `}</style>
         </div>
     );

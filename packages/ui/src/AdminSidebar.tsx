@@ -305,11 +305,11 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                 <button
                     type="button"
                     onClick={() => onSizeChange("expanded")}
-                    className="fixed left-2 top-16 z-60 hidden h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white/90 shadow-sm backdrop-blur md:flex hover:bg-white"
+                    className="fixed left-2 top-16 z-60 hidden h-10 w-10 items-center justify-center rounded-xl border border-stone-200 dark:border-elivis-line bg-white/90 dark:bg-elivis-surface/90 shadow-sm backdrop-blur md:flex hover:bg-white dark:hover:bg-elivis-surface-elevated"
                     aria-label={tSidebar("restore")}
                 >
                     <svg
-                        className="h-5 w-5 text-stone-600"
+                        className="h-5 w-5 text-stone-600 dark:text-elivis-ink-secondary"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
@@ -329,7 +329,7 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                 tabIndex={0}
                 onClick={onClose}
                 onKeyDown={(e) => e.key === "Escape" && onClose()}
-                className={`fixed inset-0 z-40 bg-stone-900/20 backdrop-blur-[2px] md:hidden transition-opacity duration-200 ease-out ${
+                className={`fixed inset-0 z-40 bg-stone-900/20 dark:bg-black/50 backdrop-blur-[2px] md:hidden transition-opacity duration-200 ease-out ${
                     open ? "opacity-100" : "pointer-events-none opacity-0"
                 }`}
                 aria-hidden={!open}
@@ -338,23 +338,23 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
 
             <aside
                 className={`
-          fixed left-0 top-0 z-50 flex h-full max-w-[85vw] flex-col overflow-hidden border-r border-stone-200 bg-white
+          fixed left-0 top-0 z-50 flex h-full max-w-[85vw] flex-col overflow-hidden border-r border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface
           transition-[width,opacity,transform] duration-200 ease-out
           ${size === "expanded" ? "w-[280px]" : size === "collapsed" ? "w-[72px]" : "w-0 border-r-0 opacity-0 pointer-events-none"}
           ${open ? "translate-x-0" : "-translate-x-full"} md:static md:transform-none
         `}
             >
                 <div
-                    className={`flex h-14 shrink-0 items-center gap-2 border-b border-stone-100 ${
+                    className={`flex h-14 shrink-0 items-center gap-2 border-b border-stone-100 dark:border-elivis-line ${
                         showLabels ? "px-4" : "justify-center px-2"
                     }`}
                 >
                     {showLabels && (
                         <Link href="/admin" className="inline-flex min-w-0 flex-col" onClick={onClose}>
-                            <span className="text-lg font-semibold tracking-tight text-stone-800">
+                            <span className="text-lg font-semibold tracking-tight text-stone-800 dark:text-elivis-ink">
                                 Elivis
                             </span>
-                            <span className="text-[11px] font-medium uppercase tracking-wider text-orange-700/90">
+                            <span className="text-[11px] font-medium uppercase tracking-wider text-orange-700/90 dark:text-elivis-accent">
                                 {tAdmin("brandSubtitle")}
                             </span>
                         </Link>
@@ -374,7 +374,7 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                                         onClose();
                                     }
                                 }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-600 transition-colors hover:bg-stone-100"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                                 aria-label={tSidebar("collapse")}
                             >
                                 <svg
@@ -412,8 +412,8 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                       ${showLabels ? "gap-3 px-3 py-2.5" : "justify-center px-2 py-2.5"}
                       ${
                           isActive
-                              ? "bg-orange-50 text-orange-800"
-                              : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                              ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                              : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink"
                       }
                     `}
                                         >
@@ -448,8 +448,8 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                           flex items-center justify-center rounded-lg px-2 py-2.5 text-sm font-medium transition-colors
                           ${
                               isActive
-                                  ? "bg-orange-50 text-orange-800"
-                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-800"
+                                  ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink"
                           }
                         `}
                                                 >
@@ -470,8 +470,8 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                       flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors
                       ${
                           groupActive
-                              ? "text-orange-800"
-                              : "text-stone-700 hover:bg-stone-50 hover:text-stone-800"
+                              ? "text-orange-800 dark:text-elivis-accent-hover"
+                              : "text-stone-700 hover:bg-stone-50 hover:text-stone-800 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink"
                       }
                     `}
                                         aria-expanded={expanded}
@@ -483,7 +483,7 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                                         <ChevronIcon className="h-4 w-4 shrink-0 opacity-70" open={expanded} />
                                     </button>
                                     {expanded && (
-                                        <ul className="ml-2 space-y-0.5 border-l border-stone-100 pl-2">
+                                        <ul className="ml-2 space-y-0.5 border-l border-stone-100 dark:border-elivis-line pl-2">
                                             {item.children.map((child) => {
                                                 const ChildIcon = child.icon;
                                                 const isActive = leafIsActive(pathname, child.href);
@@ -496,8 +496,8 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                                 flex items-center gap-2 rounded-lg py-1.5 pl-1 pr-2 text-xs font-medium transition-colors
                                 ${
                                     isActive
-                                        ? "bg-orange-50 text-orange-800"
-                                        : "text-stone-500 hover:bg-stone-100 hover:text-stone-700"
+                                        ? "bg-orange-50 text-orange-800 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover"
+                                        : "text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface/60 dark:hover:text-elivis-ink"
                                 }
                               `}
                                                         >
@@ -517,13 +517,13 @@ export function AdminSidebar({ open, onClose, size, onSizeChange }: AdminSidebar
                     </ul>
                 </nav>
 
-                <div className={`shrink-0 border-t border-stone-100 ${showLabels ? "p-3" : "p-2"}`}>
+                <div className={`shrink-0 border-t border-stone-100 dark:border-elivis-line ${showLabels ? "p-3" : "p-2"}`}>
                     <Link
                         href="/"
                         onClick={onClose}
                         className={`
               flex items-center rounded-lg text-xs font-medium text-stone-500 transition-colors
-              hover:bg-stone-100 hover:text-stone-700
+              hover:bg-stone-100 hover:text-stone-700 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated dark:hover:text-elivis-ink
               ${showLabels ? "gap-2 px-3 py-2" : "justify-center px-2 py-2"}
             `}
                     >

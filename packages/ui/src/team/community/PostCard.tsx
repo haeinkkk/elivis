@@ -40,11 +40,11 @@ export function PostCard({
             className={`
                 w-full border-l-[3px] px-4 py-3.5 text-left transition-all
                 ${card.border}
-                ${isSelected ? card.selectedBg + " shadow-sm" : `bg-white ${card.hoverBg}`}
+                ${isSelected ? card.selectedBg + " shadow-sm" : `bg-white dark:bg-elivis-surface ${card.hoverBg}`}
             `}
         >
             {post.isPinned && (
-                <div className="mb-2 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-amber-500">
+                <div className="mb-2 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-amber-500 dark:text-amber-400">
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
                     </svg>
@@ -58,24 +58,24 @@ export function PostCard({
                 >
                     {badgeLabel}
                 </span>
-                <span className="truncate text-[10px] text-stone-400">
+                <span className="truncate text-[10px] text-stone-400 dark:text-elivis-ink-secondary">
                     {displayTeamPostAuthorName(post.author)}
                 </span>
-                <span className="ml-auto shrink-0 text-[10px] text-stone-400">{dateStr}</span>
+                <span className="ml-auto shrink-0 text-[10px] text-stone-400 dark:text-elivis-ink-secondary">{dateStr}</span>
             </div>
 
             <p
-                className={`line-clamp-1 text-sm font-semibold leading-snug ${isSelected ? "text-stone-900" : "text-stone-800"}`}
+                className={`line-clamp-1 text-sm font-semibold leading-snug ${isSelected ? "text-stone-900 dark:text-elivis-ink" : "text-stone-800 dark:text-elivis-ink"}`}
             >
                 {post.title}
             </p>
 
-            <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-stone-500">
+            <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-stone-500 dark:text-elivis-ink-secondary">
                 {stripHtml(post.content)}
             </p>
 
             {commentCount > 0 && (
-                <div className="mt-2 flex items-center gap-1 text-stone-400">
+                <div className="mt-2 flex items-center gap-1 text-stone-400 dark:text-elivis-ink-secondary">
                     <svg
                         className="h-3 w-3"
                         fill="none"

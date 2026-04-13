@@ -38,11 +38,11 @@ function ProjectCard({
     const isPersonal = tags.length === 0;
 
     return (
-        <li className="group rounded-xl border border-stone-200 bg-white transition-all hover:border-stone-300 hover:shadow-md">
+        <li className="group rounded-xl border border-stone-200 bg-white transition-all hover:border-stone-300 hover:shadow-md dark:border-elivis-line dark:bg-elivis-surface dark:hover:border-elivis-line dark:hover:shadow-md">
             <div className={`flex items-start gap-4 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}>
                 {/* 아이콘 — 클릭 시 프로젝트 이동 */}
                 <Link href={`/projects/${project.id}`} tabIndex={-1} className="shrink-0">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-100 text-stone-500 transition-colors group-hover:bg-stone-200 group-hover:text-stone-600 sm:h-11 sm:w-11">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-100 text-stone-500 transition-colors group-hover:bg-stone-200 group-hover:text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary dark:group-hover:bg-white/10 dark:group-hover:text-elivis-ink sm:h-11 sm:w-11">
                         <svg
                             className="h-5 w-5 sm:h-6 sm:w-6"
                             fill="none"
@@ -63,7 +63,7 @@ function ProjectCard({
                 <Link href={`/projects/${project.id}`} className="min-w-0 flex-1 block">
                     <div className="flex min-w-0 items-center gap-1.5">
                         <h3
-                            className={`min-w-0 truncate font-semibold text-stone-800 transition-colors group-hover:text-stone-900 ${
+                            className={`min-w-0 truncate font-semibold text-stone-800 transition-colors group-hover:text-stone-900 dark:text-elivis-ink dark:group-hover:text-elivis-ink ${
                                 compact ? "text-sm" : ""
                             }`}
                         >
@@ -77,7 +77,7 @@ function ProjectCard({
                             onRemove={() => removeProjectFavoriteAction(project.id)}
                         />
                         {isPersonal ? (
-                            <span className="shrink-0 rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600">
+                            <span className="shrink-0 rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:border-sky-500/35 dark:bg-sky-950/45 dark:text-sky-300">
                                 {t("personalBadge")}
                             </span>
                         ) : (
@@ -85,13 +85,13 @@ function ProjectCard({
                                 {tags.slice(0, 3).map((tm) => (
                                     <span
                                         key={tm.id}
-                                        className="shrink-0 rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-600"
+                                        className="shrink-0 rounded-md border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-2 py-0.5 text-[11px] font-medium text-stone-600 dark:text-elivis-ink-secondary"
                                     >
                                         {tm.name}
                                     </span>
                                 ))}
                                 {tags.length > 3 && (
-                                    <span className="shrink-0 text-[11px] text-stone-500">
+                                    <span className="shrink-0 text-[11px] text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("moreTeams", { count: tags.length - 3 })}
                                     </span>
                                 )}
@@ -100,22 +100,22 @@ function ProjectCard({
                     </div>
                     <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <p
-                            className={`text-stone-500 line-clamp-1 ${compact ? "text-xs" : "text-sm"}`}
+                            className={`line-clamp-1 text-stone-500 dark:text-elivis-ink-secondary ${compact ? "text-xs" : "text-sm"}`}
                             title={project.description ?? undefined}
                         >
                             {project.description ? truncate(project.description, 50) : t("noDesc")}
                         </p>
-                        <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 sm:gap-x-4">
+                        <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 dark:text-elivis-ink-secondary sm:gap-x-4">
                             <span>
                                 {t("membersLabel")}{" "}
-                                <span className="font-medium text-stone-600">
+                                <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("membersCount", { count: project._count.members })}
                                 </span>
                             </span>
-                            <span className="text-stone-300">|</span>
+                            <span className="text-stone-300 dark:text-elivis-line">|</span>
                             <span>
                                 {t("tasksLabel")}{" "}
-                                <span className="font-medium text-stone-600">
+                                <span className="font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                     {t("tasksCount", { count: project._count.tasks })}
                                 </span>
                             </span>
@@ -124,7 +124,11 @@ function ProjectCard({
                 </Link>
 
                 {/* 화살표 */}
-                <Link href={`/projects/${project.id}`} tabIndex={-1} className="shrink-0 self-center text-stone-300 transition-transform group-hover:translate-x-0.5">
+                <Link
+                    href={`/projects/${project.id}`}
+                    tabIndex={-1}
+                    className="shrink-0 self-center text-stone-300 transition-transform group-hover:translate-x-0.5 dark:text-elivis-ink-muted"
+                >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
@@ -168,10 +172,10 @@ export function ProjectsPageClient({
             <div className="w-full max-w-full">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <h2 className="text-2xl font-semibold text-stone-800 sm:text-3xl">
+                        <h2 className="text-2xl font-semibold text-stone-800 dark:text-elivis-ink sm:text-3xl">
                             {t("title")}
                         </h2>
-                        <p className="mt-2 text-stone-600">{t("subtitle")}</p>
+                        <p className="mt-2 text-stone-600 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
                     </div>
                     <Link
                         href="/projects/new"
@@ -196,7 +200,7 @@ export function ProjectsPageClient({
                     <div className="mt-12 flex flex-col items-center justify-center py-16 text-center sm:mt-16 sm:py-24">
                         <span className="flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
                             <svg
-                                className="h-14 w-14 text-stone-800 sm:h-16 sm:w-16"
+                                className="h-14 w-14 text-stone-800 dark:text-elivis-ink sm:h-16 sm:w-16"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 strokeWidth={1.5}
@@ -206,7 +210,7 @@ export function ProjectsPageClient({
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 9l-6 6M9 9l6 6" />
                             </svg>
                         </span>
-                        <p className="mt-4 text-xl font-medium text-stone-800 sm:text-2xl">
+                        <p className="mt-4 text-xl font-medium text-stone-800 dark:text-elivis-ink sm:text-2xl">
                             {searchQuery ? t("emptySearch") : t("emptyNone")}
                         </p>
                         {!searchQuery && (
@@ -226,24 +230,24 @@ export function ProjectsPageClient({
                                 <div>
                                     <h3
                                         id="projects-mine-heading"
-                                        className="text-base font-semibold text-stone-900 sm:text-lg"
+                                        className="text-base font-semibold text-stone-900 dark:text-elivis-ink sm:text-lg"
                                     >
                                         {t("myTitle")}
                                     </h3>
-                                    <p className="mt-1 text-xs text-stone-500">
+                                    <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {t("myDesc")}
                                     </p>
                                 </div>
                                 {myProjects.length > MY_PAGE_SIZE && (
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-xs tabular-nums text-stone-400">
+                                        <span className="text-xs tabular-nums text-stone-400 dark:text-elivis-ink-secondary">
                                             {safePage}/{totalPages}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                             disabled={safePage <= 1}
-                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:pointer-events-none disabled:opacity-50"
                                             aria-label={t("pagePrev")}
                                         >
                                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -254,7 +258,7 @@ export function ProjectsPageClient({
                                             type="button"
                                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                             disabled={safePage >= totalPages}
-                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:opacity-50"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface text-stone-600 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:pointer-events-none disabled:opacity-50"
                                             aria-label={t("pageNext")}
                                         >
                                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -266,7 +270,7 @@ export function ProjectsPageClient({
                             </div>
 
                             {myProjects.length === 0 ? (
-                                <p className="mt-3 text-sm text-stone-500">
+                                <p className="mt-3 text-sm text-stone-500 dark:text-elivis-ink-secondary">
                                     {searchQuery ? t("myEmptySearch") : t("myEmptyNone")}
                                 </p>
                             ) : (
@@ -290,11 +294,11 @@ export function ProjectsPageClient({
                             >
                                 <h3
                                     id="projects-team-heading"
-                                    className="text-base font-semibold text-stone-900 sm:text-lg"
+                                    className="text-base font-semibold text-stone-900 dark:text-elivis-ink sm:text-lg"
                                 >
                                     {t("otherTitle")}
                                 </h3>
-                                <p className="mt-1 text-xs text-stone-500">
+                                <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("otherDesc")}
                                 </p>
                                 <ul className="mt-3 space-y-2">
@@ -319,15 +323,15 @@ export function ProjectsPageClient({
                                 <div className="flex items-center gap-2">
                                     <h3
                                         id="projects-admin-heading"
-                                        className="text-base font-semibold text-stone-900 sm:text-lg"
+                                        className="text-base font-semibold text-stone-900 dark:text-elivis-ink sm:text-lg"
                                     >
                                         {t("adminTitle")}
                                     </h3>
-                                    <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                    <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-elivis-accent-hover ring-1 ring-inset ring-amber-600/20">
                                         {t("adminBadge")}
                                     </span>
                                 </div>
-                                <p className="mt-1 text-xs text-stone-500">
+                                <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("adminDesc")}
                                 </p>
                                 <ul className="mt-3 space-y-2">

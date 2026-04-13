@@ -205,10 +205,7 @@ export function DocxUploader({ onParsed }: DocxUploaderProps) {
       {/* 파일 프리뷰 카드 */}
       {selectedFile && (
         <div
-          className="
-            flex items-center gap-4 rounded-2xl border border-slate-200/80
-            bg-white p-4 shadow-sm ring-1 ring-slate-900/5
-          "
+          className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white dark:bg-elivis-surface p-4 shadow-sm ring-1 ring-slate-900/5"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
@@ -228,12 +225,7 @@ export function DocxUploader({ onParsed }: DocxUploaderProps) {
               e.stopPropagation();
               handleRemoveFile();
             }}
-            className="
-              flex h-10 w-10 shrink-0 items-center justify-center rounded-xl
-              text-slate-400 transition-colors duration-200
-              hover:bg-indigo-50 hover:text-indigo-600
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2
-            "
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors duration-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2"
             aria-label="파일 제거"
           >
             <XMarkIcon className="h-5 w-5" />
@@ -246,14 +238,7 @@ export function DocxUploader({ onParsed }: DocxUploaderProps) {
         type="button"
         onClick={handleAnalyze}
         disabled={!selectedFile || isParsing}
-        className="
-          w-full rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white
-          shadow-sm ring-1 ring-slate-900/5
-          transition-all duration-200 ease-out
-          hover:bg-indigo-700 hover:shadow-md
-          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-          disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:bg-indigo-600
-        "
+        className="w-full rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm ring-1 ring-slate-900/5 transition-all duration-200 ease-out hover:bg-indigo-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:bg-indigo-600"
       >
         {isParsing ? "분석 중…" : "문서 분석 시작"}
       </button>

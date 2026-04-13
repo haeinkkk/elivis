@@ -28,11 +28,11 @@ function formatDate(
 function RoleBadge({ role }: { role: "SUPER_ADMIN" | "USER" }) {
     const t = useTranslations("domain.systemRole");
     return role === "SUPER_ADMIN" ? (
-        <span className="inline-flex items-center rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+        <span className="inline-flex items-center rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 dark:bg-elivis-accent-strong/30 dark:text-elivis-accent-hover">
             {t("SUPER_ADMIN")}
         </span>
     ) : (
-        <span className="inline-flex items-center rounded-lg bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">
+        <span className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated px-2.5 py-1 text-xs font-semibold text-stone-600 dark:text-elivis-ink-secondary">
             {t("USER")}
         </span>
     );
@@ -111,20 +111,20 @@ function InfoSection({
     }
 
     return (
-        <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-            <div className="border-b border-stone-100 px-5 py-4">
-                <h2 className="text-sm font-semibold text-stone-800">{t("sectionUserInfo")}</h2>
+        <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+            <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("sectionUserInfo")}</h2>
             </div>
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-stone-100 dark:divide-elivis-line">
                 {/* 이메일 */}
                 <div className="flex items-center gap-4 px-5 py-4">
-                    <span className="w-28 shrink-0 text-xs font-medium text-stone-500">{t("email")}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-stone-700">{user.email}</span>
+                    <span className="w-28 shrink-0 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("email")}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-stone-700 dark:text-elivis-ink">{user.email}</span>
                 </div>
 
                 {/* 이름 */}
                 <form onSubmit={onSubmitName} className="flex items-start gap-4 px-5 py-4">
-                    <label htmlFor="edit-name" className="mt-2.5 w-28 shrink-0 text-xs font-medium text-stone-500">
+                    <label htmlFor="edit-name" className="mt-2.5 w-28 shrink-0 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">
                         {t("name")}
                     </label>
                     <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -139,7 +139,7 @@ function InfoSection({
                                 setError(null);
                                 setSuccess(false);
                             }}
-                            className="w-full max-w-xs rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                            className="w-full max-w-xs rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                         />
                         <button
                             type="submit"
@@ -156,12 +156,12 @@ function InfoSection({
                         <span className="w-28 shrink-0" aria-hidden />
                         <div className="min-w-0 flex-1">
                             {error && (
-                                <p className="text-xs text-red-600" role="alert">
+                                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                                     {error}
                                 </p>
                             )}
                             {success && (
-                                <p className="text-xs text-green-600" role="status">
+                                <p className="text-xs text-green-600 dark:text-emerald-400" role="status">
                                     {t("saveSuccess")}
                                 </p>
                             )}
@@ -172,12 +172,12 @@ function InfoSection({
                 {/* 계정 역할 */}
                 <div className="px-5 py-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                        <span className="w-28 shrink-0 pt-0.5 text-xs font-medium text-stone-500">{t("role")}</span>
+                        <span className="w-28 shrink-0 pt-0.5 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("role")}</span>
                         <div className="min-w-0 flex-1 space-y-2">
                             {isSelf ? (
                                 <div className="flex flex-wrap items-center gap-2">
                                     <RoleBadge role={user.systemRole} />
-                                    <span className="text-xs text-stone-400">{tList("selfSuffix")}</span>
+                                    <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{tList("selfSuffix")}</span>
                                 </div>
                             ) : (
                                 <div className="flex flex-wrap items-center gap-3">
@@ -189,7 +189,7 @@ function InfoSection({
                                             setRoleSuccess(false);
                                             setRoleError(null);
                                         }}
-                                        className="max-w-xs rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                                        className="max-w-xs rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                                         aria-label={tList("systemRoleLabel")}
                                     >
                                         <option value="USER">
@@ -213,9 +213,9 @@ function InfoSection({
                                     >
                                         {rolePending ? t("roleSaving") : t("roleSave")}
                                     </button>
-                                    {roleError && <p className="w-full text-xs text-red-600">{roleError}</p>}
+                                    {roleError && <p className="w-full text-xs text-red-600 dark:text-red-400">{roleError}</p>}
                                     {roleSuccess && (
-                                        <p className="w-full text-xs text-green-600">{t("roleSaved")}</p>
+                                        <p className="w-full text-xs text-green-600 dark:text-emerald-400">{t("roleSaved")}</p>
                                     )}
                                 </div>
                             )}
@@ -225,8 +225,8 @@ function InfoSection({
 
                 {/* 가입일 */}
                 <div className="flex items-center gap-4 px-5 py-4">
-                    <span className="w-28 shrink-0 text-xs font-medium text-stone-500">{t("joined")}</span>
-                    <span className="text-sm text-stone-700">
+                    <span className="w-28 shrink-0 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary">{t("joined")}</span>
+                    <span className="text-sm text-stone-700 dark:text-elivis-ink">
                         {formatDate(user.createdAt, locale, { dateStyle: "long", timeStyle: "short" })}
                     </span>
                 </div>
@@ -234,20 +234,20 @@ function InfoSection({
                 {/* 소속 팀 */}
                 <div className="px-5 py-4">
                     <div className="mb-3 flex items-center justify-between gap-2">
-                        <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                             {t("sectionTeams")}
                         </h3>
-                        <span className="text-xs text-stone-400">{t("teamsTotal", { count: teams.length })}</span>
+                        <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("teamsTotal", { count: teams.length })}</span>
                     </div>
                     {teams.length === 0 ? (
-                        <p className="text-sm text-stone-400">{t("teamsEmpty")}</p>
+                        <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("teamsEmpty")}</p>
                     ) : (
-                        <ul className="divide-y divide-stone-100 rounded-xl border border-stone-100">
+                        <ul className="divide-y divide-stone-100 dark:divide-elivis-line rounded-xl border border-stone-100 dark:border-elivis-line">
                             {teams.map((m) => (
                                 <li key={m.team.id} className="flex items-start gap-3 px-4 py-3">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated">
                                         <svg
-                                            className="h-4 w-4 text-stone-500"
+                                            className="h-4 w-4 text-stone-500 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={1.5}
@@ -263,21 +263,21 @@ function InfoSection({
                                     <div className="min-w-0 flex-1">
                                         <Link
                                             href={`/teams/${m.team.id}`}
-                                            className="truncate text-sm font-medium text-stone-800 underline-offset-2 hover:underline"
+                                            className="truncate text-sm font-medium text-stone-800 dark:text-elivis-ink underline-offset-2 hover:underline"
                                         >
                                             {m.team.name}
                                         </Link>
                                         {m.team.shortDescription && (
-                                            <p className="mt-0.5 truncate text-xs text-stone-500">
+                                            <p className="mt-0.5 truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                 {m.team.shortDescription}
                                             </p>
                                         )}
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <span className="inline-flex items-center rounded-lg bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600">
+                                        <span className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                             {tTeamRole(m.role as "LEADER" | "MEMBER")}
                                         </span>
-                                        <p className="mt-1 text-xs text-stone-400">
+                                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                             {formatDate(m.joinedAt, locale)}
                                         </p>
                                     </div>
@@ -290,20 +290,20 @@ function InfoSection({
                 {/* 참여 프로젝트 */}
                 <div className="px-5 py-4">
                     <div className="mb-3 flex items-center justify-between gap-2">
-                        <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                             {t("sectionProjects")}
                         </h3>
-                        <span className="text-xs text-stone-400">{t("projectsTotal", { count: projects.length })}</span>
+                        <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("projectsTotal", { count: projects.length })}</span>
                     </div>
                     {projects.length === 0 ? (
-                        <p className="text-sm text-stone-400">{t("projectsEmpty")}</p>
+                        <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("projectsEmpty")}</p>
                     ) : (
-                        <ul className="divide-y divide-stone-100 rounded-xl border border-stone-100">
+                        <ul className="divide-y divide-stone-100 dark:divide-elivis-line rounded-xl border border-stone-100 dark:border-elivis-line">
                             {projects.map((m) => (
                                 <li key={m.project.id} className="flex items-start gap-3 px-4 py-3">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated">
                                         <svg
-                                            className="h-4 w-4 text-stone-500"
+                                            className="h-4 w-4 text-stone-500 dark:text-elivis-ink-secondary"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             strokeWidth={1.5}
@@ -319,23 +319,23 @@ function InfoSection({
                                     <div className="min-w-0 flex-1">
                                         <Link
                                             href={`/projects/${m.project.id}`}
-                                            className="truncate text-sm font-medium text-stone-800 underline-offset-2 hover:underline"
+                                            className="truncate text-sm font-medium text-stone-800 dark:text-elivis-ink underline-offset-2 hover:underline"
                                         >
                                             {m.project.name}
                                         </Link>
                                         {m.project.description && (
-                                            <p className="mt-0.5 truncate text-xs text-stone-500">
+                                            <p className="mt-0.5 truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                 {m.project.description}
                                             </p>
                                         )}
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <span className="inline-flex items-center rounded-lg bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600">
+                                        <span className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-elivis-surface-elevated px-2 py-0.5 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                             {m.participationSource === "team_public"
                                                 ? t("projectViaTeamPublic")
                                                 : tProj(m.role as "LEADER" | "DEPUTY_LEADER" | "MEMBER")}
                                         </span>
-                                        <p className="mt-1 text-xs text-stone-400">
+                                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                             {formatDate(m.joinedAt, locale)}
                                         </p>
                                     </div>
@@ -413,27 +413,27 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
     }
 
     return (
-        <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-            <div className="border-b border-stone-100 px-4 py-4 sm:px-5 md:px-6">
-                <h2 className="text-sm font-semibold text-stone-800">{t("sectionAccess")}</h2>
+        <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+            <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-4 sm:px-5 md:px-6">
+                <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("sectionAccess")}</h2>
             </div>
             <div className="space-y-4 px-4 py-5 sm:px-5 sm:py-6 md:px-6">
                 {isSelf ? (
-                    <p className="text-sm text-stone-400">{t("accessSelfLocked")}</p>
+                    <p className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("accessSelfLocked")}</p>
                 ) : (
                     <>
                         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                             <span
                                 className={`inline-flex w-fit items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
                                     user.accessBlocked
-                                        ? "bg-red-50 text-red-700"
-                                        : "bg-stone-100 text-stone-600"
+                                        ? "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300"
+                                        : "bg-stone-100 text-stone-600 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
                                 }`}
                             >
                                 {user.accessBlocked ? t("accessBlockedOn") : t("accessBlockedOff")}
                             </span>
                             {user.accessBlocked && user.accessBlockedAt ? (
-                                <p className="text-xs text-stone-500">
+                                <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                     {t("accessBlockedAt")}:{" "}
                                     {formatDate(user.accessBlockedAt, locale, {
                                         dateStyle: "medium",
@@ -444,7 +444,7 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
                         </div>
 
                         {user.accessBlocked && blockEnabled ? (
-                            <p className="text-xs text-stone-500">{t("accessReasonUnchangedHint")}</p>
+                            <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("accessReasonUnchangedHint")}</p>
                         ) : null}
 
                         <label className="flex cursor-pointer items-start gap-3">
@@ -457,9 +457,9 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
                                     setSaveOk(false);
                                     setSaveError(null);
                                 }}
-                                className="mt-1 h-4 w-4 shrink-0 rounded border-stone-300 text-orange-600 focus:ring-orange-200"
+                                className="mt-1 h-4 w-4 shrink-0 rounded border-stone-300 dark:border-elivis-line text-orange-600 focus:ring-orange-200"
                             />
-                            <span className="text-sm leading-snug text-stone-700">
+                            <span className="text-sm leading-snug text-stone-700 dark:text-elivis-ink">
                                 {t("accessBlockedLabel")}
                             </span>
                         </label>
@@ -467,7 +467,7 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
                         <div className="w-full">
                             <label
                                 htmlFor="access-reason"
-                                className="mb-1.5 block text-xs font-medium text-stone-500"
+                                className="mb-1.5 block text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary"
                             >
                                 {t("accessBlockReasonLabel")}
                             </label>
@@ -482,7 +482,7 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
                                     setSaveError(null);
                                 }}
                                 placeholder={t("accessBlockReasonPlaceholder")}
-                                className="min-h-[100px] w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 md:max-w-3xl"
+                                className="min-h-[100px] w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3 py-2.5 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 md:max-w-3xl dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                             />
                         </div>
 
@@ -496,10 +496,10 @@ function AccessSection({ user, isSelf }: { user: AdminUserDetail; isSelf: boolea
                                 {pending ? t("accessBlockSaving") : t("accessBlockSave")}
                             </button>
                             {saveError ? (
-                                <p className="text-xs text-red-600">{saveError}</p>
+                                <p className="text-xs text-red-600 dark:text-red-400">{saveError}</p>
                             ) : null}
                             {saveOk ? (
-                                <p className="text-xs text-green-600">{t("accessBlockSaved")}</p>
+                                <p className="text-xs text-green-600 dark:text-emerald-400">{t("accessBlockSaved")}</p>
                             ) : null}
                         </div>
                     </>
@@ -550,14 +550,14 @@ function ManageSection({ user }: { user: AdminUserDetail }) {
     }
 
     return (
-        <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-            <div className="border-b border-stone-100 px-5 py-4">
-                <h2 className="text-sm font-semibold text-stone-800">{tDetail("sectionManage")}</h2>
+        <section className="overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
+            <div className="border-b border-stone-100 dark:border-elivis-line px-5 py-4">
+                <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{tDetail("sectionManage")}</h2>
             </div>
 
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-stone-100 dark:divide-elivis-line">
                 <div className="px-5 py-5">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-elivis-ink-secondary">
                         {tDetail("passwordReset")}
                     </p>
                     <form onSubmit={onPasswordSave} className="space-y-3">
@@ -573,13 +573,13 @@ function ManageSection({ user }: { user: AdminUserDetail }) {
                                     setPwError(null);
                                     setPwSuccess(false);
                                 }}
-                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 pr-10 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
+                                className="w-full rounded-xl border border-stone-200 dark:border-elivis-line bg-stone-50 dark:bg-elivis-surface px-3.5 py-2.5 pr-10 text-sm text-stone-800 dark:text-elivis-ink outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:focus:border-elivis-accent dark:focus:bg-elivis-surface dark:focus:ring-elivis-accent/30"
                             />
                             <button
                                 type="button"
                                 tabIndex={-1}
                                 onClick={() => setShowPw((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink"
                             >
                                 {showPw ? (
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -614,12 +614,12 @@ function ManageSection({ user }: { user: AdminUserDetail }) {
                                     setPwError(null);
                                     setPwSuccess(false);
                                 }}
-                                className={`w-full rounded-xl border bg-stone-50 px-3.5 py-2.5 pr-16 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:bg-white disabled:opacity-50 ${
+                                className={`w-full rounded-xl border bg-stone-50 px-3.5 py-2.5 pr-16 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:bg-white disabled:opacity-50 dark:bg-elivis-surface dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:bg-elivis-surface ${
                                     pwMismatch
-                                        ? "border-red-300 focus:border-red-300 focus:ring-2 focus:ring-red-100"
+                                        ? "border-red-300 focus:border-red-300 focus:ring-2 focus:ring-red-100 dark:border-red-800 dark:focus:border-red-500 dark:focus:ring-red-900/40"
                                         : confirm && !pwMismatch
-                                          ? "border-green-300 focus:border-green-300 focus:ring-2 focus:ring-green-100"
-                                          : "border-stone-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-200"
+                                          ? "border-green-300 focus:border-green-300 focus:ring-2 focus:ring-green-100 dark:border-green-700 dark:focus:border-green-500 dark:focus:ring-green-900/40"
+                                          : "border-stone-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-200 dark:border-elivis-line dark:focus:border-elivis-accent dark:focus:ring-elivis-accent/30"
                                 }`}
                             />
                             {confirm && (
@@ -639,7 +639,7 @@ function ManageSection({ user }: { user: AdminUserDetail }) {
                                 type="button"
                                 tabIndex={-1}
                                 onClick={() => setShowCf((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-elivis-ink-secondary hover:text-stone-600 dark:hover:text-elivis-ink"
                             >
                                 {showCf ? (
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -670,8 +670,8 @@ function ManageSection({ user }: { user: AdminUserDetail }) {
                             >
                                 {pwPending ? tDetail("passwordSaving") : tDetail("passwordSubmit")}
                             </button>
-                            {pwError && <p className="text-xs text-red-600">{pwError}</p>}
-                            {pwSuccess && <p className="text-xs text-green-600">{tDetail("passwordSaved")}</p>}
+                            {pwError && <p className="text-xs text-red-600 dark:text-red-400">{pwError}</p>}
+                            {pwSuccess && <p className="text-xs text-green-600 dark:text-emerald-400">{tDetail("passwordSaved")}</p>}
                         </div>
                     </form>
                 </div>
@@ -689,7 +689,7 @@ export function AdminEditUserClient({ user, isSelf }: AdminEditUserClientProps) 
         <div className="w-full max-w-full space-y-1">
             <Link
                 href="/admin/users"
-                className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-800"
+                className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:text-stone-800 dark:hover:text-elivis-ink"
             >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />

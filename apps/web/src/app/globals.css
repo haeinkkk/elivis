@@ -6,8 +6,29 @@
     html {
         @apply scroll-smooth;
     }
+
+    /**
+     * 다크 테마 토큰 (Material-style elevation: 그림자 대신 면 밝기 차)
+     * - 배경 #121212 / 카드 #1E1E1E / 플로팅 #2C2C2C
+     * - 포인트: #8D6E63 / hover #A1887F / 강조 #5D4037
+     * - 본문 #E1E1E1, 보조 #A0A0A0, 비활성·placeholder #6C6C6C
+     */
+    .dark {
+        --elivis-bg: 18 18 18;
+        --elivis-surface-1: 30 30 30;
+        --elivis-surface-2: 44 44 44;
+        --elivis-accent: 141 110 99;
+        --elivis-accent-hover: 161 136 127;
+        --elivis-accent-strong: 93 64 55;
+        --elivis-text-primary: 225 225 225;
+        --elivis-text-secondary: 160 160 160;
+        --elivis-text-muted: 108 108 108;
+        --elivis-border: 42 42 42;
+        color-scheme: dark;
+    }
+
     body {
-        @apply bg-[#f8f7f5] text-stone-800 antialiased font-sans;
+        @apply bg-[#f8f7f5] text-stone-800 antialiased font-sans dark:bg-elivis-bg dark:text-elivis-ink;
     }
 }
 

@@ -61,7 +61,7 @@ export function LanguageSelector({
                     type="button"
                     onClick={() => setOpen((v) => !v)}
                     aria-expanded={open}
-                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                 >
                     <span className="text-base leading-none">{current.flag}</span>
                     <span>{current.label}</span>
@@ -129,7 +129,7 @@ export function LanguageSelector({
                     type="button"
                     onClick={() => setOpen((v) => !v)}
                     aria-expanded={open}
-                    className="flex w-full items-center justify-between rounded-lg px-1 py-1 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-50 hover:text-stone-700"
+                    className="flex w-full items-center justify-between rounded-lg px-1 py-1 text-sm font-medium text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated hover:text-stone-700"
                 >
                     <span className="flex items-center gap-2">
                         <span className="text-base leading-none">{current.flag}</span>
@@ -151,7 +151,7 @@ export function LanguageSelector({
                 </button>
 
                 {open && (
-                    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg">
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-lg">
                         {LANG_OPTIONS.map(({ value, label, flag }) => (
                             <button
                                 key={value}
@@ -194,7 +194,7 @@ export function LanguageSelector({
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-600 shadow-sm transition-all hover:border-stone-300 hover:bg-stone-50 hover:shadow"
+                className="flex items-center gap-2 rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm font-medium text-stone-600 dark:text-elivis-ink-secondary shadow-sm transition-all hover:border-stone-300 hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated hover:shadow"
             >
                 <span className="text-base leading-none">{current.flag}</span>
                 <span>{current.label}</span>

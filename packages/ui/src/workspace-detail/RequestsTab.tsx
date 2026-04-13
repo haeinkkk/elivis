@@ -77,7 +77,7 @@ export function RequestsTab({
     if (loading) {
         return (
             <div className="flex flex-1 items-center justify-center py-20">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600" />
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-200 dark:border-elivis-line border-t-stone-600" />
             </div>
         );
     }
@@ -93,20 +93,20 @@ export function RequestsTab({
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
             {/* 헤더 */}
-            <div className="border-b border-stone-200 bg-white px-5 py-3">
+            <div className="border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-5 py-3">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-sm font-semibold text-stone-800">{t("headerTitle")}</h2>
-                        <p className="text-xs text-stone-400">{t("headerSubtitle")}</p>
+                        <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("headerTitle")}</h2>
+                        <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("headerSubtitle")}</p>
                     </div>
-                    <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
+                    <span className="rounded-full bg-stone-100 dark:bg-elivis-surface-elevated px-2.5 py-0.5 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                         {t("countBadge", { count: requests.length })}
                     </span>
                 </div>
             </div>
 
             {actionError && (
-                <div className="mx-5 mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+                <div className="mx-5 mt-3 rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs text-red-600 dark:text-red-400">
                     {actionError}
                 </div>
             )}
@@ -118,10 +118,10 @@ export function RequestsTab({
                         <p className="text-3xl" aria-hidden>
                             📬
                         </p>
-                        <p className="mt-3 text-sm font-semibold text-stone-700">
+                        <p className="mt-3 text-sm font-semibold text-stone-700 dark:text-elivis-ink">
                             {t("emptyTitle")}
                         </p>
-                        <p className="mt-1 text-xs text-stone-400">{t("emptyDesc")}</p>
+                        <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">{t("emptyDesc")}</p>
                     </div>
                 </div>
             ) : (
@@ -134,12 +134,12 @@ export function RequestsTab({
                         return (
                             <li
                                 key={req.id}
-                                className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                                className="rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-4 shadow-sm transition-shadow hover:shadow-md"
                             >
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                                     {/* 요청자 */}
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-elivis-ink-secondary">
                                             {t("senderLabel")}
                                         </p>
                                         <div className="mt-2 flex items-start gap-2.5">
@@ -147,7 +147,7 @@ export function RequestsTab({
                                                 <img
                                                     src={req.fromUser.avatarUrl}
                                                     alt=""
-                                                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-stone-200"
+                                                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-stone-200 dark:ring-elivis-line"
                                                 />
                                             ) : (
                                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-600 text-xs font-semibold text-white">
@@ -156,19 +156,19 @@ export function RequestsTab({
                                             )}
                                             <div className="min-w-0">
                                                 <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                                                    <span className="text-sm font-semibold text-stone-800">
+                                                    <span className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                                                         {senderName}
                                                     </span>
                                                     {req.project && (
-                                                        <span className="text-xs text-stone-400">
+                                                        <span className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                             · {req.project.name}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mt-0.5 truncate text-xs text-stone-500">
+                                                <p className="mt-0.5 truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                                     {req.fromUser.email}
                                                 </p>
-                                                <p className="mt-1 text-[11px] text-stone-400">
+                                                <p className="mt-1 text-[11px] text-stone-400 dark:text-elivis-ink-secondary">
                                                     {formatDate(req.createdAt)}
                                                 </p>
                                             </div>
@@ -189,29 +189,29 @@ export function RequestsTab({
                                             type="button"
                                             onClick={() => handleReject(req.id)}
                                             disabled={isProcessing}
-                                            className="min-w-[88px] rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50 disabled:opacity-50"
+                                            className="min-w-[88px] rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                                         >
                                             {isProcessing ? t("processing") : t("reject")}
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 border-t border-stone-100 pt-4">
+                                <div className="mt-4 border-t border-stone-100 dark:border-elivis-line pt-4">
                                     {/* 제목 */}
-                                    <p className="text-sm font-semibold text-stone-800">
+                                    <p className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                                         {req.title}
                                     </p>
 
                                     {/* 긴급 뱃지 */}
                                     {req.isUrgent && (
-                                        <span className="mt-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600">
+                                        <span className="mt-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
                                             {t("urgent")}
                                         </span>
                                     )}
 
                                     {/* 내용 */}
                                     {req.content && (
-                                        <p className="mt-3 whitespace-pre-line rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">
+                                        <p className="mt-3 whitespace-pre-line rounded-lg bg-stone-50 dark:bg-elivis-surface px-3 py-2 text-xs text-stone-600 dark:text-elivis-ink-secondary">
                                             {req.content}
                                         </p>
                                     )}

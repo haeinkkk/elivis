@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { Locale } from "@repo/i18n";
 
+import { DarkModeSwitch } from "./theme/DarkModeSwitch";
 import { LanguageSelector } from "./LanguageSelector";
 import { StatusDropdown } from "./StatusDropdown";
 import type { UserProfile } from "./types/user-profile";
@@ -48,11 +49,11 @@ export function AdminHeader({
     }, [userMenuOpen]);
 
     return (
-        <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 bg-white/80 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
+        <header className="relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-100 dark:border-elivis-line bg-white/80 dark:bg-elivis-surface/90 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
             <button
                 type="button"
                 onClick={onMenuClick}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 md:hidden"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-700 md:hidden"
                 aria-label={t("openMenu")}
             >
                 <svg
@@ -72,22 +73,23 @@ export function AdminHeader({
 
             <div className="flex min-w-0 flex-1 items-center px-1 sm:px-2">
                 {title ? (
-                    <h1 className="truncate text-sm font-semibold text-stone-800 sm:text-base">
+                    <h1 className="truncate text-sm font-semibold text-stone-800 dark:text-elivis-ink sm:text-base">
                         {title}
                     </h1>
                 ) : (
-                    <span className="text-sm text-stone-400">{tAdmin("fallback")}</span>
+                    <span className="text-sm text-stone-400 dark:text-elivis-ink-secondary">{tAdmin("fallback")}</span>
                 )}
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
+                <DarkModeSwitch />
                 <LanguageSelector variant="header" align="right" onSelectLocale={onSelectLocale} />
 
                 <div ref={userMenuRef} className="relative">
                     <button
                         type="button"
                         onClick={() => setUserMenuOpen((v) => !v)}
-                        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-stone-100 focus:outline-none"
+                        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated focus:outline-none"
                         aria-label={t("userMenu")}
                         aria-expanded={userMenuOpen}
                     >
@@ -99,7 +101,7 @@ export function AdminHeader({
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-amber-100 text-sm font-semibold text-amber-700">
+                                <div className="flex h-full w-full items-center justify-center bg-amber-100 dark:bg-elivis-accent-strong/35 text-sm font-semibold text-amber-700 dark:text-elivis-accent-hover">
                                     {(user?.name ?? user?.email ?? "?")[0]?.toUpperCase()}
                                 </div>
                             )}
@@ -107,7 +109,7 @@ export function AdminHeader({
                     </button>
 
                     {userMenuOpen && (
-                        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-stone-200 bg-white shadow-lg">
+                        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-lg dark:shadow-none">
                             <div className="flex items-center gap-3 rounded-t-xl px-4 py-3">
                                 <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full">
                                     {toAvatarSrc(user?.avatarUrl) ? (
@@ -117,16 +119,16 @@ export function AdminHeader({
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-amber-100 text-sm font-semibold text-amber-700">
+                                        <div className="flex h-full w-full items-center justify-center bg-amber-100 dark:bg-elivis-accent-strong/35 text-sm font-semibold text-amber-700 dark:text-elivis-accent-hover">
                                             {(user?.name ?? user?.email ?? "?")[0]?.toUpperCase()}
                                         </div>
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-stone-800">
+                                    <p className="truncate text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                                         {user?.name ?? "—"}
                                     </p>
-                                    <p className="truncate text-xs text-stone-500">
+                                    <p className="truncate text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                         {user?.email ?? "—"}
                                     </p>
                                     {user?.status && (
@@ -140,11 +142,11 @@ export function AdminHeader({
                                 </div>
                             </div>
 
-                            <div className="h-px bg-stone-100" />
+                            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
                             <Link
                                 href="/settings"
-                                className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 hover:bg-stone-50"
+                                className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                                 onClick={() => setUserMenuOpen(false)}
                             >
                                 <svg
@@ -153,7 +155,7 @@ export function AdminHeader({
                                     viewBox="0 0 24 24"
                                     strokeWidth={1.5}
                                     stroke="currentColor"
-                                    className="h-4 w-4 shrink-0 text-stone-400"
+                                    className="h-4 w-4 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -169,12 +171,12 @@ export function AdminHeader({
                                 <span>{t("mySettings")}</span>
                             </Link>
 
-                            <div className="h-px bg-stone-100" />
+                            <div className="h-px bg-stone-100 dark:bg-elivis-surface-elevated" />
 
                             <form action={logoutAction}>
                                 <button
                                     type="submit"
-                                    className="flex w-full items-center justify-between rounded-b-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                                    className="flex w-full items-center justify-between rounded-b-xl px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
                                 >
                                     <span>{t("logout")}</span>
                                     <svg

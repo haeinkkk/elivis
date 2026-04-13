@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function TeamNotFound() {
     return (
         <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 p-8 text-center">
-            <p className="max-w-md text-stone-600">
+            <p className="max-w-md text-stone-600 dark:text-elivis-ink-secondary">
                 팀을 찾을 수 없습니다. 삭제되었거나, 이 팀의 멤버가 아닐 수 있습니다.
             </p>
             <Link

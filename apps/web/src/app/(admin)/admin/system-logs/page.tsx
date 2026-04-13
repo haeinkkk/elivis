@@ -24,8 +24,8 @@ export default async function AdminSystemLogsPage({ searchParams }: { searchPara
     const listOnly = await fetchAdminSystemLogs({});
     if (!listOnly) {
         return (
-            <div className="w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-stone-600">{t("loadError")}</p>
+            <div className="w-full rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("loadError")}</p>
             </div>
         );
     }
@@ -33,9 +33,9 @@ export default async function AdminSystemLogsPage({ searchParams }: { searchPara
     if (listOnly.files.length === 0) {
         return (
             <div className="w-full max-w-full space-y-4">
-                <p className="text-sm text-stone-600">{t("intro")}</p>
-                <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                    <p className="text-sm text-stone-600">{t("noFiles")}</p>
+                <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
+                <div className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                    <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("noFiles")}</p>
                 </div>
             </div>
         );
@@ -61,8 +61,8 @@ export default async function AdminSystemLogsPage({ searchParams }: { searchPara
 
     if (!data || !Array.isArray(data.entries)) {
         return (
-            <div className="w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-stone-600">{t("loadError")}</p>
+            <div className="w-full rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-sm">
+                <p className="text-sm text-stone-600 dark:text-elivis-ink-secondary">{t("loadError")}</p>
             </div>
         );
     }

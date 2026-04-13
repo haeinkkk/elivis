@@ -31,13 +31,13 @@ type DetailTarget = null | { kind: "member"; id: string } | { kind: "unassigned"
 function bandBadgeClass(band: WorkloadBand): string {
     switch (band) {
         case "relaxed":
-            return "bg-emerald-100 text-emerald-800 ring-emerald-200";
+            return "bg-emerald-100 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-700/45";
         case "normal":
-            return "bg-sky-100 text-sky-800 ring-sky-200";
+            return "bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-950/50 dark:text-sky-200 dark:ring-sky-700/45";
         case "overload":
-            return "bg-amber-100 text-amber-900 ring-amber-200";
+            return "bg-amber-100 text-amber-900 ring-amber-200 dark:bg-amber-950/55 dark:text-amber-200 dark:ring-amber-700/45";
         default:
-            return "bg-red-100 text-red-800 ring-red-200";
+            return "bg-red-100 text-red-800 ring-red-200 dark:bg-red-950/50 dark:text-red-200 dark:ring-red-700/45";
     }
 }
 
@@ -269,18 +269,18 @@ export function ProjectPerformanceTab({
         <>
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold text-stone-800">{t("title")}</h2>
-                <p className="mt-1 text-sm text-stone-500">{t("subtitle")}</p>
+                <h2 className="text-lg font-semibold text-stone-800 dark:text-elivis-ink">{t("title")}</h2>
+                <p className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("subtitle")}</p>
             </div>
 
             {sortedParticipants.length > 0 ? (
-                <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
-                    <h3 className="text-base font-semibold text-stone-800">{t("memberWorkTableTitle")}</h3>
-                    <p className="mt-1 text-sm text-stone-500">{t("memberWorkTableSubtitle")}</p>
-                    <div className="mt-4 overflow-x-auto rounded-xl border border-stone-100">
+                <section className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 shadow-sm sm:p-6">
+                    <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("memberWorkTableTitle")}</h3>
+                    <p className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary">{t("memberWorkTableSubtitle")}</p>
+                    <div className="mt-4 overflow-x-auto rounded-xl border border-stone-100 dark:border-elivis-line">
                         <table className="w-full min-w-[720px] border-collapse text-left text-sm">
                             <thead>
-                                <tr className="border-b border-stone-200 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                                <tr className="border-b border-stone-200 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-elivis-ink-secondary">
                                     <th scope="col" className="px-4 py-3">
                                         {t("colRole")}
                                     </th>
@@ -310,10 +310,10 @@ export function ProjectPerformanceTab({
                                     return (
                                         <tr
                                             key={p.id}
-                                            className="cursor-pointer border-b border-stone-100 transition-colors last:border-b-0 hover:bg-stone-50/80"
+                                            className="cursor-pointer border-b border-stone-100 transition-colors last:border-b-0 hover:bg-stone-50/80 dark:border-elivis-line dark:hover:bg-elivis-surface-elevated/35"
                                             onClick={() => setDetail({ kind: "member", id: p.id })}
                                         >
-                                            <td className="whitespace-nowrap px-4 py-3 text-stone-700">
+                                            <td className="whitespace-nowrap px-4 py-3 text-stone-700 dark:text-elivis-ink">
                                                 {roleLabel(p.role)}
                                             </td>
                                             <td className="px-4 py-3">
@@ -324,22 +324,22 @@ export function ProjectPerformanceTab({
                                                         avatarUrl={p.avatarUrl ?? null}
                                                         sizeClass="h-8 w-8 text-xs"
                                                     />
-                                                    <span className="font-medium text-stone-900">{p.name}</span>
+                                                    <span className="font-medium text-stone-900 dark:text-elivis-ink">{p.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="max-w-[12rem] truncate px-4 py-3 text-stone-600">
+                                            <td className="max-w-[12rem] truncate px-4 py-3 text-stone-600 dark:text-elivis-ink-secondary">
                                                 {p.userId}
                                             </td>
-                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800 dark:text-elivis-ink">
                                                 {st.assigned}
                                             </td>
-                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800 dark:text-elivis-ink">
                                                 {st.done}
                                             </td>
-                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800 dark:text-elivis-ink">
                                                 {st.inProgress}
                                             </td>
-                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800">
+                                            <td className="px-4 py-3 text-right tabular-nums text-stone-800 dark:text-elivis-ink">
                                                 {st.overdue}
                                             </td>
                                         </tr>
@@ -351,16 +351,16 @@ export function ProjectPerformanceTab({
                 </section>
             ) : null}
 
-            <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
-                <h3 className="text-base font-semibold text-stone-800">{t("workloadTitle")}</h3>
-                <p className="mt-1 text-xs text-stone-500">{t("workloadSubtitle")}</p>
-                <p className="mt-2 font-mono text-[11px] text-stone-400">{t("workloadFormula")}</p>
+            <section className="rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-5 shadow-sm sm:p-6">
+                <h3 className="text-base font-semibold text-stone-800 dark:text-elivis-ink">{t("workloadTitle")}</h3>
+                <p className="mt-1 text-xs text-stone-500 dark:text-elivis-ink-secondary">{t("workloadSubtitle")}</p>
+                <p className="mt-2 font-mono text-[11px] text-stone-400 dark:text-elivis-ink-secondary">{t("workloadFormula")}</p>
 
                 {allTasks.length === 0 ? (
-                    <p className="mt-8 text-center text-sm text-stone-400">{t("noTasks")}</p>
+                    <p className="mt-8 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary">{t("noTasks")}</p>
                 ) : (
                     <>
-                        <p className="mt-6 text-xs text-stone-400">
+                        <p className="mt-6 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                             {t("chartScaleHint", { max: WORKLOAD_CHART_MAX_SCORE })}
                         </p>
 
@@ -374,7 +374,7 @@ export function ProjectPerformanceTab({
                                 return (
                                     <div
                                         key={row.key}
-                                        className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 sm:p-5"
+                                        className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 dark:border-elivis-line dark:bg-elivis-surface-elevated/45 sm:p-5"
                                     >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-6">
                                             {/* 프로필 + 이름 */}
@@ -396,18 +396,18 @@ export function ProjectPerformanceTab({
                                                                         id: row.participant.id,
                                                                     })
                                                                 }
-                                                                className="truncate text-left text-sm font-semibold text-stone-900 underline-offset-2 hover:text-stone-700 hover:underline"
+                                                                className="truncate text-left text-sm font-semibold text-stone-900 underline-offset-2 hover:text-stone-700 hover:underline dark:text-elivis-ink dark:hover:text-elivis-accent-hover"
                                                             >
                                                                 {row.participant.name}
                                                             </button>
-                                                            <p className="truncate text-xs text-stone-400">
+                                                            <p className="truncate text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                                 {row.participant.userId}
                                                             </p>
                                                         </div>
                                                     </>
                                                 ) : (
                                                     <div className="flex items-center gap-3">
-                                                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone-200 text-stone-500">
+                                                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-elivis-surface-elevated text-stone-500 dark:text-elivis-ink-secondary">
                                                             <svg
                                                                 className="h-5 w-5"
                                                                 fill="none"
@@ -427,11 +427,11 @@ export function ProjectPerformanceTab({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setDetail({ kind: "unassigned" })}
-                                                                className="text-left text-sm font-semibold text-stone-800 underline-offset-2 hover:text-stone-700 hover:underline"
+                                                                className="text-left text-sm font-semibold text-stone-800 underline-offset-2 hover:text-stone-700 hover:underline dark:text-elivis-ink dark:hover:text-elivis-accent-hover"
                                                             >
                                                                 {t("unassigned")}
                                                             </button>
-                                                            <p className="text-xs text-stone-400">
+                                                            <p className="text-xs text-stone-400 dark:text-elivis-ink-secondary">
                                                                 {t("unassignedWorkloadNote")}
                                                             </p>
                                                         </div>
@@ -443,10 +443,10 @@ export function ProjectPerformanceTab({
                                             <div className="min-w-0 flex-1 space-y-3">
                                                 <div className="flex flex-wrap items-end justify-between gap-3">
                                                     <div className="flex items-baseline gap-2">
-                                                        <span className="text-3xl font-bold tabular-nums tracking-tight text-stone-900">
+                                                        <span className="text-3xl font-bold tabular-nums tracking-tight text-stone-900 dark:text-elivis-ink">
                                                             {rounded}
                                                         </span>
-                                                        <span className="text-xs font-medium text-stone-400">
+                                                        <span className="text-xs font-medium text-stone-400 dark:text-elivis-ink-secondary">
                                                             {t("scoreUnit")}
                                                         </span>
                                                     </div>
@@ -457,18 +457,18 @@ export function ProjectPerformanceTab({
                                                     </span>
                                                 </div>
                                                 <div className="relative">
-                                                    <div className="h-6 overflow-hidden rounded-lg bg-stone-200/80 shadow-inner">
+                                                    <div className="h-6 overflow-hidden rounded-lg bg-stone-200/80 shadow-inner dark:bg-elivis-line/35 dark:shadow-none">
                                                         <div
                                                             className={`h-full rounded-lg shadow-sm transition-all duration-500 ${bandBarClass(row.band)}`}
                                                             style={{ width: `${pct}%` }}
                                                         />
                                                     </div>
-                                                    <div className="mt-1.5 flex justify-between text-[10px] tabular-nums text-stone-400">
+                                                    <div className="mt-1.5 flex justify-between text-[10px] tabular-nums text-stone-400 dark:text-elivis-ink-secondary">
                                                         <span>0</span>
                                                         <span>{WORKLOAD_CHART_MAX_SCORE}</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm leading-snug text-stone-600">
+                                                <p className="text-sm leading-snug text-stone-600 dark:text-elivis-ink-secondary">
                                                     {t(diagnosisKey(row.band))}
                                                 </p>
                                             </div>

@@ -509,6 +509,13 @@ export const ko = {
                     memberJoined: "{actor}님이 팀에 참여했습니다.",
                     memberLeader: "{actor}님이 팀장으로 지정됐습니다.",
                     projectLinked: '프로젝트 "{name}"가 팀에 연결됐습니다.',
+                    pagination: {
+                        pageSize: "페이지당 표시",
+                        prev: "이전",
+                        next: "다음",
+                        summary:
+                            "{start}–{end}번째 / 총 {total}건 · {page}/{pages}페이지",
+                    },
                 },
                 banner: {
                     title: "팀 배너",
@@ -812,6 +819,7 @@ export const ko = {
             mySettings: "내 설정",
             logout: "로그아웃",
             language: "언어",
+            darkModeAria: "다크 모드",
         },
         sidebar: {
             collapse: "사이드바 접기/숨기기",
@@ -907,6 +915,10 @@ export const ko = {
             groupCount: "{count}개",
             showCompletedTasks: "완료된 업무 보기",
             completedSectionTitle: "완료",
+            sectionsExpandAll: "모두 열기",
+            sectionsExpandAllTitle: "워크스페이스별 구역을 모두 펼칩니다",
+            sectionsCollapseAll: "모두 닫기",
+            sectionsCollapseAllTitle: "워크스페이스별 구역을 모두 접습니다",
         },
         myworkPerformance: {
             title: "전체 실적",
@@ -1003,6 +1015,13 @@ export const ko = {
                     taskCreated: "업무 «{title}»을(를) 추가했습니다.",
                     taskDeleted: "업무 «{title}»을(를) 삭제했습니다.",
                     unknown: "활동 기록",
+                    pagination: {
+                        pageSize: "페이지당 표시",
+                        prev: "이전",
+                        next: "다음",
+                        summary:
+                            "{start}–{end}번째 / 총 {total}건 · {page}/{pages}페이지",
+                    },
                 },
                 backToListAria: "프로젝트 목록으로 돌아가기",
                 defaultDescription: "프로젝트 상세",
@@ -1187,6 +1206,8 @@ export const ko = {
                     request: "요청",
                     requestTaskTitle: "이 업무를 팀원에게 요청",
                     chipAll: "전체",
+                    filterSearchPlaceholder: "검색…",
+                    filterNoResults: "일치하는 항목이 없습니다.",
                 },
                 calendar: {
                     today: "오늘",
@@ -1476,6 +1497,9 @@ export const ko = {
                 timeline: "타임라인",
                 dashboard: "업무 대시보드",
             },
+            aria: {
+                subNav: "워크스페이스 서브메뉴",
+            },
             common: {
                 cancel: "취소",
                 save: "저장",
@@ -1542,6 +1566,12 @@ export const ko = {
                 allPriorities: "전체 우선순위",
                 sort: "정렬",
                 reset: "초기화",
+                filterSearchPlaceholder: "검색…",
+                filterNoResults: "일치하는 항목이 없습니다.",
+                expandAll: "모두 열기",
+                expandAllTitle: "하위 업무 모두 열기",
+                collapseAll: "모두 닫기",
+                collapseAllTitle: "하위 업무 모두 닫기",
             },
             sort: {
                 default: "기본 순",
@@ -1703,6 +1733,8 @@ export const ko = {
                 dropHere: "파일을 여기에 놓으세요",
                 dragOrClick: "여기에 파일을 드래그하거나 클릭하세요",
                 noFiles: "첨부된 파일이 없습니다.",
+                optionSearchPlaceholder: "옵션 검색…",
+                noOptionsMatch: "일치하는 옵션이 없습니다.",
             },
         },
         adminUsers: {

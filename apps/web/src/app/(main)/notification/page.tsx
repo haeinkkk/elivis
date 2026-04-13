@@ -98,10 +98,10 @@ export default function NotificationPage() {
       <div className="mx-auto max-w-3xl">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-stone-800 sm:text-3xl">{tNav("notifications")}</h1>
-            <p className="mt-1 text-sm text-stone-500">
+            <h1 className="text-2xl font-semibold text-stone-800 dark:text-elivis-ink sm:text-3xl">{tNav("notifications")}</h1>
+            <p className="mt-1 text-sm text-stone-500 dark:text-elivis-ink-secondary">
               {unreadCount > 0 ? (
-                <span className="font-medium text-amber-600">
+                <span className="font-medium text-amber-600 dark:text-amber-400">
                   {tNotif("page.unreadCount", { count: unreadCount })}
                 </span>
               ) : (
@@ -114,7 +114,7 @@ export default function NotificationPage() {
               type="button"
               onClick={() => void handleMarkAllRead()}
               disabled={isPending}
-              className="shrink-0 self-start rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50 disabled:opacity-50"
+              className="shrink-0 self-start rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink shadow-sm hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
             >
               {tNotif("markAllRead")}
             </button>
@@ -123,8 +123,8 @@ export default function NotificationPage() {
 
         <div className="mt-6">
           {loading ? (
-            <div className="flex items-center justify-center rounded-2xl border border-stone-100 bg-white py-20">
-              <svg className="h-6 w-6 animate-spin text-stone-300" fill="none" viewBox="0 0 24 24">
+            <div className="flex items-center justify-center rounded-2xl border border-stone-100 dark:border-elivis-line bg-white dark:bg-elivis-surface py-20">
+              <svg className="h-6 w-6 animate-spin text-stone-300 dark:text-elivis-surface-elevated" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path
                   className="opacity-75"
@@ -135,36 +135,40 @@ export default function NotificationPage() {
               <span className="sr-only">{tc("loading")}</span>
             </div>
           ) : displayList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-white/50 py-20 text-center">
-              <svg className="h-12 w-12 text-stone-200" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 dark:border-elivis-line bg-white/50 py-20 text-center dark:bg-elivis-surface/50">
+              <svg className="h-12 w-12 text-stone-200 dark:text-elivis-surface-elevated" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                 />
               </svg>
-              <p className="mt-4 text-stone-400">{tNotif("emptyPage")}</p>
+              <p className="mt-4 text-stone-400 dark:text-elivis-ink-secondary">{tNotif("emptyPage")}</p>
             </div>
           ) : (
             <>
               {page === 1 && liveNotifications.length > 0 && (
-                <p className="mb-2 flex items-center gap-1 text-xs text-stone-400">
+                <p className="mb-2 flex items-center gap-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400" />
                   {tNotif("page.liveConnected")}
                 </p>
               )}
 
-              <ul className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+              <ul className="divide-y divide-stone-100 dark:divide-elivis-line overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm">
                 {displayList.map((n) => (
                   <li
                     key={n.id}
                     className={`flex items-start gap-4 px-5 py-4 transition-colors ${
-                      !n.isRead ? "bg-amber-50/60" : "hover:bg-stone-50/50"
+                      !n.isRead
+                        ? "bg-amber-50/60 dark:bg-amber-950/25"
+                        : "hover:bg-stone-50/50 dark:hover:bg-elivis-surface-elevated/50"
                     }`}
                   >
                     <span
                       className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                        !n.isRead ? "bg-amber-100 text-amber-600" : "bg-stone-100 text-stone-400"
+                        !n.isRead
+                          ? "bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+                          : "bg-stone-100 text-stone-400 dark:bg-elivis-surface-elevated dark:text-elivis-ink-secondary"
                       }`}
                     >
                       <NotificationTypeIcon type={n.type} size="md" />
@@ -173,13 +177,15 @@ export default function NotificationPage() {
                     <div className="min-w-0 flex-1">
                       <p
                         className={`text-sm leading-snug ${
-                          !n.isRead ? "font-semibold text-stone-800" : "font-medium text-stone-600"
+                          !n.isRead
+                            ? "font-semibold text-stone-800 dark:text-elivis-ink"
+                            : "font-medium text-stone-600 dark:text-elivis-ink-secondary"
                         }`}
                       >
                         {n.title}
                       </p>
-                      {n.message && <p className="mt-0.5 text-xs text-stone-500">{n.message}</p>}
-                      <p className="mt-1 text-xs text-stone-400">{timeAgo(n.createdAt)}</p>
+                      {n.message && <p className="mt-0.5 text-xs text-stone-500 dark:text-elivis-ink-secondary">{n.message}</p>}
+                      <p className="mt-1 text-xs text-stone-400 dark:text-elivis-ink-secondary">{timeAgo(n.createdAt)}</p>
                     </div>
 
                     {!n.isRead && (
@@ -188,7 +194,7 @@ export default function NotificationPage() {
                         <button
                           type="button"
                           onClick={() => void handleMarkRead(n.id)}
-                          className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs text-stone-500 hover:bg-stone-50"
+                          className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-2.5 py-1 text-xs text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                         >
                           {tNotif("page.markRead")}
                         </button>
@@ -199,8 +205,8 @@ export default function NotificationPage() {
               </ul>
 
               {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between border-t border-stone-100 pt-4">
-                  <p className="text-sm text-stone-500">
+                <div className="mt-4 flex items-center justify-between border-t border-stone-100 dark:border-elivis-line pt-4">
+                  <p className="text-sm text-stone-500 dark:text-elivis-ink-secondary">
                     {tNotif("page.range", {
                       total,
                       from: (page - 1) * PAGE_SIZE + 1,
@@ -212,7 +218,7 @@ export default function NotificationPage() {
                       type="button"
                       onClick={() => loadPage(page - 1)}
                       disabled={page <= 1 || isPending}
-                      className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-40"
+                      className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-40"
                     >
                       {tNotif("page.prev")}
                     </button>
@@ -224,8 +230,8 @@ export default function NotificationPage() {
                         disabled={isPending}
                         className={`min-w-[2.25rem] rounded-lg px-3 py-2 text-sm font-medium ${
                           page === p
-                            ? "bg-stone-800 text-white"
-                            : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50"
+                            ? "bg-stone-800 text-white dark:bg-elivis-accent dark:text-white"
+                            : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-elivis-line dark:bg-elivis-surface dark:text-elivis-ink dark:hover:bg-elivis-surface-elevated"
                         }`}
                       >
                         {p}
@@ -235,7 +241,7 @@ export default function NotificationPage() {
                       type="button"
                       onClick={() => loadPage(page + 1)}
                       disabled={page >= totalPages || isPending}
-                      className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-40"
+                      className="rounded-lg border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-3 py-2 text-sm text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-40"
                     >
                       {tNotif("page.next")}
                     </button>

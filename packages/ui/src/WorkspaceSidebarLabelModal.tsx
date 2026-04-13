@@ -79,23 +79,23 @@ export function WorkspaceSidebarLabelModal({
             }}
         >
             <div
-                className="w-full max-w-md rounded-2xl border border-stone-200 bg-white shadow-2xl"
+                className="w-full max-w-md rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-2xl"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="workspace-sidebar-label-title"
                 onPointerDown={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-elivis-line px-5 py-4">
                     <h2
                         id="workspace-sidebar-label-title"
-                        className="text-sm font-semibold text-stone-800"
+                        className="text-sm font-semibold text-stone-800 dark:text-elivis-ink"
                     >
                         {t("workspaceDisplayNameTitle")}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                        className="rounded-lg p-1 text-stone-400 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated hover:text-stone-600"
                         aria-label={t("workspaceRenameCancel")}
                     >
                         <svg
@@ -115,9 +115,9 @@ export function WorkspaceSidebarLabelModal({
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-4">
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-stone-500 dark:text-elivis-ink-secondary">
                         {t("workspaceDisplayNameHint")}
-                        <span className="mt-1 block font-medium text-stone-700">
+                        <span className="mt-1 block font-medium text-stone-700 dark:text-elivis-ink">
                             {workspace.project.name}
                         </span>
                     </p>
@@ -125,7 +125,7 @@ export function WorkspaceSidebarLabelModal({
                     <div className="flex flex-col gap-1.5">
                         <label
                             htmlFor="workspace-sidebar-label-input"
-                            className="text-xs font-medium text-stone-600"
+                            className="text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary"
                         >
                             {t("workspaceDisplayNameLabel")}
                         </label>
@@ -136,18 +136,18 @@ export function WorkspaceSidebarLabelModal({
                             onChange={(e) => setLabel(e.target.value)}
                             placeholder={t("workspaceDisplayNamePlaceholder")}
                             maxLength={128}
-                            className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 outline-none ring-stone-300 placeholder:text-stone-400 focus:border-orange-300 focus:ring-2"
+                            className="rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-2 text-sm text-stone-800 dark:text-elivis-ink outline-none ring-stone-300 placeholder:text-stone-400 dark:placeholder:text-elivis-ink-muted focus:border-orange-300 focus:ring-2"
                             autoComplete="off"
                         />
                     </div>
 
-                    {error ? <p className="text-xs text-red-600">{error}</p> : null}
+                    {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
 
                     <div className="flex justify-end gap-2 pt-1">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg px-3 py-2 text-xs font-medium text-stone-600 hover:bg-stone-100"
+                            className="rounded-lg px-3 py-2 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated"
                         >
                             {t("workspaceRenameCancel")}
                         </button>

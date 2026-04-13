@@ -58,18 +58,18 @@ export function ConfirmModal({
                 role="dialog"
                 aria-modal
                 aria-labelledby={titleId}
-                className="relative z-10 w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+                className="relative z-10 w-full max-w-md rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-6 shadow-xl"
             >
-                <h3 id={titleId} className="text-base font-semibold text-stone-800">
+                <h3 id={titleId} className="text-base font-semibold text-stone-800 dark:text-elivis-ink">
                     {title}
                 </h3>
-                <p className="mt-2 text-sm text-stone-600">{description}</p>
+                <p className="mt-2 text-sm text-stone-600 dark:text-elivis-ink-secondary">{description}</p>
                 <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={pending}
-                        className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                        className="rounded-lg border border-stone-200 dark:border-elivis-line px-4 py-2 text-sm font-medium text-stone-700 dark:text-elivis-ink hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated disabled:opacity-50"
                     >
                         {cancelLabel}
                     </button>

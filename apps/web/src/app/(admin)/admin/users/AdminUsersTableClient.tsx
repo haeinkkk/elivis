@@ -80,8 +80,8 @@ function Pagination({ current, total, onChange }: PaginationProps) {
     const pages = getPages();
 
     return (
-        <div className="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-4 py-3 sm:px-6">
-            <p className="shrink-0 text-xs text-stone-500 tabular-nums">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-stone-100 dark:border-elivis-line px-4 py-3 sm:px-6">
+            <p className="shrink-0 text-xs text-stone-500 dark:text-elivis-ink-secondary tabular-nums">
                 {t("paginationPageOf", { current, total })}
             </p>
             <nav className="flex items-center gap-1" aria-label={t("paginationNav")}>
@@ -90,7 +90,7 @@ function Pagination({ current, total, onChange }: PaginationProps) {
                     type="button"
                     onClick={() => onChange(current - 1)}
                     disabled={current === 1}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated disabled:cursor-not-allowed disabled:opacity-30"
                     aria-label={t("paginationPrev")}
                 >
                     <svg
@@ -113,7 +113,7 @@ function Pagination({ current, total, onChange }: PaginationProps) {
                     p === "…" ? (
                         <span
                             key={`ellipsis-${idx}`}
-                            className="flex h-8 w-8 items-center justify-center text-xs text-stone-400"
+                            className="flex h-8 w-8 items-center justify-center text-xs text-stone-400 dark:text-elivis-ink-secondary"
                         >
                             …
                         </span>
@@ -124,8 +124,8 @@ function Pagination({ current, total, onChange }: PaginationProps) {
                             onClick={() => onChange(p as number)}
                             className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors ${
                                 p === current
-                                    ? "bg-stone-800 text-white"
-                                    : "text-stone-600 hover:bg-stone-100"
+                                    ? "bg-stone-800 text-white dark:bg-zinc-600 dark:text-white"
+                                    : "text-stone-600 hover:bg-stone-100 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated"
                             }`}
                             aria-current={p === current ? "page" : undefined}
                         >
@@ -139,7 +139,7 @@ function Pagination({ current, total, onChange }: PaginationProps) {
                     type="button"
                     onClick={() => onChange(current + 1)}
                     disabled={current === total}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary transition-colors hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated disabled:cursor-not-allowed disabled:opacity-30"
                     aria-label={t("paginationNext")}
                 >
                     <svg
@@ -197,11 +197,11 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
         <>
             <div className="w-full max-w-full">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <p className="text-stone-600">{t("intro")}</p>
+                        <p className="text-stone-600 dark:text-elivis-ink-secondary">{t("intro")}</p>
                         <button
                             type="button"
                             onClick={() => setModalOpen(true)}
-                            className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2"
+                            className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl bg-stone-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 dark:bg-elivis-accent-strong dark:hover:bg-elivis-accent-hover"
                         >
                             <svg
                                 className="h-4 w-4"
@@ -220,11 +220,11 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                         </button>
                     </div>
 
-                    <div className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm sm:mt-8">
+                    <div className="mt-6 overflow-hidden rounded-2xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface shadow-sm sm:mt-8">
                         {/* 헤더 */}
-                        <div className="border-b border-stone-100 px-4 py-3 sm:px-6">
-                            <h2 className="text-sm font-semibold text-stone-800">{t("listTitle")}</h2>
-                            <p className="mt-0.5 text-xs text-stone-500">
+                        <div className="border-b border-stone-100 dark:border-elivis-line px-4 py-3 sm:px-6">
+                            <h2 className="text-sm font-semibold text-stone-800 dark:text-elivis-ink">{t("listTitle")}</h2>
+                            <p className="mt-0.5 text-xs text-stone-500 dark:text-elivis-ink-secondary">
                                 {t("listSubtitle", {
                                     count: list.length,
                                     superAdmin: tRole("SUPER_ADMIN"),
@@ -237,7 +237,7 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[960px] text-center text-sm">
                                 <thead>
-                                    <tr className="border-b border-stone-100 bg-stone-50/80 text-xs font-medium text-stone-600">
+                                    <tr className="border-b border-stone-100 dark:border-elivis-line bg-stone-50/80 dark:bg-elivis-surface/80 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary">
                                         <th className="px-4 py-3 sm:px-6">{t("colEmail")}</th>
                                         <th className="px-4 py-3 sm:px-6">{t("colName")}</th>
                                         <th className="px-4 py-3 sm:px-6">{t("colRole")}</th>
@@ -252,12 +252,12 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                         <th className="px-4 py-3 text-right sm:px-6">{t("colManage")}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-stone-100">
+                                <tbody className="divide-y divide-stone-100 dark:divide-elivis-line">
                                     {list.length === 0 ? (
                                         <tr>
                                             <td
                                                 colSpan={8}
-                                                className="py-12 text-center text-sm text-stone-400"
+                                                className="py-12 text-center text-sm text-stone-400 dark:text-elivis-ink-secondary"
                                             >
                                                 {t("empty")}
                                             </td>
@@ -267,16 +267,16 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                             const isSelf = u.id === currentUserId;
                                             const teamCell = teamListText(u, (r) => tTeamRole(r));
                                             return (
-                                                <tr key={u.id} className="text-stone-700">
+                                                <tr key={u.id} className="text-stone-700 dark:text-elivis-ink">
                                                     <td className="max-w-[200px] truncate px-4 py-3 font-medium sm:max-w-none sm:px-6">
                                                         {dashIfEmpty(u.email) === "-" ? (
-                                                            <span className="text-stone-400">
+                                                            <span className="text-stone-400 dark:text-elivis-ink-secondary">
                                                                 -
                                                             </span>
                                                         ) : (
                                                             <Link
                                                                 href={`/admin/users/${u.id}`}
-                                                                className="cursor-pointer text-stone-800 underline-offset-2 hover:text-orange-700 hover:underline"
+                                                                className="cursor-pointer text-stone-800 dark:text-elivis-ink underline-offset-2 hover:text-orange-700 hover:underline dark:hover:text-elivis-accent-hover"
                                                             >
                                                                 {u.email}
                                                             </Link>
@@ -287,7 +287,7 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                                             className={
                                                                 u.name == null ||
                                                                 String(u.name).trim() === ""
-                                                                    ? "text-stone-400"
+                                                                    ? "text-stone-400 dark:text-elivis-ink-secondary"
                                                                     : ""
                                                             }
                                                         >
@@ -295,12 +295,12 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 sm:px-6">
-                                                        <span className="text-xs font-medium text-stone-800">
+                                                        <span className="text-xs font-medium text-stone-800 dark:text-elivis-ink">
                                                             {u.systemRole === "SUPER_ADMIN"
                                                                 ? tRole("SUPER_ADMIN")
                                                                 : tRole("USER")}
                                                             {isSelf ? (
-                                                                <span className="ml-1.5 text-stone-400">
+                                                                <span className="ml-1.5 text-stone-400 dark:text-elivis-ink-secondary">
                                                                     {t("selfSuffix")}
                                                                 </span>
                                                             ) : null}
@@ -308,19 +308,19 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                                     </td>
                                                     <td className="px-4 py-3 sm:px-6">
                                                         {u.accessBlocked ? (
-                                                            <span className="inline-flex items-center rounded-lg bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                                            <span className="inline-flex items-center rounded-lg bg-red-50 dark:bg-red-950/30 px-2 py-0.5 text-xs font-semibold text-red-700 dark:text-red-300">
                                                                 {t("accessSuspendedBadge")}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-stone-300">—</span>
+                                                            <span className="text-stone-300 dark:text-elivis-ink-muted">—</span>
                                                         )}
                                                     </td>
                                                     <td className="max-w-[220px] px-4 py-3 text-left sm:max-w-[260px] sm:px-6">
                                                         <span
                                                             className={
                                                                 teamCell === "-"
-                                                                    ? "text-stone-400"
-                                                                    : "text-stone-700"
+                                                                    ? "text-stone-400 dark:text-elivis-ink-secondary"
+                                                                    : "text-stone-700 dark:text-elivis-ink"
                                                             }
                                                         >
                                                             {teamCell}
@@ -330,20 +330,20 @@ export function AdminUsersTableClient({ users, currentUserId }: AdminUsersTableC
                                                         <span
                                                             className={
                                                                 projectNamesText(u) === "-"
-                                                                    ? "text-stone-400"
+                                                                    ? "text-stone-400 dark:text-elivis-ink-secondary"
                                                                     : ""
                                                             }
                                                         >
                                                             {projectNamesText(u)}
                                                         </span>
                                                     </td>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-stone-600 sm:px-6">
+                                                    <td className="whitespace-nowrap px-4 py-3 text-stone-600 dark:text-elivis-ink-secondary sm:px-6">
                                                         {u.createdAtLabel ?? "-"}
                                                     </td>
                                                     <td className="whitespace-nowrap px-4 py-3 text-right sm:px-6">
                                                         <Link
                                                             href={`/admin/users/${u.id}`}
-                                                            className="text-xs font-medium text-orange-700 underline-offset-2 hover:underline"
+                                                            className="text-xs font-medium text-orange-700 underline-offset-2 hover:underline dark:text-elivis-accent-hover"
                                                         >
                                                             {t("detailLink")}
                                                         </Link>

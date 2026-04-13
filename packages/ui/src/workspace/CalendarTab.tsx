@@ -209,10 +209,10 @@ function DayAddPopup({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
             <div
-                className="w-full max-w-xs rounded-xl border border-stone-200 bg-white p-4 shadow-2xl"
+                className="w-full max-w-xs rounded-xl border border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface p-4 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                <p className="mb-2 text-xs font-semibold text-stone-500">{label}</p>
+                <p className="mb-2 text-xs font-semibold text-stone-500 dark:text-elivis-ink-secondary">{label}</p>
                 <input
                     autoFocus
                     value={title}
@@ -220,11 +220,11 @@ function DayAddPopup({
                     onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
                     placeholder={t("calendar.taskPlaceholder")}
                     disabled={isPending}
-                    className="mb-3 w-full rounded border border-stone-300 px-2 py-1.5 text-sm outline-none focus:border-stone-500"
+                    className="mb-3 w-full rounded border border-stone-300 bg-white px-2 py-1.5 text-sm text-stone-800 outline-none placeholder:text-stone-400 focus:border-stone-500 dark:border-elivis-line dark:bg-elivis-surface-elevated dark:text-elivis-ink dark:placeholder:text-elivis-ink-muted dark:focus:border-elivis-accent"
                 />
                 <div className="flex justify-end gap-1.5">
                     <button type="button" onClick={onClose}
-                        className="rounded px-3 py-1 text-xs text-stone-500 hover:bg-stone-100">{t("calendar.cancel")}</button>
+                        className="rounded px-3 py-1 text-xs text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated">{t("calendar.cancel")}</button>
                     <button type="button" onClick={submit} disabled={isPending || !title.trim()}
                         className="rounded bg-stone-800 px-3 py-1 text-xs text-white hover:bg-stone-700 disabled:opacity-40">{t("calendar.add")}</button>
                 </div>
@@ -283,36 +283,40 @@ export default function CalendarTab({
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {/* ── 헤더 ─────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3 sm:px-5">
+            <div className="flex items-center justify-between border-b border-stone-200 dark:border-elivis-line bg-white dark:bg-elivis-surface px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={prevMonth}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated">
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800">
+                    <span className="min-w-[100px] text-center text-sm font-semibold text-stone-800 dark:text-elivis-ink">
                         {t("calendar.yearMonth", { year, month: MONTH_LABELS[month] })}
                     </span>
                     <button type="button" onClick={nextMonth}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 dark:text-elivis-ink-secondary hover:bg-stone-100 dark:hover:bg-elivis-surface-elevated">
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                 </div>
                 <button type="button" onClick={goToday}
-                    className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50">
+                    className="rounded-lg border border-stone-200 dark:border-elivis-line px-3 py-1 text-xs font-medium text-stone-600 dark:text-elivis-ink-secondary hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated">
                     {t("calendar.today")}
                 </button>
             </div>
 
             {/* ── 요일 헤더 ─────────────────────────────────────────── */}
-            <div className="grid grid-cols-7 border-b border-stone-200 bg-stone-50/60">
+            <div className="grid grid-cols-7 border-b border-stone-200 bg-stone-50/60 dark:border-elivis-line dark:bg-elivis-surface-elevated/35">
                 {DOW_LABELS.map((d, i) => (
                     <div key={d}
                         className={`py-2 text-center text-xs font-medium ${
-                            i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-stone-500"
+                            i === 0
+                                ? "text-red-500 dark:text-red-400"
+                                : i === 6
+                                    ? "text-blue-500 dark:text-blue-400"
+                                    : "text-stone-500 dark:text-elivis-ink-secondary"
                         }`}>
                         {d}
                     </div>
@@ -321,7 +325,7 @@ export default function CalendarTab({
 
             {/* ── 달력 그리드 ────────────────────────────────────────── */}
             <div className="min-h-0 flex-1 overflow-y-auto">
-                <div className="flex flex-col divide-y divide-stone-200">
+                <div className="flex flex-col divide-y divide-stone-200 dark:divide-elivis-line">
                     {weeks.map((weekDays, wi) => {
                         const eventRows = layoutWeekEvents(weekDays, events);
                         // 이벤트 레인 높이: 각 레인 22px + 상하 패딩
@@ -334,24 +338,30 @@ export default function CalendarTab({
                                 style={{ minHeight: "calc(100vw / 7 * 0.55)" }}
                             >
                                 {/* ── 셀 배경 + 날짜 번호 (absolute, 전체 높이 채움) ── */}
-                                <div className="absolute inset-0 grid grid-cols-7 divide-x divide-stone-100">
+                                <div className="absolute inset-0 grid grid-cols-7 divide-x divide-stone-100 dark:divide-elivis-line">
                                     {weekDays.map((day, di) => {
                                         const isCurrentMonth = day.getMonth() === month;
                                         const isToday = isSameDay(day, today);
                                         return (
                                             <div
                                                 key={di}
-                                                className={`group relative cursor-pointer p-2 transition-colors hover:bg-stone-50/80 ${
-                                                    !isCurrentMonth ? "bg-stone-50/40" : "bg-white"
+                                                className={`group relative cursor-pointer p-2 transition-colors hover:bg-stone-50/80 dark:hover:bg-elivis-surface-elevated/50 ${
+                                                    !isCurrentMonth
+                                                        ? "bg-stone-50/40 dark:bg-elivis-bg/40"
+                                                        : "bg-white dark:bg-elivis-surface"
                                                 }`}
                                                 onClick={() => setAddingDay(day)}
                                             >
                                                 <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                                                     isToday
-                                                        ? "bg-stone-800 text-white"
+                                                        ? "bg-stone-800 text-white dark:bg-elivis-accent dark:text-white"
                                                         : isCurrentMonth
-                                                            ? di === 0 ? "text-red-400" : di === 6 ? "text-blue-400" : "text-stone-700"
-                                                            : "text-stone-300"
+                                                            ? di === 0
+                                                                ? "text-red-500 dark:text-red-400"
+                                                                : di === 6
+                                                                    ? "text-blue-500 dark:text-blue-400"
+                                                                    : "text-stone-700 dark:text-elivis-ink"
+                                                            : "text-stone-300 dark:text-elivis-ink-muted"
                                                 }`}>
                                                     {day.getDate()}
                                                 </span>
@@ -359,7 +369,7 @@ export default function CalendarTab({
                                                     type="button"
                                                     title={t("calendar.addTaskAria")}
                                                     onClick={(e) => { e.stopPropagation(); setAddingDay(day); }}
-                                                    className="absolute top-1 right-1 hidden h-5 w-5 items-center justify-center rounded text-stone-400 hover:bg-stone-200 group-hover:flex"
+                                                    className="absolute top-1 right-1 hidden h-5 w-5 items-center justify-center rounded text-stone-400 hover:bg-stone-200 dark:text-elivis-ink-secondary dark:hover:bg-elivis-surface-elevated group-hover:flex"
                                                 >
                                                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

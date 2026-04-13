@@ -84,7 +84,7 @@ export function StatusDropdown({ align = "left", persistStatus }: StatusDropdown
                                 key={st}
                                 type="button"
                                 onClick={() => handleSelect(st)}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-stone-50"
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-stone-50 dark:hover:bg-elivis-surface-elevated"
                             >
                                 <span className={`h-2 w-2 shrink-0 rounded-full ${si.dot}`} />
                                 <span
@@ -94,7 +94,7 @@ export function StatusDropdown({ align = "left", persistStatus }: StatusDropdown
                                 </span>
                                 {isActive && (
                                     <svg
-                                        className="ml-auto h-3 w-3 shrink-0 text-stone-400"
+                                        className="ml-auto h-3 w-3 shrink-0 text-stone-400 dark:text-elivis-ink-secondary"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         strokeWidth={2.5}
