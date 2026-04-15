@@ -5,6 +5,7 @@ import { mkdirSync } from "fs";
 import path from "path";
 
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import Fastify from "fastify";
@@ -159,6 +160,23 @@ async function main() {
   await app.register(cors, {
     origin: corsOrigin.split(",").map((o) => o.trim()),
     credentials: true,
+  });
+
+  // 보안 HTTP 헤더 (CSP, X-Frame-Options, X-Content-Type-Options, CORP 등)
+  // CORP는 기본 same-origin이면 CORS로 다른 포트/도메인 프론트가 응답을 쓰지 못할 수 있어 cross-origin 유지
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        defaultSrc: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    frameguard: { action: "deny" },
+    strictTransportSecurity: process.env.NODE_ENV === "production",
   });
 
   // ── 파일 업로드 ────────────────────────────────────────────────────────────

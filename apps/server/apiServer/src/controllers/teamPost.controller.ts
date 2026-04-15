@@ -2,6 +2,7 @@ import { generatePublicId } from "@repo/database";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import { badRequest, created, forbidden, notFound, ok } from "../utils/response";
+import { sanitizeRichHtml } from "../utils/sanitize-rich-html";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 타입
@@ -110,7 +111,8 @@ export function createTeamPostController(app: FastifyInstance) {
             app.prisma.teamPost.count({ where }),
         ]);
 
-        return reply.send(ok({ posts, total }, "ok"));
+        const postsSafe = posts.map((p) => ({ ...p, content: sanitizeRichHtml(p.content) }));
+        return reply.send(ok({ posts: postsSafe, total }, "ok"));
     }
 
     // ── 게시글 상세 (댓글 포함) ────────────────────────────────────────────────
@@ -141,7 +143,19 @@ export function createTeamPostController(app: FastifyInstance) {
             return reply.code(404).send(notFound("게시글을 찾을 수 없습니다."));
         }
 
-        return reply.send(ok(post, "ok"));
+        return reply.send(
+            ok(
+                {
+                    ...post,
+                    content: sanitizeRichHtml(post.content),
+                    comments: post.comments.map((c) => ({
+                        ...c,
+                        content: sanitizeRichHtml(c.content),
+                    })),
+                },
+                "ok",
+            ),
+        );
     }
 
     // ── 게시글 작성 ────────────────────────────────────────────────────────────
@@ -153,7 +167,9 @@ export function createTeamPostController(app: FastifyInstance) {
         const { title, content, category = "general", attachments = [] } = request.body;
         const userId = request.userId;
 
-        if (!title?.trim() || !content?.trim()) {
+        const rawBody = String(content ?? "").trim();
+        const safeContent = sanitizeRichHtml(content);
+        if (!title?.trim() || !rawBody || !safeContent) {
             return reply.code(400).send(badRequest("제목과 내용은 필수입니다."));
         }
         if (!VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
@@ -170,7 +186,7 @@ export function createTeamPostController(app: FastifyInstance) {
                 teamId,
                 authorId: userId,
                 title: title.trim(),
-                content: content.trim(),
+                content: safeContent,
                 category,
                 attachments: {
                     create: attachments.map((a) => ({
@@ -216,6 +232,13 @@ export function createTeamPostController(app: FastifyInstance) {
             return reply.code(400).send(badRequest("유효하지 않은 카테고리입니다."));
         }
 
+        if (content !== undefined) {
+            const raw = String(content).trim();
+            if (raw && !sanitizeRichHtml(content)) {
+                return reply.code(400).send(badRequest("유효한 내용을 입력해 주세요."));
+            }
+        }
+
         // 첨부파일 교체: 기존 삭제 후 새로 생성
         if (attachments !== undefined) {
             await app.prisma.teamPostAttachment.deleteMany({ where: { postId } });
@@ -225,7 +248,9 @@ export function createTeamPostController(app: FastifyInstance) {
             where: { id: postId },
             data: {
                 ...(title?.trim() ? { title: title.trim() } : {}),
-                ...(content?.trim() ? { content: content.trim() } : {}),
+                ...(content !== undefined && String(content).trim()
+                    ? { content: sanitizeRichHtml(content) }
+                    : {}),
                 ...(category ? { category } : {}),
                 ...(attachments !== undefined
                     ? {
@@ -248,7 +273,12 @@ export function createTeamPostController(app: FastifyInstance) {
             },
         });
 
-        return reply.send(ok({ post: updated }, "수정되었습니다."));
+        return reply.send(
+            ok(
+                { post: { ...updated, content: sanitizeRichHtml(updated.content) } },
+                "수정되었습니다.",
+            ),
+        );
     }
 
     // ── 게시글 삭제 ────────────────────────────────────────────────────────────
@@ -303,7 +333,9 @@ export function createTeamPostController(app: FastifyInstance) {
             },
         });
 
-        return reply.send(ok({ post: updated }, "ok"));
+        return reply.send(
+            ok({ post: { ...updated, content: sanitizeRichHtml(updated.content) } }, "ok"),
+        );
     }
 
     // ── 댓글 작성 ──────────────────────────────────────────────────────────────
@@ -315,7 +347,9 @@ export function createTeamPostController(app: FastifyInstance) {
         const { content, parentId } = request.body;
         const userId = request.userId;
 
-        if (!content?.trim()) {
+        const commentRaw = String(content ?? "").trim();
+        const safeCommentContent = sanitizeRichHtml(content);
+        if (!commentRaw || !safeCommentContent) {
             return reply.code(400).send(badRequest("댓글 내용은 필수입니다."));
         }
 
@@ -344,7 +378,7 @@ export function createTeamPostController(app: FastifyInstance) {
                 postId,
                 authorId: userId,
                 parentId: parentId ?? null,
-                content: content.trim(),
+                content: safeCommentContent,
             },
             include: { author: { select: AUTHOR_SELECT } },
         });

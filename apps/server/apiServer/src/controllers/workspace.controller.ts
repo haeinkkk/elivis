@@ -8,6 +8,7 @@ import { t } from "@repo/i18n";
 
 import { MSG } from "../utils/messages";
 import { badRequest, conflict, forbidden, notFound, ok, created } from "../utils/response";
+import { sanitizeRichHtml } from "../utils/sanitize-rich-html";
 import { publishNotification } from "../utils/notify";
 import { recordHistory } from "../services/history.service";
 
@@ -1003,7 +1004,11 @@ export function createWorkspaceController(app: FastifyInstance) {
                 user: { select: { id: true, name: true, email: true, avatarUrl: true } },
             },
         });
-        return reply.send(ok(comments, "댓글 목록입니다."));
+        const commentsSafe = comments.map((c: { content: string }) => ({
+            ...c,
+            content: sanitizeRichHtml(c.content),
+        }));
+        return reply.send(ok(commentsSafe, "댓글 목록입니다."));
     }
 
     /** POST /api/workspaces/:workspaceId/tasks/:taskId/comments */
@@ -1013,9 +1018,10 @@ export function createWorkspaceController(app: FastifyInstance) {
     ) {
         const { workspaceId, taskId } = request.params;
         const lang = request.lang;
-        const content = String(request.body?.content ?? "").trim();
+        const raw = String(request.body?.content ?? "").trim();
+        const content = sanitizeRichHtml(request.body?.content);
 
-        if (!content) {
+        if (!raw || !content) {
             return reply.code(400).send(badRequest("댓글 내용을 입력해 주세요."));
         }
 
@@ -1222,7 +1228,11 @@ export function createWorkspaceController(app: FastifyInstance) {
                 user: { select: { id: true, name: true, email: true, avatarUrl: true } },
             },
         });
-        return reply.send(ok(notes, "노트 목록입니다."));
+        const notesSafe = notes.map((n: { content: string }) => ({
+            ...n,
+            content: sanitizeRichHtml(n.content),
+        }));
+        return reply.send(ok(notesSafe, "노트 목록입니다."));
     }
 
     /** POST /api/workspaces/:workspaceId/tasks/:taskId/notes */
@@ -1232,9 +1242,10 @@ export function createWorkspaceController(app: FastifyInstance) {
     ) {
         const { workspaceId, taskId } = request.params;
         const lang = request.lang;
-        const content = String(request.body?.content ?? "").trim();
+        const raw = String(request.body?.content ?? "").trim();
+        const content = sanitizeRichHtml(request.body?.content);
 
-        if (!content) {
+        if (!raw || !content) {
             return reply.code(400).send(badRequest("노트 내용을 입력해 주세요."));
         }
 
